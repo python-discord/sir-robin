@@ -5,3 +5,6 @@
 ![Header](sir-robin-banner.png)
 
 Our event bot, for managing community events.
+
+[5]: https://raw.githubusercontent.com/python-discord/branding/main/logos/badge/badge_github.svg
+[6]: https://discord.gg/python
