@@ -1,0 +1,90 @@
+policy:
+  approval:
+    - and:
+      - core dev or events lead
+      - staff or contributor
+  - devops
+  - devops (manual)
+  - do not merge
+
+  # Rules for disapproving
+  disapproval:
+    options:
+      # Both disapproving and approving should be handled through the GitHub UI
+      methods:
+        disapprove:
+          github_review: true
+
+        revoke:
+          github_review: true
+
+    # Any python-discord organisation member can leave a disapproving review
+    requires:
+      organizations: ["python-discord"]
+
+
+approval_rules:
+- name: core dev or events lead
+  description: One approval from a Python Discord Core Developer or the Events Lead
+  requires:
+    count: 1
+    users:
+    - "janine9vn"
+    teams:
+    - "python-discord/core-developers"
+  options:
+    ignore_update_merges: true
+- name: staff or contributor
+  description: Two members of the staff or contributors team must leave an approval
+  requires:
+    count: 2
+    organizations: ["python-discord"]
+    users:
+      - ByteCommander
+      - mathsman5133
+      - slushiegoose
+      - F4zii
+      - kingdom5500
+      - hedyhli
+      - Refisio
+      - riffautae
+      - doublevcodes
+  options:
+    ignore_update_merges: true
+- name: devops
+  description: If CI or Dockerfiles are changed then the DevOps team must be requested for a review
+  requires:
+    count: 1
+    teams:
+    - "python-discord/devops"
+  if:
+    changed_files:
+      paths:
+        - ".github/workflows/*"
+        - "Dockerfile"
+  options:
+    request_review:
+      enabled: true
+      mode: teams
+    ignore_update_merges: true
+- name: devops (manual)
+  description: 'A manual request with the "review: needs devops" label'
+  requires:
+    count: 1
+    teams:
+    - "python-discord/devops"
+  if:
+    has_labels:
+      - "review: needs devops"
+  options:
+    request_review:
+      enabled: true
+      mode: teams
+    ignore_update_merges: true
+- name: do not merge
+  description: "If the 'review: do not merge' tag is applied, merging is blocked"
+  requires:
+    count: 1
+    users: ["ghost"]  # We need a rule that cannot complete
+  if:
+    has_labels: ["review: do not merge"]
