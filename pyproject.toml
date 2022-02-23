@@ -9,7 +9,6 @@ python = "^3.9"
 disnake = "^2.4.0"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
 flake8 = "^4.0.1"
 flake8-annotations = "^2.7.0"
 flake8-bugbear = "^22.1.11"
