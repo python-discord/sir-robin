@@ -1,18 +1,18 @@
 import logging
 import os
-from pathlib import Path
 
 import disnake
-from dotenv import load_dotenv
 from disnake.ext import commands
-
 
 logger = logging.getLogger(__name__)
 
-path = Path(__file__)
-parent = path.parents[1]
-load_dotenv(parent.joinpath(".env"))
-DEV_LOG = os.environ.get("DEV_LOG")
+try:
+    import dotenv
+    dotenv.load_dotenv()
+except ModuleNotFoundError:
+    pass
+
+DEV_LOG_CHANNEL = os.environ.get("DEV_LOG_CHANNEL")
 TOKEN = os.environ.get("TOKEN")
 
 
@@ -22,7 +22,7 @@ class SirRobin(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = "Sir-Robin"
-        self.dev_log = int(DEV_LOG)
+        self.dev_log = int(DEV_LOG_CHANNEL)
 
     def add_cog(self, cog: commands.Cog) -> None:
         """Delegate to super to register `cog`.
@@ -33,7 +33,7 @@ class SirRobin(commands.Bot):
         logger.info(f"Cog loaded: {cog.qualified_name}")
 
 
-bot = SirRobin(command_prefix="&", DEV_LOG=DEV_LOG)
+bot = SirRobin(command_prefix="&", DEV_LOG=DEV_LOG_CHANNEL)
 
 
 @bot.event

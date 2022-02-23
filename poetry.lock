@@ -63,7 +63,7 @@ tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>
 name = "cfgv"
 version = "3.3.1"
 description = "Validate configuration and produce human readable error messages."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6.1"
 
@@ -107,7 +107,7 @@ voice = ["PyNaCl (>=1.3.0,<1.5)"]
 name = "distlib"
 version = "0.3.4"
 description = "Distribution utilities"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -115,7 +115,7 @@ python-versions = "*"
 name = "filelock"
 version = "3.6.0"
 description = "A platform independent file lock."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 
@@ -127,7 +127,7 @@ testing = ["covdefaults (>=1.2.0)", "coverage (>=4)", "pytest (>=4)", "pytest-co
 name = "flake8"
 version = "4.0.1"
 description = "the modular source code checker: pep8 pyflakes and co"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 
@@ -140,7 +140,7 @@ pyflakes = ">=2.4.0,<2.5.0"
 name = "flake8-annotations"
 version = "2.7.0"
 description = "Flake8 Type Annotation Checks"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6.2,<4.0.0"
 
@@ -151,7 +151,7 @@ flake8 = ">=3.7,<5.0"
 name = "flake8-bugbear"
 version = "22.1.11"
 description = "A plugin for flake8 finding likely bugs and design problems in your program. Contains warnings that don't belong in pyflakes and pycodestyle."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 
@@ -166,7 +166,7 @@ dev = ["coverage", "hypothesis", "hypothesmith (>=0.2)", "pre-commit"]
 name = "flake8-docstrings"
 version = "1.6.0"
 description = "Extension for flake8 which uses pydocstyle to check docstrings"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -178,7 +178,7 @@ pydocstyle = ">=2.1"
 name = "flake8-isort"
 version = "4.1.1"
 description = "flake8 plugin that integrates isort ."
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -194,7 +194,7 @@ test = ["pytest-cov"]
 name = "flake8-polyfill"
 version = "1.0.2"
 description = "Polyfill package for Flake8 plugins"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -205,7 +205,7 @@ flake8 = "*"
 name = "flake8-string-format"
 version = "0.3.0"
 description = "string format checker, plugin for flake8"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -216,7 +216,7 @@ flake8 = "*"
 name = "flake8-tidy-imports"
 version = "4.6.0"
 description = "A flake8 plugin that helps you write tidier imports."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 
@@ -227,7 +227,7 @@ flake8 = ">=3.8.0"
 name = "flake8-todo"
 version = "0.7"
 description = "TODO notes checker, plugin for flake8"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -246,7 +246,7 @@ python-versions = ">=3.7"
 name = "identify"
 version = "2.4.11"
 description = "File identification library for Python"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 
@@ -265,7 +265,7 @@ python-versions = ">=3.5"
 name = "isort"
 version = "5.10.1"
 description = "A Python utility / library to sort Python imports."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6.1,<4.0"
 
@@ -279,7 +279,7 @@ plugins = ["setuptools"]
 name = "mccabe"
 version = "0.6.1"
 description = "McCabe checker, plugin for flake8"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -303,7 +303,7 @@ python-versions = ">=3.7"
 name = "nodeenv"
 version = "1.6.0"
 description = "Node.js virtual environment builder"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -322,7 +322,7 @@ pyparsing = ">=2.0.2,<3.0.5 || >3.0.5"
 name = "pep8-naming"
 version = "0.12.1"
 description = "Check PEP-8 naming conventions, plugin for flake8"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -334,7 +334,7 @@ flake8-polyfill = ">=1.0.2,<2"
 name = "platformdirs"
 version = "2.5.1"
 description = "A small Python module for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 
@@ -357,7 +357,7 @@ dev = ["pre-commit", "tox"]
 name = "pre-commit"
 version = "2.17.0"
 description = "A framework for managing and maintaining multi-language pre-commit hooks."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6.1"
 
@@ -381,7 +381,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 name = "pycodestyle"
 version = "2.8.0"
 description = "Python style guide checker"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
@@ -389,7 +389,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 name = "pydocstyle"
 version = "6.1.1"
 description = "Python docstring style checker"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 
@@ -403,7 +403,7 @@ toml = ["toml"]
 name = "pyflakes"
 version = "2.4.0"
 description = "passive checker of Python programs"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
@@ -444,7 +444,7 @@ testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "requests", "xm
 name = "python-dotenv"
 version = "0.19.2"
 description = "Read key-value pairs from a .env file and set them as environment variables"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.5"
 
@@ -455,7 +455,7 @@ cli = ["click (>=5.0)"]
 name = "pyyaml"
 version = "6.0"
 description = "YAML parser and emitter for Python"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 
@@ -463,7 +463,7 @@ python-versions = ">=3.6"
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
 
@@ -471,7 +471,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
 name = "snowballstemmer"
 version = "2.2.0"
 description = "This package provides 29 stemmers for 28 languages generated from Snowball algorithms."
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -479,7 +479,7 @@ python-versions = "*"
 name = "testfixtures"
 version = "6.18.3"
 description = "A collection of helpers and mock objects for unit tests and doc tests."
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -492,7 +492,7 @@ test = ["pytest (>=3.6)", "pytest-cov", "pytest-django", "zope.component", "sybi
 name = "toml"
 version = "0.10.2"
 description = "Python Library for Tom's Obvious, Minimal Language"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 
@@ -500,7 +500,7 @@ python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 name = "virtualenv"
 version = "20.13.1"
 description = "Virtual Python Environment builder"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 
@@ -537,7 +537,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "12ab3f842ca2e967aedc03c94154cac1833251cf104d2d6ff6c8b327f46acd41"
+content-hash = "a6d6c14047014367dab3ab248da020289cd733db78b4440bc5cf4719fd20305a"
 
 [metadata.files]
 aiohttp = [
