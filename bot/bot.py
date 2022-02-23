@@ -17,9 +17,7 @@ TOKEN = os.environ.get("TOKEN")
 
 
 class SirRobin(commands.Bot):
-    """
-    Sir-Robin core.
-    """
+    """Sir-Robin core."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -27,8 +25,8 @@ class SirRobin(commands.Bot):
         self.dev_log = int(DEV_LOG)
 
     def add_cog(self, cog: commands.Cog) -> None:
-        """
-        Delegate to super to register `cog`.
+        """Delegate to super to register `cog`.
+
         This only serves to make the info log, so that extensions don't have to.
         """
         super().add_cog(cog)
