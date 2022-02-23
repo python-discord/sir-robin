@@ -1,12 +1,13 @@
+import logging
 import os
 from pathlib import Path
 
 import disnake
 from dotenv import load_dotenv
-from loguru import logger
 from disnake.ext import commands
 
-from util.constants import walk_extensions
+
+logger = logging.getLogger(__name__)
 
 path = Path(__file__)
 parent = path.parents[1]
@@ -17,12 +18,12 @@ TOKEN = os.environ.get("TOKEN")
 
 class SirRobin(commands.Bot):
     """
-    Bradbot core.
+    Sir-Robin core.
     """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.name = "Bradbot"
+        self.name = "Sir-Robin"
         self.dev_log = int(DEV_LOG)
 
     def add_cog(self, cog: commands.Cog) -> None:
@@ -46,13 +47,6 @@ async def on_ready():
     embed = disnake.Embed(title="Sir Robin", description="Sir Robin online")
     embed.set_author(name=bot.name, icon_url=icon)
     await devlog.send(embed=embed)
-
-
-for ext in walk_extensions():
-    try:
-        bot.load_extension(ext)
-    except commands.errors.NoEntryPointError:
-        pass
 
 
 bot.run(TOKEN)

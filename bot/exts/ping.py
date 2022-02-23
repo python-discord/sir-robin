@@ -1,10 +1,14 @@
-from loguru import logger
+import logging
+
 from disnake import Embed
-from nextcord.ext import commands
+from disnake.ext import commands
+
+
+logger = logging.getLogger(__name__)
 
 
 class Ping(commands.Cog):
-    "Send an embed about the bot's ping."
+    """Send an embed about the bot's ping."""
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
