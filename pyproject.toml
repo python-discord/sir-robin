@@ -2,7 +2,7 @@
 name = "sir-robin"
 version = "0.1.0"
 description = ""
-authors = [Python Discord <info@pythondiscord.com>"]
+authors = ["Python Discord <info@pythondiscord.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
