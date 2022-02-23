@@ -1,0 +1,31 @@
+version: "3.7"
+
+x-restart-policy: &restart_policy
+  restart: unless-stopped
+
+services:
+  sir-lancebot:
+    << : *restart_policy
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sir-robin
+    init: true
+    tty: true
+
+    depends_on:
+      - redis
+
+    environment:
+      - REDIS_HOST=redis
+    env_file:
+      - .env
+
+    volumes:
+      - .:/bot
+
+  redis:
+    << : *restart_policy
+    image: redis:latest
+    ports:
+      - "127.0.0.1:6379:6379"
