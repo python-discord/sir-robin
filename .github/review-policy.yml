@@ -1,8 +1,8 @@
 policy:
   approval:
-    - and:
-      - core dev or events lead
-      - staff or contributor
+  - and:
+    - core dev or events lead
+    - staff or contributor
   - devops
   - devops (manual)
   - do not merge
