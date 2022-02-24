@@ -4,7 +4,7 @@ import os
 import disnake
 from disnake.ext import commands
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 try:
     import dotenv
@@ -30,7 +30,7 @@ class SirRobin(commands.Bot):
         This only serves to make the info log, so that extensions don't have to.
         """
         super().add_cog(cog)
-        logger.info(f"Cog loaded: {cog.qualified_name}")
+        log.info(f"Cog loaded: {cog.qualified_name}")
 
 
 bot = SirRobin(command_prefix="&", DEV_LOG=DEV_LOG_CHANNEL)
@@ -38,13 +38,10 @@ bot = SirRobin(command_prefix="&", DEV_LOG=DEV_LOG_CHANNEL)
 
 @bot.event
 async def on_ready():
-    logger.info("'on_ready' event hit")
+    log.info("'on_ready' event hit")
     devlog = bot.get_channel(bot.dev_log)  # noqa: F841
     icon = bot.user.display_avatar.url
 
     embed = disnake.Embed(title="Sir Robin", description="Sir Robin online")
     embed.set_author(name=bot.name, icon_url=icon)
     await devlog.send(embed=embed)
-
-
-bot.run(TOKEN)
