@@ -15,9 +15,10 @@ ignore=
     # Type Annotations
     ANN002,ANN003,ANN101,ANN102,ANN204,ANN206,
     # Binary operators over multiple lines
-    W504,
+    W503,
 exclude=
     __pycache__,.cache,
+    .gitignore, .gitattributes,
     venv,.venv,
 per-file-ignores =
     # Don't require docstrings in constants
