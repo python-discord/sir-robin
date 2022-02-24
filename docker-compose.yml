@@ -4,7 +4,7 @@ x-restart-policy: &restart_policy
   restart: unless-stopped
 
 services:
-  sir-lancebot:
+  sir-robin:
     << : *restart_policy
     build:
       context: .
