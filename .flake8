@@ -19,7 +19,6 @@ ignore=
 exclude=
     __pycache__,.cache,
     venv,.venv,
-    tests,
 per-file-ignores =
     # Don't require docstrings in constants
     constants.py:D101
