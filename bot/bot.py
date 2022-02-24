@@ -1,11 +1,7 @@
-import logging
-
 from disnake.ext import commands
 
 from bot import constants
-
-log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
+from bot.log import log
 
 
 class SirRobin(commands.Bot):

@@ -1,8 +1,5 @@
-import logging
 from os import environ
 from typing import NamedTuple
-
-log = logging.getLogger(__name__)
 
 
 class Channels(NamedTuple):
