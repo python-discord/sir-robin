@@ -4,8 +4,6 @@ from typing import NamedTuple
 
 log = logging.getLogger(__name__)
 
-SIR_ROBIN_PREFIX = "&"
-
 
 class Channels(NamedTuple):
     advent_of_code = int(environ.get("AOC_CHANNEL_ID", 897932085766004786))

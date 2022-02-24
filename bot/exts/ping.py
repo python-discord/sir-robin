@@ -3,14 +3,16 @@ import logging
 from disnake import Embed
 from disnake.ext import commands
 
+from bot.bot import SirRobin
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class Ping(commands.Cog):
     """Send an embed about the bot's ping."""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: SirRobin):
         self.bot = bot
 
     @commands.command(name="ping")
@@ -25,6 +27,6 @@ class Ping(commands.Cog):
         await ctx.send(embed=embed)
 
 
-def setup(bot: commands.Bot) -> None:
+def setup(bot: SirRobin) -> None:
     """Load the Ping cog."""
     bot.add_cog(Ping(bot))

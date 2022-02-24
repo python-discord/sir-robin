@@ -5,6 +5,7 @@ from disnake.ext import commands
 from bot import constants
 
 log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
 
 
 class SirRobin(commands.Bot):
@@ -20,4 +21,4 @@ class SirRobin(commands.Bot):
         log.info(f"Cog loaded: {cog.qualified_name}")
 
 
-bot = SirRobin(command_prefix=constants.SIR_ROBIN_PREFIX)
+bot = SirRobin(command_prefix=constants.Client.prefix)
