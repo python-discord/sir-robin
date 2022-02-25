@@ -14,4 +14,5 @@ class Client(NamedTuple):
     token = environ.get("BOT_TOKEN")
     debug = environ.get("BOT_DEBUG", "true").lower() == "true"
     in_ci = environ.get("IN_CI", "false").lower() == "true"
+    use_fake_redis = environ.get("USE_FAKEREDIS", "false").lower() == "true"
     github_bot_repo = "https://github.com/python-discord/sir-robin"
