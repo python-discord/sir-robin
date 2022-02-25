@@ -1,0 +1,22 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.1.0
+    hooks:
+    -   id: check-yaml
+        args: [--unsafe]
+    -   id: end-of-file-fixer
+    -   id: trailing-whitespace
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.10.1
+    hooks:
+      - id: isort
+        name: isort (python)
+  - repo: local
+    hooks:
+      - id: flake8
+        name: Flake8
+        description: This hook runs flake8 within our project's environment.
+        entry: poetry run flake8
+        language: system
+        types: [python]
+        require_serial: true
