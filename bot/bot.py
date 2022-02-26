@@ -1,4 +1,6 @@
 from botcore.utils.logging import get_logger
+
+import disnake
 from disnake.ext import commands
 
 from bot import constants
@@ -19,4 +21,4 @@ class SirRobin(commands.Bot):
         log.info(f"Cog loaded: {cog.qualified_name}")
 
 
-bot = SirRobin(command_prefix=constants.Client.prefix)
+bot = SirRobin(command_prefix=constants.Client.prefix, activity=disnake.Game("The Not-Quite-So-Bot-as-Sir-Lancebot"))
