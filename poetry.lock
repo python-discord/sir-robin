@@ -52,6 +52,20 @@ tests = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)"
 tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "cloudpickle"]
 
 [[package]]
+name = "bot-core"
+version = "2.0.0"
+description = "Bot-Core provides the core functionality and utilities for the bots of the Python Discord community."
+category = "main"
+optional = false
+python-versions = "3.9.*"
+
+[package.dependencies]
+disnake = ">=2,<3"
+
+[package.source]
+type = "url"
+url = "https://github.com/python-discord/bot-core/archive/5593a0c95e2b4fd9515c8875ea6e51c0ab88eb00.zip"
+[[package]]
 name = "cfgv"
 version = "3.3.1"
 description = "Validate configuration and produce human readable error messages."
@@ -441,8 +455,8 @@ multidict = ">=4.0"
 
 [metadata]
 lock-version = "1.1"
-python-versions = "^3.9"
-content-hash = "754c901be5a63e8367ed71a83a969cfbecf06146e1e29c8c9a8143b83d22b7f7"
+python-versions = "3.9.*"
+content-hash = "40dcf4f2565a39256b8e6e7fbce5d14dec4d1732f8274c9591a060e5feb9b79a"
 
 [metadata.files]
 aiohttp = [
@@ -531,6 +545,7 @@ attrs = [
     {file = "attrs-21.4.0-py2.py3-none-any.whl", hash = "sha256:2d27e3784d7a565d36ab851fe94887c5eccd6a463168875832a1be79c82828b4"},
     {file = "attrs-21.4.0.tar.gz", hash = "sha256:626ba8234211db98e869df76230a137c4c40a12d72445c45d5f5b716f076e2fd"},
 ]
+bot-core = []
 cfgv = [
     {file = "cfgv-3.3.1-py2.py3-none-any.whl", hash = "sha256:c6a0883f3917a037485059700b9e75da2464e6c27051014ad85ba6aaa5884426"},
     {file = "cfgv-3.3.1.tar.gz", hash = "sha256:f5a830efb9ce7a445376bb66ec94c638a9787422f96264c98edc6bdeed8ab736"},

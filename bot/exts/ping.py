@@ -1,8 +1,10 @@
+from botcore.utils.logging import get_logger
 from disnake import Embed
 from disnake.ext import commands
 
 from bot.bot import SirRobin
-from bot.log import log
+
+log = get_logger(__name__)
 
 
 class Ping(commands.Cog):
