@@ -1,6 +1,5 @@
-from botcore.utils.logging import get_logger
-
 import disnake
+from botcore.utils.logging import get_logger
 from disnake.ext import commands
 
 from bot import constants
