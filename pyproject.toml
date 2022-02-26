@@ -5,8 +5,9 @@ description = ""
 authors = ["Python Discord <info@pythondiscord.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "3.9.*"
 disnake = "^2.4.0"
+bot-core = {url = "https://github.com/python-discord/bot-core/archive/5593a0c95e2b4fd9515c8875ea6e51c0ab88eb00.zip"}
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"

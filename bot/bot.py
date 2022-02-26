@@ -1,7 +1,9 @@
+from botcore.utils.logging import get_logger
 from disnake.ext import commands
 
 from bot import constants
-from bot.log import log
+
+log = get_logger(__name__)
 
 
 class SirRobin(commands.Bot):
