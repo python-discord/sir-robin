@@ -4,6 +4,7 @@ from typing import NamedTuple
 
 class Channels(NamedTuple):
     bot_commands = 267659945086812160
+    devlog = int(environ.get("CHANNEL_DEVLOG", 622895325144940554))
     sir_lancebot_playground = int(environ.get("CHANNEL_COMMUNITY_BOT_COMMANDS", 607247579608121354))
 
 
