@@ -2,6 +2,7 @@ import asyncio
 
 import disnake
 from botcore.utils.logging import get_logger
+from botcore.utils.scheduling import create_task
 from disnake.ext import commands
 
 from bot import constants
@@ -16,8 +17,8 @@ class SirRobin(commands.Bot):
         super().__init__(**kwargs)
         self.name = "Sir-Robin"
         self._guild_available = asyncio.Event()
-        self.loop.create_task(self.check_channels())
-        self.loop.create_task(self.send_log(self.name, "Connected!"))
+        create_task(self.check_channels(), event_loop=self.loop)
+        create_task(self.send_log(self.name, "Connected!"), event_loop=self.loop)
 
     def add_cog(self, cog: commands.Cog) -> None:
         """
