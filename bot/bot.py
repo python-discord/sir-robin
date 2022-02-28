@@ -15,10 +15,9 @@ class SirRobin(commands.Bot):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.name = "Sir-Robin"
         self._guild_available = asyncio.Event()
         create_task(self.check_channels(), event_loop=self.loop)
-        create_task(self.send_log(self.name, "Connected!"), event_loop=self.loop)
+        create_task(self.send_log(constants.Client.name, "Connected!"), event_loop=self.loop)
 
     def add_cog(self, cog: commands.Cog) -> None:
         """
