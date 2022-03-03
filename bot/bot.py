@@ -1,5 +1,8 @@
 import asyncio
+import socket
+from typing import Optional
 
+import aiohttp
 import disnake
 from botcore.utils.logging import get_logger
 from botcore.utils.scheduling import create_task
@@ -16,6 +19,7 @@ class SirRobin(commands.Bot):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._guild_available = asyncio.Event()
+        self.http_session: Optional[aiohttp.ClientSession] = None
         create_task(self.check_channels(), event_loop=self.loop)
         create_task(self.send_log(constants.Client.name, "Connected!"), event_loop=self.loop)
 
@@ -96,5 +100,37 @@ class SirRobin(commands.Bot):
         """
         await self._guild_available.wait()
 
+    async def login(self, *args, **kwargs) -> None:
+        """Re-create the connector and set up sessions before logging into Discord."""
+        # Use asyncio for DNS resolution instead of threads so threads aren't spammed.
+        self._resolver = aiohttp.AsyncResolver()
 
-bot = SirRobin(command_prefix=constants.Client.prefix, activity=disnake.Game("The Not-Quite-So-Bot-as-Sir-Lancebot"))
+        # Use AF_INET as its socket family to prevent HTTPS related problems both locally
+        # and in production.
+        self._connector = aiohttp.TCPConnector(
+            resolver=self._resolver,
+            family=socket.AF_INET,
+        )
+
+        # Client.login() will call HTTPClient.static_login() which will create a session using
+        # this connector attribute.
+        self.http.connector = self._connector
+
+        self.http_session = aiohttp.ClientSession(connector=self._connector)
+
+        await super().login(*args, **kwargs)
+
+
+intents = disnake.Intents.all()
+intents.presences = False
+intents.dm_typing = False
+intents.dm_reactions = False
+intents.invites = False
+intents.webhooks = False
+intents.integrations = False
+
+bot = SirRobin(
+    command_prefix=constants.Client.prefix,
+    activity=disnake.Game("The Not-Quite-So-Bot-as-Sir-Lancebot"),
+    intents=intents
+)

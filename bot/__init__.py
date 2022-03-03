@@ -1,3 +1,6 @@
+import asyncio
+import os
+
 from botcore.utils.logging import get_logger
 from botcore.utils.monkey_patches import apply_monkey_patches
 
@@ -11,6 +14,10 @@ try:
     load_dotenv(override=True)
 except ModuleNotFoundError:
     pass
+
+# On Windows, the selector event loop is required for aiodns.
+if os.name == "nt":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
 setup_logging()
