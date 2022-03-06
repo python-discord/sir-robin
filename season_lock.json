@@ -8,5 +8,15 @@
       "month": 1,
       "day": 30
     }
+  },
+  "aoc_link": {
+    "start": {
+      "month": 11,
+      "day": 1
+    },
+    "end": {
+      "month": 1,
+      "day": 30
+    }
   }
 }
