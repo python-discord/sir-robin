@@ -6,8 +6,8 @@ authors = ["Python Discord <info@pythondiscord.com>"]
 
 [tool.poetry.dependencies]
 python = "3.9.*"
-disnake = "^2.4.0"
-bot-core = {url = "https://github.com/python-discord/bot-core/archive/5593a0c95e2b4fd9515c8875ea6e51c0ab88eb00.zip"}
+"discord.py" = {url = "https://github.com/Rapptz/discord.py/archive/beafaa8a8b8006357c2a1ca6802ed80e000f4cda.zip"}
+bot-core = {url = "https://github.com/python-discord/bot-core/archive/refs/tags/v4.0.0.zip"}
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"

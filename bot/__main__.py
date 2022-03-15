@@ -1,12 +1,13 @@
-from botcore.utils.extensions import walk_extensions
+import asyncio
 
-from bot import exts
 from bot.bot import bot
 from bot.constants import Client
 
-for extension in walk_extensions(exts):
-    bot.load_extension(extension)
-
-
 if not Client.in_ci:
-    bot.run(Client.token)
+    async def main() -> None:
+        """Entry Async method for starting the bot."""
+        async with bot:
+            bot._guild_available = asyncio.Event()
+            await bot.start(Client.token)
+
+    asyncio.run(main())

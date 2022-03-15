@@ -1,6 +1,6 @@
 from botcore.utils.logging import get_logger
-from disnake import Embed
-from disnake.ext import commands
+from discord import Embed
+from discord.ext import commands
 
 from bot.bot import SirRobin
 
@@ -25,6 +25,6 @@ class Ping(commands.Cog):
         await ctx.send(embed=embed)
 
 
-def setup(bot: SirRobin) -> None:
+async def setup(bot: SirRobin) -> None:
     """Load the Ping cog."""
-    bot.add_cog(Ping(bot))
+    await bot.add_cog(Ping(bot))
