@@ -14,7 +14,7 @@ class Categories(NamedTuple):
 
 
 class Emojis(NamedTuple):
-    check_mark = ":white_check_mark:"
+    check_mark = "\u2705"
 
 
 class Roles(NamedTuple):

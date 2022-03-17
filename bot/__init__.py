@@ -1,8 +1,8 @@
 import asyncio
 import os
 
+from botcore.utils import apply_monkey_patches
 from botcore.utils.logging import get_logger
-from botcore.utils.monkey_patches import apply_monkey_patches
 
 from bot.log import setup_logging
 

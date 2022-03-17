@@ -15,7 +15,7 @@ def setup_logging() -> None:
     ch.setFormatter(format_string)
     root_log.addHandler(ch)
 
-    get_logger("disnake").setLevel(logging.WARNING)
+    get_logger("discord").setLevel(logging.WARNING)
 
     # Set back to the default of INFO even if asyncio's debug mode is enabled.
     get_logger("asyncio").setLevel(logging.INFO)

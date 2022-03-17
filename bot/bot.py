@@ -3,12 +3,13 @@ import socket
 from typing import Optional
 
 import aiohttp
-import disnake
+import discord
+from botcore.utils.extensions import walk_extensions
 from botcore.utils.logging import get_logger
 from botcore.utils.scheduling import create_task
-from disnake.ext import commands
+from discord.ext import commands
 
-from bot import constants
+from bot import constants, exts
 
 log = get_logger(__name__)
 
@@ -18,19 +19,25 @@ class SirRobin(commands.Bot):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._guild_available = asyncio.Event()
+        self._guild_available: Optional[asyncio.Event] = None
         self.http_session: Optional[aiohttp.ClientSession] = None
-        create_task(self.check_channels(), event_loop=self.loop)
-        create_task(self.send_log(constants.Client.name, "Connected!"), event_loop=self.loop)
 
-    def add_cog(self, cog: commands.Cog) -> None:
+    async def add_cog(self, cog: commands.Cog, **kwargs) -> None:
         """
         Delegate to super to register `cog`.
 
         This only serves to make the info log, so that extensions don't have to.
         """
-        super().add_cog(cog)
+        await super().add_cog(cog, **kwargs)
         log.info(f"Cog loaded: {cog.qualified_name}")
+
+    async def setup_hook(self) -> None:
+        """Default Async initialisation method for Discord.py."""
+        create_task(self.check_channels(), event_loop=self.loop)
+        create_task(self.send_log(constants.Client.name, "Connected!"), event_loop=self.loop)
+
+        for ext in walk_extensions(exts):
+            await self.load_extension(ext)
 
     async def check_channels(self) -> None:
         """Verifies that all channel constants refer to channels which exist."""
@@ -56,19 +63,19 @@ class SirRobin(commands.Bot):
             log.info(f"Fetching devlog channel as it wasn't found in the cache (ID: {constants.Channels.devlog})")
             try:
                 devlog = await self.fetch_channel(constants.Channels.devlog)
-            except disnake.HTTPException as disnake_exc:
-                log.exception("Fetch failed", exc_info=disnake_exc)
+            except discord.HTTPException as discord_exc:
+                log.exception("Fetch failed", exc_info=discord_exc)
                 return
 
         if not icon:
             icon = self.user.display_avatar.url
 
-        embed = disnake.Embed(description=details)
+        embed = discord.Embed(description=details)
         embed.set_author(name=title, icon_url=icon)
 
         await devlog.send(embed=embed)
 
-    async def on_guild_available(self, guild: disnake.Guild) -> None:
+    async def on_guild_available(self, guild: discord.Guild) -> None:
         """
         Set the internal `_guild_available` event when PyDis guild becomes available.
 
@@ -84,7 +91,7 @@ class SirRobin(commands.Bot):
 
         self._guild_available.set()
 
-    async def on_guild_unavailable(self, guild: disnake.Guild) -> None:
+    async def on_guild_unavailable(self, guild: discord.Guild) -> None:
         """Clear the internal `_guild_available` event when PyDis guild becomes unavailable."""
         if guild.id != constants.Client.guild:
             return
@@ -121,16 +128,18 @@ class SirRobin(commands.Bot):
         await super().login(*args, **kwargs)
 
 
-intents = disnake.Intents.all()
-intents.presences = False
-intents.dm_typing = False
-intents.dm_reactions = False
-intents.invites = False
-intents.webhooks = False
-intents.integrations = False
+_intents = discord.Intents.default()  # Default is all intents except for privileged ones (Members, Presences, ...)
+_intents.bans = False
+_intents.integrations = False
+_intents.invites = False
+_intents.typing = False
+_intents.webhooks = False
+_intents.message_content = True
+_intents.members = True
+
 
 bot = SirRobin(
     command_prefix=constants.Client.prefix,
-    activity=disnake.Game("The Not-Quite-So-Bot-as-Sir-Lancebot"),
-    intents=intents
+    activity=discord.Game("The Not-Quite-So-Bot-as-Sir-Lancebot"),
+    intents=_intents,
 )
