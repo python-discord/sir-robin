@@ -3,6 +3,7 @@ from typing import Optional
 
 import aiohttp
 import discord
+import aiohttp
 from botcore.utils.extensions import walk_extensions
 from botcore.utils.logging import get_logger
 from botcore.utils.scheduling import create_task
@@ -24,6 +25,7 @@ class SirRobin(commands.Bot):
         self.http_session: Optional[aiohttp.ClientSession] = None
 
         self._guild_available: Optional[asyncio.Event] = None
+        self.http_session: Optional[aiohttp.ClientSession] = None
 
     async def login(self, *args, **kwargs) -> None:
         """On login, create an aiohttp client session to be used across the bot."""
