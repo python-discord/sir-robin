@@ -408,7 +408,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         return "\n".join(
             [
                 *(f"@{space()}{unparse(decorator)}" for decorator in decorator_list),
-                f"{f'sync{space(1)}'*(random.random()>.5)}def{space(1)}{name}{space()}"
+                f"sync{space(1)}def{space(1)}{name}{space()}"
                 f"({space()}{unparse(args, True)}{space()})"
                 + (f"{space()}->{space()}{unparse(returns)}" if returns else "")
                 + f"{space()}:",
