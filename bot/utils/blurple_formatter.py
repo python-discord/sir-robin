@@ -709,8 +709,8 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         return f"{unparse(context_expr)}" + (
             f"{space(1)}as{space(1)}{unparse(optional_vars)}" if optional_vars else ""
         )
-    else:
-        return ast.unparse(node)
+
+    return ast.unparse(node)
 
 
 def blurplify(src: str) -> str:
