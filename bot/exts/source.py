@@ -18,9 +18,18 @@ class BotSource(commands.Cog):
 
     @commands.command(name="source", aliases=("src",))
     async def source_command(self, ctx: commands.Context, *, source_item: SourceConverter = None) -> None:
-        """Display information and a GitHub link to the source code of a command, tag, or cog."""
+        """Display information and a GitHub link to the source code of a command or cog."""
         if not source_item:
             embed = Embed(title="Sir Robin's GitHub Repository")
+            embed.add_field(name="Repository", value=f"[Go to GitHub]({Client.github_bot_repo})")
+            embed.set_thumbnail(url="https://avatars1.githubusercontent.com/u/9919")
+            await ctx.send(embed=embed)
+            return
+
+        # Check to short-circuit this command if the user requests the help command.
+        # This should be removed upon implementation of a custom help command.
+        if isinstance(source_item, commands.HelpCommand):
+            embed = Embed(title="Help Command", description="We use Discord.py's default help command.")
             embed.add_field(name="Repository", value=f"[Go to GitHub]({Client.github_bot_repo})")
             embed.set_thumbnail(url="https://avatars1.githubusercontent.com/u/9919")
             await ctx.send(embed=embed)
@@ -39,9 +48,6 @@ class BotSource(commands.Cog):
             source_item = inspect.unwrap(source_item.callback)
             src = source_item.__code__
             filename = src.co_filename
-        elif isinstance(source_item, str):
-            tags_cog = self.bot.get_cog("Tags")
-            filename = tags_cog._cache[source_item]["location"]
         else:
             src = type(source_item)
             try:
@@ -60,11 +66,7 @@ class BotSource(commands.Cog):
             first_line_no = None
             lines_extension = ""
 
-        # Handle tag file location differently than others to avoid errors in some cases
-        if not first_line_no:
-            file_location = Path(filename).relative_to("/bot/")
-        else:
-            file_location = Path(filename).relative_to(Path.cwd()).as_posix()
+        file_location = Path(filename).relative_to(Path.cwd()).as_posix()
 
         url = f"{Client.github_bot_repo}/blob/main/{file_location}{lines_extension}"
 
@@ -74,15 +76,9 @@ class BotSource(commands.Cog):
         """Build embed based on source object."""
         url, location, first_line = self.get_source_link(source_object)
 
-        if isinstance(source_object, commands.HelpCommand):
-            title = "Help Command"
-            description = source_object.__doc__.splitlines()[1]
-        elif isinstance(source_object, commands.Command):
+        if isinstance(source_object, commands.Command):
             description = source_object.short_doc
             title = f"Command: {source_object.qualified_name}"
-        elif isinstance(source_object, str):
-            title = f"Tag: {source_object}"
-            description = ""
         else:
             title = f"Cog: {source_object.qualified_name}"
             description = source_object.description.splitlines()[0]
