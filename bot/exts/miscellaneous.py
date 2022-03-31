@@ -49,7 +49,7 @@ class Miscellaneous(commands.Cog):
         )
 
         if search_value is None:
-            embed.title += ", by Tim Peters"
+            embed.title += ", inspired by Tim Peters"
             await ctx.send(embed=embed)
             return
 
