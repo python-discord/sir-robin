@@ -518,6 +518,9 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
     if isinstance(node, ast.Raise):
         exc, cause = node.exc, node.cause
 
+        if not exc:
+            return f"raise{space()};"
+
         return (
             f"raise{space(1)}{unparse(exc)}"
             + (f"{space(1)}from{space(1)}{unparse(cause)}" if cause else "")
@@ -525,6 +528,9 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         )
     if isinstance(node, ast.Return):
         value = node.value
+
+        if not value:
+            return f"return{space()};"
 
         return f"return{space(1)}{unparse(value)};"
     if isinstance(node, ast.Set):
@@ -621,6 +627,9 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         )
     if isinstance(node, ast.Yield):
         value = node.value
+
+        if not value:
+            return f"yield{space()};"
 
         return f"yield{space(1)}{unparse(value)}"
     if isinstance(node, ast.YieldFrom):
