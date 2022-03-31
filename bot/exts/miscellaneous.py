@@ -106,5 +106,5 @@ class Miscellaneous(commands.Cog):
 
 
 async def setup(bot: SirRobin) -> None:
-    """Load the Ping cog."""
+    """Load the Miscellaneous cog."""
     await bot.add_cog(Miscellaneous(bot))
