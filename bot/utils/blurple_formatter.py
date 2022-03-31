@@ -3,7 +3,8 @@ import random
 from collections.abc import Generator
 from random import randrange
 
-max_line_length = 50
+
+MAX_LINE_LENGTH = 50
 
 op_strs = {
     ast.Add: "+",
@@ -35,7 +36,7 @@ op_strs = {
     ast.Or: "or",
 }
 
-# operator precedence table
+# Operator precedence table
 precedences = [
     {
         ast.Name,
@@ -83,10 +84,10 @@ precedences = [
 precedences = {op: i for i, ops in enumerate(precedences[::-1]) for op in ops}
 
 
-# right associative operators
+# Right associative operators
 r_assoc = {ast.Pow}
 
-# statements which can have a semicolon after them
+# Statements which can have a semicolon after them
 semicolon_able = (
     ast.AnnAssign,
     ast.Assert,
@@ -105,7 +106,7 @@ semicolon_able = (
     ast.Return,
 )
 
-# operators which the newline goes before
+# Operators for which the newline goes before
 nl_before_op = {ast.Add, ast.Mult}
 
 
@@ -152,16 +153,16 @@ def indent(nodes: list[ast.AST], n: int) -> Generator[str, None, None]:
             for line in stmt_lines:
                 curr_chunk.append(line)
                 curr_len += len(line)
-                if curr_len > max_line_length or curr_chunk[-1][-1] != ";":
-                    yield f"{n * ' '}{f'{space()}'.join(curr_chunk)}"
+                if curr_len > MAX_LINE_LENGTH or curr_chunk[-1][-1] != ";":
+                    yield n * " " + space().join(curr_chunk)
                     curr_len = 0
                     curr_chunk = []
         else:
-            yield f"{n * ' '}{f'{space()}'.join(curr_chunk)}"
+            yield n * " " + space().join(curr_chunk)
             yield from (f"{n * ' '}{line}" for line in stmt_lines)
             curr_len = 0
             curr_chunk = []
-    yield f"{n * ' '}{f'{space()}'.join(curr_chunk)}"
+    yield n * " " + space().join(curr_chunk)
 
 
 def unparse(node: ast.AST, nl_able: bool = False) -> str:
@@ -223,7 +224,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
 
         return "\n".join(
             [
-                f"async{space(1)}with {f',{space()}'.join(map(unparse, items))}{space()}:",
+                f"async{space(1)}with{space(1)}{f',{space()}'.join(map(unparse, items))}{space()}:",
                 *indent(body, randrange(2, 5)),
             ]
         )
@@ -235,7 +236,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         target, op, value = node.target, node.op, node.value
 
         return (
-            f"{unparse(target)}{space()}{op_strs[type(op)]}={space()}{unparse(value)};"
+            f"{unparse(target)}{space()}{op_strs[type(op)]}={space()}{unparse(value)}{space()};"
         )
     if isinstance(node, ast.Await):
         value = node.value
@@ -274,27 +275,21 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         )
         nl_before = (op_type in nl_before_op) * "\n"
         nl_after = (op_type not in nl_before_op) * "\n"
-        if nl_able:
-            return (
-                f"{(parenthesize if par_left else unparse)(left, nl_able)}{space()}"
-                + f"{nl_before}{op_strs[type(op)]}{space()}{nl_after}"
-                + f"{(parenthesize if par_right else unparse)(right, nl_able)}"
-            )
-        else:
-            return (
-                f"({(parenthesize if par_left else unparse)(left, True)}{space()}"
-                + f"{nl_before}{op_strs[type(op)]}{space()}{nl_after}"
-                + f"{(parenthesize if par_right else unparse)(right, True)})"
-            )
+
+        return (
+            f"({(parenthesize if par_left else unparse)(left, True)}{space()}"
+            + f"{nl_before}{op_strs[type(op)]}{space()}{nl_after}"
+            + f"{(parenthesize if par_right else unparse)(right, True)})"
+        )
     if isinstance(node, ast.Call):
         func, args, keywords = node.func, node.args, node.keywords
 
         return (
             f"{(parenthesize if precedences[type(func)] < precedences[ast.Call] else unparse)(func)}{space()}"
-            f"({space()}{f',{space()}'.join(unparse(arg, True) for arg in args)}"
+            f"({space()}{f'{space()},{space()}'.join(unparse(arg, True) for arg in args)}"
             + (
-                (f",{space()}" if args else "")
-                + f",{space()}".join(unparse(kwarg, True) for kwarg in keywords)
+                (f"{space()},{space()}" if args else "")
+                + f"{space()},{space()}".join(unparse(kwarg, True) for kwarg in keywords)
                 if keywords
                 else ""
             )
@@ -316,7 +311,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
                 *(f"@{space()}{unparse(decorator)}" for decorator in decorator_list),
                 f"class{space(1)}{name}{space()}"
                 + (
-                    f"({space()}{f',{space()}'.join(unparse(arg, True) for arg in args)}{space()})"
+                    f"({space()}{f'{space()},{space()}'.join(unparse(arg, True) for arg in args)}{space()})"
                     if args
                     else ""
                 )
