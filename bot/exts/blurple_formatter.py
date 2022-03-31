@@ -12,7 +12,8 @@ class BlurpleFormatter(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    async def blurplify(self, ctx: commands.Context, *, code: str):
+    async def blurplify(self, ctx: commands.Context, *, code: str) -> None:
+        """Format code in accordance with PEP 9001."""
         if match := FORMATTED_CODE_REGEX.match(code):
             code = match.group("code")
         try:

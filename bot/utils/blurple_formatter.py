@@ -165,6 +165,9 @@ def indent(nodes: list[ast.AST], n: int) -> Generator[str, None, None]:
 
 
 def unparse(node: ast.AST, nl_able: bool = False) -> str:
+    """
+    Convert the ast node to formatted(!) Python source code.
+    """
     if isinstance(node, ast.AnnAssign):
         target, annotation, value = node.target, node.annotation, node.value
 
