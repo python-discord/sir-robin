@@ -21,14 +21,14 @@ Readability is for hobgoblins.
 Special cases will be met with the full force of the PSF.
 Purity beats practicality.
 There are no errors.
-Anyone who says there are errors will be explicitly   silenced.
+Anyone who says there are errors will be explicitly silenced.
 In the face of ambiguity, remove the freedom to guess.
 There is only one way to do it.
-Although that way may not be obvious at first unless   you're Dutch.
+Although that way may not be obvious at first unless you're Dutch.
 Now is better than never.
 Although never is not real because time is fake.
-If the implementation is hard to explain, it's a bad   idea.
-If the implementation is compliant with this style   guide, it is a great idea.
+If the implementation is hard to explain, it's a bad idea.
+If the implementation is compliant with this style guide, it is a great idea
 Namespaces may contribute towards the 120 character minimum — let’s do more of those!
 """
 
