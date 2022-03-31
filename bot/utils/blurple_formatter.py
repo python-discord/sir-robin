@@ -502,12 +502,6 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
             + f"{space(1)}".join(map(unparse, generators))
             + f"{space()}]"
         )
-    if isinstance(node, ast.Match):
-        subject, cases = node.subject, node.cases
-
-        return "\n".join(
-            [f"match {unparse(subject)}:", *indent(cases, randrange(2, 5))]
-        )
     if isinstance(node, ast.Module):
         body = node.body
 
@@ -706,15 +700,6 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
             + f"for{space(1)}{unparse(target)}{space(1)}in{space(1)}{unparse(iter_)}"
             + (f"{space(1)}" if ifs else "")
             + f"{space(1)}".join(f"if {unparse(if_)}" for if_ in ifs)
-        )
-    if isinstance(node, ast.match_case):
-        pattern, body = node.pattern, node.body
-
-        return "\n".join(
-            [
-                f"case{space(1)}{unparse(pattern)}{space()}:",
-                *indent(body, randrange(2, 5)),
-            ]
         )
     if isinstance(node, ast.withitem):
         context_expr, optional_vars = node.context_expr, node.optional_vars
