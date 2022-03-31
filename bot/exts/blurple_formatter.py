@@ -1,5 +1,4 @@
 import asyncio
-import sys
 import traceback
 
 import discord
@@ -29,9 +28,8 @@ class BlurpleFormatter(commands.Cog):
             code = match.group("code")
         try:
             blurpified = await asyncio.to_thread(self._format_code, code)
-        except SyntaxError:
-            etype, evalue, _ = sys.exc_info()
-            err_info = "".join(traceback.format_exception_only(etype, evalue)).replace("`", "`\u200d")
+        except SyntaxError as e:
+            err_info = "".join(traceback.format_exception_only(type(e), e)).replace("`", "`\u200d")
             embed = discord.Embed(
                 title="Invalid Syntax!",
                 description=f"```\n{err_info}\n```",
