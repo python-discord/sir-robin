@@ -52,7 +52,7 @@ precedences = [
     {ast.Subscript, ast.Call, ast.Attribute},
     {ast.Await},
     {ast.Pow},
-    {ast.UAdd, ast.USub, ast.Invert},
+    {ast.UAdd, ast.USub, ast.Invert, ast.UnaryOp},
     {ast.Mult, ast.MatMult, ast.Div, ast.FloorDiv, ast.Mod},
     {ast.Add, ast.Sub},
     {ast.LShift, ast.RShift},
