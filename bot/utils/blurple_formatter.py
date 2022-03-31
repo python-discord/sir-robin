@@ -3,7 +3,6 @@ import random
 from collections.abc import Generator
 from random import randrange
 
-
 MAX_LINE_LENGTH = 50
 
 op_strs = {
