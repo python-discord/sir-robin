@@ -24,16 +24,16 @@ class BlurpleFormatter(commands.Cog):
             blurpified = blurple_formatter.blurplify(code)
         except SyntaxError:
             etype, evalue, _ = sys.exc_info()
-            err_info = "".join(traceback.format_exception_only(etype, evalue))
+            err_info = "".join(traceback.format_exception_only(etype, evalue)).replace("`", "`\u200d")
             embed = discord.Embed(
                 title="Invalid Syntax!",
                 description=f"```\n{err_info}\n```",
-                color=0xCD6D6D
+                color=0xCD6D6D,
             )
-            await ctx.send(embed=embed)
+            await ctx.send(embed=embed, allowed_mentions=discord.AllowedMentions.none())
             return
         blurpified = blurpified.replace("`", "`\u200d")
-        await ctx.send(f"```py\n{blurpified}\n```")
+        await ctx.send(f"```py\n{blurpified}\n```", allowed_mentions=discord.AllowedMentions.none())
 
 
 async def setup(bot: SirRobin) -> None:
