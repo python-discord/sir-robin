@@ -1,6 +1,7 @@
 from discord import Colour, Embed
 from discord.ext.commands import (BadArgument, Cog, CommandError,
-                                  CommandNotFound, Context)
+                                  CommandNotFound, Context,
+                                  MissingRequiredArgument)
 
 from bot.bot import SirRobin
 from bot.log import get_logger
@@ -37,12 +38,19 @@ class ErrorHandler(Cog):
         """
         log.trace(f"Handling a raised error {error} from {ctx.command}")
 
+        # We could handle the subclasses of UserInputError errors together, using the error
+        # name as the embed title. Before doing this we would have to verify that all messages
+        # attached to subclasses of this error are human-readable, as they are user facing.
         if isinstance(error, BadArgument):
             embed = self._get_error_embed("Bad argument", str(error))
             await ctx.send(embed=embed)
             return
         elif isinstance(error, CommandNotFound):
             embed = self._get_error_embed("Command not found", str(error))
+            await ctx.send(embed=embed)
+            return
+        elif isinstance(error, MissingRequiredArgument):
+            embed = self._get_error_embed("Missing required argument", str(error))
             await ctx.send(embed=embed)
             return
 
