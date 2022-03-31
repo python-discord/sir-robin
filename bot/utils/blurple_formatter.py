@@ -339,14 +339,14 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
     if isinstance(node, ast.Delete):
         targets = node.targets
 
-        return f"del{space(1)}{f',{space()}'.join(map(unparse, targets))};"
+        return f"del{space(1)}{f'{space()},{space()}'.join(map(unparse, targets))};"
     if isinstance(node, ast.Dict):
         keys, values = node.keys, node.values
 
         return (
             "{"
             + space()
-            + f",{space()}".join(
+            + f"{space()},{space()}".join(
                 f"{unparse(key)}{space()}:{space()}{unparse(value)}"
                 if key
                 else f"**{space()}{unparse(value)}"
@@ -372,7 +372,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         return "\n".join(
             [
                 f"except{space(1)}"
-                + (f" {unparse(type_)}" if type_ else "")
+                + (f"{unparse(type_)}" if type_ else "")
                 + (f"{space(1)}as{space(1)}{name}" if name else "")
                 + f"{space()}:",
                 *indent(body, randrange(2, 5)),
@@ -386,7 +386,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         target, iter_, body, orelse = node.target, node.iter, node.body, node.orelse
 
         s = [
-            f"for {unparse(target)} in {unparse(iter_)}:",
+            f"for{space(1)}{unparse(target)}{space(1)}in{space(1)}{unparse(iter_)}:",
             *indent(body, randrange(2, 5)),
         ]
         if orelse:
@@ -453,7 +453,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
 
         return (
             f"import{space(1)}"
-            + f",{space()}".join(
+            + f"{space()},{space()}".join(
                 f"{name.name}"
                 + (f"{space(1)}as{space(1)}{name.asname}" if name.asname else "")
                 for name in names
@@ -465,7 +465,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
 
         return (
             f"from{space(1)}{'.'*level}{module}{space(1)}import{space(1)}"
-            + f",{space()}".join(
+            + f"{space()},{space()}".join(
                 f"{name.name}"
                 + (f"{space(1)}as{space(1)}{name.asname}" if name.asname else "")
                 for name in names
@@ -478,13 +478,13 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
     if isinstance(node, ast.Lambda):
         args, body = node.args, node.body
 
-        return f"lambda{space(1)}{unparse(args)}{space(1)}:{space()}{unparse(body)}"
+        return f"lambda{space(1)}{unparse(args)}{space()}:{space()}{unparse(body)}"
     if isinstance(node, ast.List):
         elts = node.elts
 
         return (
             f"[{space()}"
-            + f",{space()}".join(unparse(elt, True) for elt in elts)
+            + f"{space()},{space()}".join(unparse(elt, True) for elt in elts)
             + f"{space()}]"
         )
     if isinstance(node, ast.ListComp):
@@ -511,7 +511,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
     if isinstance(node, ast.Nonlocal):
         names = node.names
 
-        return f"nonlocal{space(1)}{f',{space()}'.join(map(unparse, names))};"
+        return f"nonlocal{space(1)}{f'{space()},{space()}'.join(map(unparse, names))};{space()}"
     if isinstance(node, ast.Pass):
 
         return f"pass{space()};"
@@ -532,14 +532,14 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         if not value:
             return f"return{space()};"
 
-        return f"return{space(1)}{unparse(value)};"
+        return f"return{space(1)}{unparse(value)}{space()};"
     if isinstance(node, ast.Set):
         elts = node.elts
 
         return (
             "{"
             + space()
-            + ", ".join(unparse(elt, True) for elt in elts)
+            + f"{space()},{space()}".join(unparse(elt, True) for elt in elts)
             + space()
             + "}"
         )
@@ -593,7 +593,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
 
         return (
             f"({space()}"
-            + f",{space()}".join(unparse(elt, True) for elt in elts)
+            + f"{space()},{space()}".join(unparse(elt, True) for elt in elts)
             + f"{space()})"
         )
     if isinstance(node, ast.UnaryOp):
@@ -621,7 +621,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
 
         return "\n".join(
             [
-                f"with{space(1)}{', '.join(map(unparse, items))}{space()}:",
+                f"with{space(1)}{f'{space()},{space()}'.join(map(unparse, items))}{space()}:",
                 *indent(body, randrange(2, 5)),
             ]
         )
@@ -640,7 +640,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
     if isinstance(node, ast.arg):
         arg, annotation = node.arg, node.annotation
 
-        return arg + (f":{space()}{unparse(annotation)}" if annotation else "")
+        return arg + (f"{space()}:{space()}{unparse(annotation)}" if annotation else "")
     if isinstance(node, ast.arguments):
         posonlyargs, args, vararg, kwonlyargs, kw_defaults, kwarg, defaults = (
             node.posonlyargs,
@@ -661,35 +661,35 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
             if first:
                 first = False
             else:
-                s += f",{space()}"
+                s += f"{space()},{space()}"
             s += unparse(a, nl_able)
             if d:
-                s += "=" + unparse(d, nl_able)
+                s += f"{space()}={space()}" + unparse(d, nl_able)
             if index == len(posonlyargs):
-                s += f",{space()}/"
+                s += f"{space()},{space()}/"
 
         if vararg or kwonlyargs:
             if first:
                 first = False
             else:
-                s += f",{space()}"
-            s += "*"
+                s += f"{space()},{space()}"
+            s += f"{space()}*{space()}"
             if vararg:
                 s += unparse(vararg.arg, nl_able)
                 if vararg.annotation:
-                    s += f":{space()}" + unparse(vararg.annotation, nl_able)
+                    s += f"{space()}:{space()}" + unparse(vararg.annotation, nl_able)
 
         if kwonlyargs:
             for a, d in zip(kwonlyargs, kw_defaults):
-                s += f",{space()}" + unparse(a, nl_able)
+                s += f"{space()},{space()}" + unparse(a, nl_able)
                 if d:
                     s += f"{space()}={space()}{unparse(d, nl_able)}"
         if kwarg:
             if not first:
-                s += f",{space()}"
+                s += f"{space()},{space()}"
             s += f"**{space()}{unparse(kwarg.arg, nl_able)}"
             if kwarg.annotation:
-                s += f":{space()}{unparse(kwarg.annotation, nl_able)}"
+                s += f"{space()}:{space()}{unparse(kwarg.annotation, nl_able)}"
         return s
     if isinstance(node, ast.keyword):
         arg, value = node.arg, node.value
@@ -699,10 +699,10 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         target, iter_, ifs, is_async = node.target, node.iter, node.ifs, node.is_async
 
         return (
-            ["", f"async{space(1)}"][is_async]
+            f"async{space(1)}" if is_async else ""
             + f"for{space(1)}{unparse(target)}{space(1)}in{space(1)}{unparse(iter_)}"
             + (f"{space(1)}" if ifs else "")
-            + f"{space(1)}".join(f"if {unparse(if_)}" for if_ in ifs)
+            + f"{space(1)}".join(f"if{space(1)}{unparse(if_)}" for if_ in ifs)
         )
     if isinstance(node, ast.withitem):
         context_expr, optional_vars = node.context_expr, node.optional_vars
