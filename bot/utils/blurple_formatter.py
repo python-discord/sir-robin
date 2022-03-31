@@ -597,7 +597,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
             precedences[type(operand.op)]
             if isinstance(operand, (ast.BinOp, ast.BoolOp))
             else (precedences[type(operand)])
-        ) < precedences[op]
+        ) < precedences[type(op)]
         return f"{op_strs[type(op)]}{space()}{(parenthesize if par_op else unparse)(operand)}"
     if isinstance(node, ast.While):
         test, body, orelse = node.test, node.body, node.orelse
