@@ -6,7 +6,7 @@ from discord import Embed
 from discord.ext import commands
 
 from bot.bot import SirRobin
-from bot.constants import URLs
+from bot.constants import Client
 from bot.converters import SourceConverter, SourceType
 
 
@@ -21,7 +21,7 @@ class BotSource(commands.Cog):
         """Display information and a GitHub link to the source code of a command, tag, or cog."""
         if not source_item:
             embed = Embed(title="Sir Robin's GitHub Repository")
-            embed.add_field(name="Repository", value=f"[Go to GitHub]({URLs.github_bot_repo})")
+            embed.add_field(name="Repository", value=f"[Go to GitHub]({Client.github_bot_repo})")
             embed.set_thumbnail(url="https://avatars1.githubusercontent.com/u/9919")
             await ctx.send(embed=embed)
             return
@@ -66,7 +66,7 @@ class BotSource(commands.Cog):
         else:
             file_location = Path(filename).relative_to(Path.cwd()).as_posix()
 
-        url = f"{URLs.github_bot_repo}/blob/main/{file_location}{lines_extension}"
+        url = f"{Client.github_bot_repo}/blob/main/{file_location}{lines_extension}"
 
         return url, file_location, first_line_no or None
 
