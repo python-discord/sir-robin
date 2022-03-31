@@ -17,7 +17,7 @@ class BlurpleFormatter(commands.Cog):
             code = match.group("code")
         try:
             blurpified = blurple_formatter.blurplify(code)
-        except SyntaxError as err:
+        except SyntaxError:
             raise commands.BadArgument("Invalid Syntax!")
         blurpified = blurpified.replace("`", "`\u200d")
         await ctx.send(f"```py\n{blurpified}\n```")

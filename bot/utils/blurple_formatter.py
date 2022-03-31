@@ -449,7 +449,8 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
 
         return (
             f"{(parenthesize if precedences[type(body)] < precedences[ast.IfExp] else unparse)(body)}{space(1)}"
-            + f"if{space(1)}{(parenthesize if precedences[type(body)] < precedences[ast.IfExp] else unparse)(test)}{space(1)}"
+            + f"if{space(1)}"
+            + f"{(parenthesize if precedences[type(body)] < precedences[ast.IfExp] else unparse)(test)}{space(1)}"
             + f"else{space(1)}{(parenthesize if precedences[type(body)] < precedences[ast.IfExp] else unparse)(orelse)}"
         )
     if isinstance(node, ast.Import):
