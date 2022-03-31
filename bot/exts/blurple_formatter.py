@@ -21,7 +21,7 @@ class BlurpleFormatter(commands.Cog):
         blurpified = blurpified.replace("`", "`\u200d")
         return blurpified
 
-    @commands.command()
+    @commands.command(aliases=["blurp", "blurpify", "format"])
     async def blurplify(self, ctx: commands.Context, *, code: str) -> None:
         """Format code in accordance with PEP 9001."""
         if match := FORMATTED_CODE_REGEX.match(code):
