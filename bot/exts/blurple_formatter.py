@@ -1,3 +1,7 @@
+import sys
+import traceback
+
+import discord
 from botcore.utils.regex import FORMATTED_CODE_REGEX
 from discord.ext import commands
 
@@ -19,7 +23,15 @@ class BlurpleFormatter(commands.Cog):
         try:
             blurpified = blurple_formatter.blurplify(code)
         except SyntaxError:
-            raise commands.BadArgument("Invalid Syntax!")
+            etype, evalue, _ = sys.exc_info()
+            err_info = "".join(traceback.format_exception_only(etype, evalue))
+            embed = discord.Embed(
+                title="Invalid Syntax!",
+                description=f"```\n{err_info}\n```",
+                color=0xCD6D6D
+            )
+            await ctx.send(embed=embed)
+            return
         blurpified = blurpified.replace("`", "`\u200d")
         await ctx.send(f"```py\n{blurpified}\n```")
 
