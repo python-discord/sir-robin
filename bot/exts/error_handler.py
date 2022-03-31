@@ -1,5 +1,6 @@
 from discord import Colour, Embed
-from discord.ext.commands import BadArgument, Cog, CommandError, CommandNotFound, Context
+from discord.ext.commands import (BadArgument, Cog, CommandError,
+                                  CommandNotFound, Context)
 
 from bot.bot import SirRobin
 from bot.log import get_logger
@@ -24,7 +25,8 @@ class ErrorHandler(Cog):
 
     @Cog.listener()
     async def on_command_error(self, ctx: Context, error: CommandError) -> None:
-        """Generic command error handling from other cogs.
+        """
+        Generic command error handling from other cogs.
 
         Using the error type, handle the error appropriately.
             if there is no handling for the error type raised,
