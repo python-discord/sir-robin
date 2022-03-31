@@ -1,5 +1,4 @@
 import ast
-import random
 from collections.abc import Generator
 from random import randrange
 
