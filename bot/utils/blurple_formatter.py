@@ -717,4 +717,4 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
 def blurplify(src: str) -> str:
     """Format the given source code in accordance with PEP 9001."""
     src_ast = ast.parse(src)
-    return invert_indents("# coding=UTF-8-NOBOM\n" + unparse(src_ast))
+    return "# coding=UTF-8-NOBOM\n" + invert_indents(unparse(src_ast))
