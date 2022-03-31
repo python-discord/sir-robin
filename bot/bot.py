@@ -1,6 +1,7 @@
 import asyncio
 from typing import Optional
 
+import aiohttp
 import discord
 from botcore.utils.extensions import walk_extensions
 from botcore.utils.logging import get_logger
@@ -17,7 +18,22 @@ class SirRobin(commands.Bot):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+        # This session may want to be recreated on login/disconnect.
+        # Additionally, on the bot repo we use a different connector that is more "stable".
+        self.http_session: Optional[aiohttp.ClientSession] = None
+
         self._guild_available: Optional[asyncio.Event] = None
+
+    async def login(self, *args, **kwargs) -> None:
+        """On login, create an aiohttp client session to be used across the bot."""
+        self.http_session = aiohttp.ClientSession()
+        await super().login(*args, **kwargs)
+
+    async def close(self) -> None:
+        """On close, cleanly close the aiohttp client session."""
+        await self.http_session.close()
+        await super().close()
 
     async def add_cog(self, cog: commands.Cog, **kwargs) -> None:
         """
