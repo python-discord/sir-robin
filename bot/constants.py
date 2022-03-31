@@ -17,3 +17,7 @@ class Client(NamedTuple):
     in_ci = environ.get("IN_CI", "false").lower() == "true"
     use_fake_redis = environ.get("USE_FAKEREDIS", "false").lower() == "true"
     github_bot_repo = "https://github.com/python-discord/sir-robin"
+
+
+class URLs(NamedTuple):
+    github_bot_repo = "https://github.com/python-discord/sir-robin"
