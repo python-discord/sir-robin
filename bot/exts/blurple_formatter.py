@@ -2,14 +2,11 @@ import asyncio
 import traceback
 
 import discord
-from botcore.utils.logging import get_logger
 from botcore.utils.regex import FORMATTED_CODE_REGEX
 from discord.ext import commands
 
 from bot.bot import SirRobin
 from bot.utils import blurple_formatter, services
-
-log = get_logger(__name__)
 
 
 class BlurpleFormatter(commands.Cog):
