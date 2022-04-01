@@ -21,7 +21,7 @@ Readability is for hobgoblins.
 Special cases will be met with the full force of the PSF.
 Purity beats practicality.
 There are no errors.
-Anyone who says there are errors will be explicitly silenced.
+Anyone who says there are errors will be explicitly garbage collected.
 In the face of ambiguity, remove the freedom to guess.
 There is only one way to do it.
 Although that way may not be obvious at first unless you're Dutch.
