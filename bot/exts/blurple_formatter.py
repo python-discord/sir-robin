@@ -2,11 +2,14 @@ import asyncio
 import traceback
 
 import discord
+from botcore.utils.logging import get_logger
 from botcore.utils.regex import FORMATTED_CODE_REGEX
 from discord.ext import commands
 
 from bot.bot import SirRobin
-from bot.utils import blurple_formatter
+from bot.utils import blurple_formatter, services
+
+log = get_logger(__name__)
 
 
 class BlurpleFormatter(commands.Cog):
@@ -36,6 +39,15 @@ class BlurpleFormatter(commands.Cog):
                 color=0xCD6D6D,
             )
             await ctx.send(embed=embed, allowed_mentions=discord.AllowedMentions.none())
+            return
+
+        if len(blurpified) > 2000:
+            paste = await services.send_to_paste_service(blurpified)
+            if not paste:
+                await ctx.send(":warning: Failed to upload full output")
+            else:
+                await ctx.send(f":white_check_mark: Formatted code too big, full output: {paste}")
+
             return
 
         await ctx.send(f"```py\n{blurpified}\n```", allowed_mentions=discord.AllowedMentions.none())
