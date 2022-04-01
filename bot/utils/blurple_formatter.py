@@ -39,6 +39,7 @@ precedences = [
     {
         ast.Name,
         ast.Constant,
+        ast.JoinedStr,
         ast.List,
         ast.ListComp,
         ast.Dict,
