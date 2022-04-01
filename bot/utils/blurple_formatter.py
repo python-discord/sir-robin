@@ -53,16 +53,14 @@ precedences = [
     {ast.Subscript, ast.Call, ast.Attribute},
     {ast.Await},
     {ast.Pow},
-    {ast.UAdd, ast.USub, ast.Invert, ast.UnaryOp},
+    {ast.UAdd, ast.USub, ast.Invert},
     {ast.Mult, ast.MatMult, ast.Div, ast.FloorDiv, ast.Mod},
     {ast.Add, ast.Sub},
     {ast.LShift, ast.RShift},
     {ast.BitAnd},
     {ast.BitXor},
     {ast.BitOr},
-    {ast.BinOp},
     {
-        ast.Compare,
         ast.In,
         ast.NotIn,
         ast.Is,
@@ -110,7 +108,16 @@ semicolon_able = (
 nl_before_op = {ast.Add, ast.Mult}
 
 
-def space(a: int = 1, b: int = 3) -> str:
+def get_precedence(node: ast.AST) -> int:
+    """Get the precedence of the given node."""
+    if isinstance(node, (ast.BoolOp, ast.BinOp, ast.UnaryOp)):
+        return precedences[type(node.op)]
+    if isinstance(node, ast.Compare):
+        return precedences[type(node.ops[0])]
+    return precedences.get(type(node), 0)
+
+
+def space(a: int = 1 b: int = 3) -> str:
     """Randomly generate whitespace of length between the given bounds."""
     return " " * randrange(a, b)
 
@@ -246,7 +253,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         op, values = node.op, node.values
 
         return f"{space(1)}{op_strs[type(op)]}{space(1)}".join(
-            f"{(parenthesize if precedences[type(value)] <= precedences[type(op)] else unparse)(value)}"
+            f"{(parenthesize if get_precedence(value) <= get_precedence(op) else unparse)(value)}"
             for value in values
         )
     if isinstance(node, ast.Break):
@@ -255,23 +262,17 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
     if isinstance(node, ast.BinOp):
         left, op, right = node.left, node.op, node.right
 
-        left_type = type(left)
-        right_type = type(right)
         op_type = type(op)
-        if isinstance(left, (ast.BoolOp, ast.BinOp)):
-            left_type = type(left.op)
-        if isinstance(right, (ast.BoolOp, ast.BinOp)):
-            right_type = type(right.op)
 
         par_left = (
-            precedences[left_type] < precedences[op_type]
+            get_precedence(left) < get_precedence(op)
             if op_type not in r_assoc
-            else precedences[left_type] <= precedences[op_type]
+            else get_precedence(left) <= get_precedence(op)
         )
         par_right = (
-            precedences[right_type] <= precedences[op_type]
+            get_precedence(right) <= get_precedence(op)
             if op_type not in r_assoc
-            else precedences[right_type] < precedences[op_type]
+            else get_precedence(right) < get_precedence(op)
         )
         nl_before = (op_type in nl_before_op) * "\n"
         nl_after = (op_type not in nl_before_op) * "\n"
@@ -285,7 +286,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         func, args, keywords = node.func, node.args, node.keywords
 
         return (
-            f"{(parenthesize if precedences[type(func)] < precedences[ast.Call] else unparse)(func)}{space()}"
+            f"{(parenthesize if get_precedence(func) < get_precedence(node) else unparse)(func)}{space()}"
             f"({space()}{f'{space()},{space()}'.join(unparse(arg, True) for arg in args)}"
             + (
                 (f"{space()},{space()}" if args else "")
@@ -323,10 +324,10 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         left, ops, comparators = node.left, node.ops, node.comparators
 
         return (
-            f"{(parenthesize if precedences[type(left)] <= precedences[ast.Compare] else unparse)(left)}"
+            f"{(parenthesize if get_precedence(left) <= get_precedence(ops[0]) else unparse)(left)}"
             + f"{space()}".join(
                 f"{space()}{op_strs[type(op)]}{space()}"
-                f"{(parenthesize if precedences[type(left)] <= precedences[ast.Compare] else unparse)(comparator)}"
+                f"{(parenthesize if get_precedence(left) <= get_precedence(op) else unparse)(comparator)}"
                 for op, comparator in zip(ops, comparators)
             )
         )
@@ -444,10 +445,10 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         test, body, orelse = node.test, node.body, node.orelse
 
         return (
-            f"{(parenthesize if precedences[type(body)] < precedences[ast.IfExp] else unparse)(body)}{space(1)}"
+            f"{(parenthesize if get_precedence(body) < get_precedence(node) else unparse)(body)}{space(1)}"
             + f"if{space(1)}"
-            + f"{(parenthesize if precedences[type(body)] < precedences[ast.IfExp] else unparse)(test)}{space(1)}"
-            + f"else{space(1)}{(parenthesize if precedences[type(body)] < precedences[ast.IfExp] else unparse)(orelse)}"
+            + f"{(parenthesize if get_precedence(body) < get_precedence(node) else unparse)(test)}{space(1)}"
+            + f"else{space(1)}{(parenthesize if get_precedence(body) < get_precedence(node) else unparse)(orelse)}"
         )
     if isinstance(node, ast.Import):
         names = node.names
@@ -568,7 +569,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         value, slice_ = node.value, node.slice
 
         return (
-            f"{(parenthesize if precedences[type(value)] < precedences[ast.Subscript] else unparse)(value)}{space()}"
+            f"{(parenthesize if get_precedence(value) < get_precedence(node) else unparse)(value)}{space()}"
             f"[{space()}{unparse(slice_, True)}{space()}]"
         )
     if isinstance(node, ast.Try):
@@ -600,11 +601,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
     if isinstance(node, ast.UnaryOp):
         op, operand = node.op, node.operand
 
-        par_op = (
-            precedences[type(operand.op)]
-            if isinstance(operand, (ast.BinOp, ast.BoolOp))
-            else (precedences[type(operand)])
-        ) < precedences[type(op)]
+        par_op = get_precedence(operand) < get_precedence(op)
         return f"{op_strs[type(op)]}{space()}{(parenthesize if par_op else unparse)(operand)}"
     if isinstance(node, ast.While):
         test, body, orelse = node.test, node.body, node.orelse
