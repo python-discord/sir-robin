@@ -108,9 +108,11 @@ nl_before_op = {ast.Add, ast.Mult}
 
 def get_precedence(node: ast.AST) -> int:
     """Get the precedence of the given node."""
-    if isinstance(node, (ast.BoolOp, ast.BinOp, ast.Compare, ast.UnaryOp)):
+    if isinstance(node, (ast.BoolOp, ast.BinOp, ast.UnaryOp)):
         return precedences[type(node.op)]
-    return precedences[type(node)]
+    if isinstance(node, ast.Compare):
+        return precedences[type(node.ops[0])]
+    return precedences.get(type(node), 0)
 
 
 def space(a: int = 0, b: int = 3) -> str:
@@ -282,7 +284,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         func, args, keywords = node.func, node.args, node.keywords
 
         return (
-            f"{(parenthesize if get_precedence(func) < precedences[ast.Call] else unparse)(func)}{space()}"
+            f"{(parenthesize if get_precedence(func) < get_precedence(node) else unparse)(func)}{space()}"
             f"({space()}{f'{space()},{space()}'.join(unparse(arg, True) for arg in args)}"
             + (
                 (f"{space()},{space()}" if args else "")
@@ -441,10 +443,10 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         test, body, orelse = node.test, node.body, node.orelse
 
         return (
-            f"{(parenthesize if get_precedence(body) < precedences[ast.IfExp] else unparse)(body)}{space(1)}"
+            f"{(parenthesize if get_precedence(body) < get_precedence(node) else unparse)(body)}{space(1)}"
             + f"if{space(1)}"
-            + f"{(parenthesize if get_precedence(body) < precedences[ast.IfExp] else unparse)(test)}{space(1)}"
-            + f"else{space(1)}{(parenthesize if get_precedence(body) < precedences[ast.IfExp] else unparse)(orelse)}"
+            + f"{(parenthesize if get_precedence(body) < get_precedence(node) else unparse)(test)}{space(1)}"
+            + f"else{space(1)}{(parenthesize if get_precedence(body) < get_precedence(node) else unparse)(orelse)}"
         )
     if isinstance(node, ast.Import):
         names = node.names
@@ -565,7 +567,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         value, slice_ = node.value, node.slice
 
         return (
-            f"{(parenthesize if get_precedence(value) < precedences[ast.Subscript] else unparse)(value)}{space()}"
+            f"{(parenthesize if get_precedence(value) < get_precedence(node) else unparse)(value)}{space()}"
             f"[{space()}{unparse(slice_, True)}{space()}]"
         )
     if isinstance(node, ast.Try):
