@@ -674,7 +674,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
                 s += f"{space()},{space()}"
             s += f"{space()}*{space()}"
             if vararg:
-                s += unparse(vararg.arg, nl_able)
+                s += vararg.arg
                 if vararg.annotation:
                     s += f"{space()}:{space()}" + unparse(vararg.annotation, nl_able)
 
@@ -686,7 +686,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         if kwarg:
             if not first:
                 s += f"{space()},{space()}"
-            s += f"**{space()}{unparse(kwarg.arg, nl_able)}"
+            s += f"**{space()}{kwarg.arg}"
             if kwarg.annotation:
                 s += f"{space()}:{space()}{unparse(kwarg.annotation, nl_able)}"
         return s
