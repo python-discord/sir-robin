@@ -9,6 +9,7 @@ op_strs = {
     ast.Mult: "*",
     ast.Sub: "-",
     ast.Div: "/",
+    ast.FloorDiv: "//",
     ast.Mod: "%",
     ast.Pow: "**",
     ast.BitXor: "^",
@@ -245,7 +246,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         op, values = node.op, node.values
 
         return f"{space(1)}{op_strs[type(op)]}{space(1)}".join(
-            f"{(parenthesize if precedences[type(value)] <= precedences[type(op)] else unparse)(value)}"
+            f"{(parenthesize if precedences[type(value.op if isinstance(value, ast.BoolOp) else value)] <= precedences[type(op)] else unparse)(value)}"
             for value in values
         )
     if isinstance(node, ast.Break):
@@ -675,7 +676,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
                 s += f"{space()},{space()}"
             s += f"{space()}*{space()}"
             if vararg:
-                s += unparse(vararg.arg, nl_able)
+                s += vararg.arg
                 if vararg.annotation:
                     s += f"{space()}:{space()}" + unparse(vararg.annotation, nl_able)
 
@@ -687,7 +688,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         if kwarg:
             if not first:
                 s += f"{space()},{space()}"
-            s += f"**{space()}{unparse(kwarg.arg, nl_able)}"
+            s += f"**{space()}{kwarg.arg}"
             if kwarg.annotation:
                 s += f"{space()}:{space()}{unparse(kwarg.annotation, nl_able)}"
         return s
