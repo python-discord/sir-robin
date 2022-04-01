@@ -9,6 +9,7 @@ op_strs = {
     ast.Mult: "*",
     ast.Sub: "-",
     ast.Div: "/",
+    ast.FloorDiv: "//",
     ast.Mod: "%",
     ast.Pow: "**",
     ast.BitXor: "^",
@@ -39,6 +40,7 @@ precedences = [
     {
         ast.Name,
         ast.Constant,
+        ast.JoinedStr,
         ast.List,
         ast.ListComp,
         ast.Dict,
@@ -115,7 +117,7 @@ def get_precedence(node: ast.AST) -> int:
     return precedences.get(type(node), 0)
 
 
-def space(a: int = 0, b: int = 3) -> str:
+def space(a: int = 1, b: int = 3) -> str:
     """Randomly generate whitespace of length between the given bounds."""
     return " " * randrange(a, b)
 
@@ -673,7 +675,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
                 s += f"{space()},{space()}"
             s += f"{space()}*{space()}"
             if vararg:
-                s += unparse(vararg.arg, nl_able)
+                s += vararg.arg
                 if vararg.annotation:
                     s += f"{space()}:{space()}" + unparse(vararg.annotation, nl_able)
 
@@ -685,7 +687,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         if kwarg:
             if not first:
                 s += f"{space()},{space()}"
-            s += f"**{space()}{unparse(kwarg.arg, nl_able)}"
+            s += f"**{space()}{kwarg.arg}"
             if kwarg.annotation:
                 s += f"{space()}:{space()}{unparse(kwarg.annotation, nl_able)}"
         return s
