@@ -110,7 +110,7 @@ semicolon_able = (
 nl_before_op = {ast.Add, ast.Mult}
 
 
-def space(a: int = 0, b: int = 3) -> str:
+def space(a: int = 1, b: int = 3) -> str:
     """Randomly generate whitespace of length between the given bounds."""
     return " " * randrange(a, b)
 
