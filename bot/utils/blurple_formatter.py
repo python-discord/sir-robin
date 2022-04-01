@@ -117,7 +117,7 @@ def get_precedence(node: ast.AST) -> int:
     return precedences.get(type(node), 0)
 
 
-def space(a: int = 1 b: int = 3) -> str:
+def space(a: int = 1, b: int = 3) -> str:
     """Randomly generate whitespace of length between the given bounds."""
     return " " * randrange(a, b)
 
