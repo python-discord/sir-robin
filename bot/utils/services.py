@@ -14,8 +14,9 @@ PASTE_SERVICE = "https://paste.pythondiscord.com/{key}"
 async def send_to_paste_service(contents: str, *, extension: str = "") -> Optional[str]:
     """
     Upload `contents` to the paste service.
-    `extension` is added to the output URL
-    When an error occurs, `None` is returned, otherwise the generated URL with the suffix.
+
+    `extension` is added to the output URL before being returned. When an error occurs,
+    `None` is returned, otherwise the generated URL with the suffix.
     """
     extension = extension and f".{extension}"
     log.debug(f"Sending contents of size {len(contents.encode())} bytes to paste service.")
