@@ -169,7 +169,9 @@ def indent(nodes: list[ast.AST], n: int) -> Generator[str, None, None]:
             yield from (f"{n * ' '}{line}" for line in stmt_lines)
             curr_len = 0
             curr_chunk = []
-    yield n * " " + space().join(curr_chunk)
+
+    if curr_chunk:
+        yield n * " " + space().join(curr_chunk)
 
 
 def unparse(node: ast.AST, nl_able: bool = False) -> str:
