@@ -558,8 +558,10 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         )
     if isinstance(node, ast.Slice):
         lower, upper, step = node.lower, node.upper, node.step
-
-        s = f"{lower or ''}{space()}:{space()}{upper or ''}{space()}:{space()}{step or ''}"
+        lower = '' if lower is None else unparse(lower)
+        upper = '' if upper is None else unparse(upper)
+        step = '' if step is None else unparse(step)
+        s = f"{lower}{space()}:{space()}{upper}{space()}:{space()}{step}"
         return ":" if s.replace(" ", "") == "::" else s
     if isinstance(node, ast.Starred):
         value = node.value
