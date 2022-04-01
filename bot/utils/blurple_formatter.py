@@ -9,6 +9,7 @@ op_strs = {
     ast.Mult: "*",
     ast.Sub: "-",
     ast.Div: "/",
+    ast.FloorDiv: "//",
     ast.Mod: "%",
     ast.Pow: "**",
     ast.BitXor: "^",
