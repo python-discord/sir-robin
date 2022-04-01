@@ -73,6 +73,7 @@ precedences = [
         ast.Eq,
     },
     {ast.Not},
+    {ast.BoolOp},
     {ast.And},
     {ast.Or},
     {ast.IfExp},
