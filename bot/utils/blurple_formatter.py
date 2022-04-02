@@ -1,4 +1,4 @@
-import ast
+import ast, sys
 from collections.abc import Generator
 from random import randrange
 
@@ -108,6 +108,14 @@ semicolon_able = (
 nl_before_op = {ast.Add, ast.Mult}
 
 
+_SINGLE_QUOTES = ("'", '"')
+_MULTI_QUOTES = ('"""', "'''")
+_ALL_QUOTES = (*_SINGLE_QUOTES, *_MULTI_QUOTES)
+
+
+_INFSTR = "1e" + repr(sys.float_info.max_10_exp + 1)
+
+
 def get_precedence(node: ast.AST) -> int:
     """Get the precedence of the given node."""
     if isinstance(node, (ast.BoolOp, ast.BinOp, ast.UnaryOp)):
@@ -142,7 +150,7 @@ def invert_indents(src: str) -> str:
 
 def parenthesize(node: ast.AST, _nl_able: bool = False) -> str:
     """Wrap the un-parsed node in parentheses."""
-    return f"({unparse(node, True)})"
+    return f"({space()}{unparse(node, True)}{space()})"
 
 
 def indent(nodes: list[ast.AST], n: int) -> Generator[str, None, None]:
@@ -172,7 +180,68 @@ def indent(nodes: list[ast.AST], n: int) -> Generator[str, None, None]:
     yield n * " " + space().join(curr_chunk)
 
 
-def unparse(node: ast.AST, nl_able: bool = False) -> str:
+def _str_literal_helper(string, *, quote_types=_ALL_QUOTES, escape_special_whitespace=False):
+    """
+    Helper for writing string literals, minimizing escapes.
+    Returns the tuple (string literal to write, possible quote types).
+    Equivalent behaviour to ast._Unparser._str_literal_helper.
+    """
+    def escape_char(c):
+        # \n and \t are non-printable, but we only escape them if
+        # escape_special_whitespace is True
+        if not escape_special_whitespace and c in "\n\t":
+            return c
+        # Always escape backslashes and other non-printable characters
+        if c == "\\" or not c.isprintable():
+            return c.encode("unicode_escape").decode("ascii")
+        return c
+
+    escaped_string = "".join(map(escape_char, string))
+    possible_quotes = quote_types
+    if "\n" in escaped_string:
+        possible_quotes = [q for q in possible_quotes if q in _MULTI_QUOTES]
+    possible_quotes = [q for q in possible_quotes if q not in escaped_string]
+    if not possible_quotes:
+        # If there aren't any possible_quotes, fallback to using repr
+        # on the original string. Try to use a quote from quote_types,
+        # e.g., so that we use triple quotes for docstrings.
+        string = repr(string)
+        quote = next((q for q in quote_types if string[0] in q), string[0])
+        return string[1:-1], [quote]
+    if escaped_string:
+        # Sort so that we prefer '''"''' over """\""""
+        possible_quotes.sort(key=lambda q: q[0] == escaped_string[-1])
+        # If we're using triple quotes and we'd need to escape a final
+        # quote, escape it
+        if possible_quotes[0][0] == escaped_string[-1]:
+            assert len(possible_quotes[0]) == 3
+            escaped_string = escaped_string[:-1] + "\\" + escaped_string[-1]
+    return escaped_string, possible_quotes
+
+def _write_str_avoiding_backslashes(string, *, quote_types=_ALL_QUOTES):
+    """
+    Return string literal value with a best effort attempt to avoid backslashes.
+    Equivalent behaviour to ast._Unparser._write_str_avoiding_backslashes.
+    """
+    string, quote_types = _str_literal_helper(string, quote_types=quote_types)
+    quote_type = quote_types[0]
+    return f"{quote_type}{space()}{string}{space()}{quote_type}"
+
+
+def _write_fstring_inner(node):
+    if isinstance(node, ast.JoinedStr):
+        # for both the f-string itself, and format_spec
+        return f"{space()}".join(map(_write_fstring_inner, node.values))
+    elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+        value = node.value.replace("{", "{{").replace("}", "}}")
+        return value
+    elif isinstance(node, FormattedValue):
+        return unparse(node)
+    else:
+        raise ValueError(f"Unexpected node inside ast.JoinedStr, {node!r}")
+
+
+def unparse(node: ast.AST, nl_able: bool = False, avoid_backslashes: bool = True) -> str:
     """Convert the ast node to formatted(!) Python source code."""
     if isinstance(node, ast.AnnAssign):
         target, annotation, value = node.target, node.annotation, node.value
@@ -186,7 +255,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         test, msg = node.test, node.msg
 
         return (
-            f"assert{space(1)}{test}"
+            f"assert{space()}{test}"
             + (f",{space()}{unparse(msg)}" if msg else "")
             + f"{space()};"
         )
@@ -220,7 +289,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         return "\n".join(
             (
                 *(f"@{space()}{unparse(decorator)}" for decorator in decorator_list),
-                f"async{space(1)}def{space(1)}{name}{space()}({space()}{unparse(args, True)}{space()})"
+                f"async{space()}def{space()}{name}{space()}({space()}{unparse(args, True)}{space()})"
                 + (f"{space()}->{space()}{unparse(returns)}" if returns else "")
                 + f"{space()}:",
                 *indent(body, randrange(2, 5)),
@@ -231,7 +300,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
 
         return "\n".join(
             [
-                f"async{space(1)}with{space(1)}{f',{space()}'.join(map(unparse, items))}{space()}:",
+                f"async{space()}with{space()}{f',{space()}'.join(map(unparse, items))}{space()}:",
                 *indent(body, randrange(2, 5)),
             ]
         )
@@ -248,11 +317,11 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
     if isinstance(node, ast.Await):
         value = node.value
 
-        return f"await{space(1)}{unparse(value)}"
+        return f"await{space()}{unparse(value)}"
     if isinstance(node, ast.BoolOp):
         op, values = node.op, node.values
 
-        return f"{space(1)}{op_strs[type(op)]}{space(1)}".join(
+        return f"{space()}{op_strs[type(op)]}{space()}".join(
             f"{(parenthesize if get_precedence(value) <= get_precedence(op) else unparse)(value)}"
             for value in values
         )
@@ -278,9 +347,9 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         nl_after = (op_type not in nl_before_op) * "\n"
 
         return (
-            f"({(parenthesize if par_left else unparse)(left, True)}{space()}"
+            f"({space()}{(parenthesize if par_left else unparse)(left, True)}{space()}"
             + f"{nl_before}{op_strs[type(op)]}{space()}{nl_after}"
-            + f"{(parenthesize if par_right else unparse)(right, True)})"
+            + f"{(parenthesize if par_right else unparse)(right, True)}{space()})"
         )
     if isinstance(node, ast.Call):
         func, args, keywords = node.func, node.args, node.keywords
@@ -310,7 +379,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         return "\n".join(
             [
                 *(f"@{space()}{unparse(decorator)}" for decorator in decorator_list),
-                f"class{space(1)}{name}{space()}"
+                f"class{space()}{name}{space()}"
                 + (
                     f"({space()}{f'{space()},{space()}'.join(unparse(arg, True) for arg in args)}{space()})"
                     if args
@@ -334,14 +403,25 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
     if isinstance(node, ast.Constant):
         value = node.value
 
-        return repr(value) if value != Ellipsis else "..."
+        if avoid_backslashes and isinstance(value, str):
+            return _write_str_avoiding_backslashes(value)
+        if value == Ellipsis:
+            return "..."
+        res = repr(value)
+        if isinstance(value, (float, complex)):
+            return (
+                res
+                .replace("inf", _INFSTR)
+                .replace("nan", f"({space()}{_INFSTR}{space()}-\n{_INFSTR}{space()})")
+            )
+        return res
     if isinstance(node, ast.Continue):
 
         return f"continue{space()};"
     if isinstance(node, ast.Delete):
         targets = node.targets
 
-        return f"del{space(1)}{f'{space()},{space()}'.join(map(unparse, targets))};"
+        return f"del{space()}{f'{space()},{space()}'.join(map(unparse, targets))};"
     if isinstance(node, ast.Dict):
         keys, values = node.keys, node.values
 
@@ -363,8 +443,8 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         return (
             "{"
             + space()
-            + f"{unparse(key)}{space()}:{space()}{unparse(value)}{space(1)}"
-            + f"{space(1)}".join(map(unparse, generators))
+            + f"{unparse(key)}{space()}:{space()}{unparse(value)}{space()}"
+            + f"{space()}".join(map(unparse, generators))
             + space()
             + "}"
         )
@@ -373,9 +453,9 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
 
         return "\n".join(
             [
-                f"except{space(1)}"
+                f"except{space()}"
                 + (f"{unparse(type_)}" if type_ else "")
-                + (f"{space(1)}as{space(1)}{name}" if name else "")
+                + (f"{space()}as{space()}{name}" if name else "")
                 + f"{space()}:",
                 *indent(body, randrange(2, 5)),
             ]
@@ -388,7 +468,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         target, iter_, body, orelse = node.target, node.iter, node.body, node.orelse
 
         s = [
-            f"for{space(1)}{unparse(target)}{space(1)}in{space(1)}{unparse(iter_)}:",
+            f"for{space()}{unparse(target)}{space()}in{space()}{unparse(iter_)}:",
             *indent(body, randrange(2, 5)),
         ]
         if orelse:
@@ -396,8 +476,27 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
             s.extend(indent(orelse, randrange(2, 5)))
         return "\n".join(s)
     if isinstance(node, ast.FormattedValue):
+        value, conversion, format_spec = (
+            node.value,
+            node.conversion,
+            node.format_spec
+        )
 
-        return ast.unparse(node)
+        expr = unparse(value, avoid_backslashes=True)
+        if "\\" in expr:
+            raise ValueError(
+                "Unable to avoid backslash in f-string expression part"
+            )
+
+        return (
+            "{"
+            + space()
+            + expr
+            + f"!{chr(conversion)}" * (conversion != -1)
+            + f":{_write_fstring_inner(format_spec)}" * bool(format_spec)
+            + space()
+            + "}"
+        )
     if isinstance(node, ast.FunctionDef):
         name, args, body, decorator_list, returns = (
             node.name,
@@ -410,7 +509,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         return "\n".join(
             [
                 *(f"@{space()}{unparse(decorator)}" for decorator in decorator_list),
-                f"sync{space(1)}def{space(1)}{name}{space()}"
+                f"sync{space()}def{space()}{name}{space()}"
                 f"({space()}{unparse(args, True)}{space()})"
                 + (f"{space()}->{space()}{unparse(returns)}" if returns else "")
                 + f"{space()}:",
@@ -429,12 +528,12 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
     if isinstance(node, ast.Global):
         names = node.names
 
-        return f"global{space(1)}{', '.join(map(unparse, names))}{space()};"
+        return f"global{space()}{', '.join(map(unparse, names))}{space()};"
     if isinstance(node, ast.If):
         test, body, orelse = node.test, node.body, node.orelse
 
         s = [
-            f"if{space(1)}{unparse(test)}{space()}:",
+            f"if{space()}{unparse(test)}{space()}:",
             *indent(body, randrange(2, 5)),
         ]
         if orelse:
@@ -445,19 +544,19 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         test, body, orelse = node.test, node.body, node.orelse
 
         return (
-            f"{(parenthesize if get_precedence(body) < get_precedence(node) else unparse)(body)}{space(1)}"
-            + f"if{space(1)}"
-            + f"{(parenthesize if get_precedence(body) < get_precedence(node) else unparse)(test)}{space(1)}"
-            + f"else{space(1)}{(parenthesize if get_precedence(body) < get_precedence(node) else unparse)(orelse)}"
+            f"{(parenthesize if get_precedence(body) < get_precedence(node) else unparse)(body)}{space()}"
+            + f"if{space()}"
+            + f"{(parenthesize if get_precedence(body) < get_precedence(node) else unparse)(test)}{space()}"
+            + f"else{space()}{(parenthesize if get_precedence(body) < get_precedence(node) else unparse)(orelse)}"
         )
     if isinstance(node, ast.Import):
         names = node.names
 
         return (
-            f"import{space(1)}"
+            f"import{space()}"
             + f"{space()},{space()}".join(
                 f"{name.name}"
-                + (f"{space(1)}as{space(1)}{name.asname}" if name.asname else "")
+                + (f"{space()}as{space()}{name.asname}" if name.asname else "")
                 for name in names
             )
             + f"{space()};"
@@ -466,21 +565,35 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         module, names, level = node.module, node.names, node.level
 
         return (
-            f"from{space(1)}{'.'*level}{module}{space(1)}import{space(1)}"
+            f"from{space()}{'.'*level}{module}{space()}import{space()}"
             + f"{space()},{space()}".join(
                 f"{name.name}"
-                + (f"{space(1)}as{space(1)}{name.asname}" if name.asname else "")
+                + (f"{space()}as{space()}{name.asname}" if name.asname else "")
                 for name in names
             )
             + f"{space()};"
         )
     if isinstance(node, ast.JoinedStr):
+        if avoid_backslashes:
+            return _write_str_avoiding_backslashes(_write_fstring_inner(node))
+        fstring_parts = []
+        quote_types = list(_ALL_QUOTES)
 
-        return ast.unparse(node)
+        for value in node.values:
+            isconstant = isinstance(value, ast.Constant)
+            value, quote_types = _str_literal_helper(
+                _write_fstring_inner(value),
+                quote_types=quote_types,
+                escape_special_whitespace=is_constant,
+            )
+            fstring_parts.append(value)
+
+        quote_type = quote_types[0]
+        return f"f{space()}{quote_type}{space()}{''.join(fstring_parts)}{space()}{quote_type}"
     if isinstance(node, ast.Lambda):
         args, body = node.args, node.body
 
-        return f"lambda{space(1)}{unparse(args)}{space()}:{space()}{unparse(body)}"
+        return f"lambda{space()}{unparse(args)}{space()}:{space()}{unparse(body)}"
     if isinstance(node, ast.List):
         elts = node.elts
 
@@ -495,7 +608,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         return (
             f"[{space()}"
             + f"{unparse(elt)} "
-            + f"{space(1)}".join(map(unparse, generators))
+            + f"{space()}".join(map(unparse, generators))
             + f"{space()}]"
         )
     if isinstance(node, ast.Module):
@@ -513,7 +626,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
     if isinstance(node, ast.Nonlocal):
         names = node.names
 
-        return f"nonlocal{space(1)}{f'{space()},{space()}'.join(map(unparse, names))};{space()}"
+        return f"nonlocal{space()}{f'{space()},{space()}'.join(map(unparse, names))};{space()}"
     if isinstance(node, ast.Pass):
 
         return f"pass{space()};"
@@ -524,8 +637,8 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
             return f"raise{space()};"
 
         return (
-            f"raise{space(1)}{unparse(exc)}"
-            + (f"{space(1)}from{space(1)}{unparse(cause)}" if cause else "")
+            f"raise{space()}{unparse(exc)}"
+            + (f"{space()}from{space()}{unparse(cause)}" if cause else "")
             + f"{space()};"
         )
     if isinstance(node, ast.Return):
@@ -534,7 +647,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         if not value:
             return f"return{space()};"
 
-        return f"return{space(1)}{unparse(value)}{space()};"
+        return f"return{space()}{unparse(value)}{space()};"
     if isinstance(node, ast.Set):
         elts = node.elts
 
@@ -551,8 +664,8 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         return (
             "{"
             + space()
-            + f"{unparse(elt)}{space(1)}"
-            + f"{space(1)}".join(map(unparse, generators))
+            + f"{unparse(elt)}{space()}"
+            + f"{space()}".join(map(unparse, generators))
             + space()
             + "}"
         )
@@ -598,6 +711,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         return (
             f"({space()}"
             + f"{space()},{space()}".join(unparse(elt, True) for elt in elts)
+            + f"{space()},{space()}" * (len(elts) == 1)
             + f"{space()})"
         )
     if isinstance(node, ast.UnaryOp):
@@ -609,7 +723,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         test, body, orelse = node.test, node.body, node.orelse
 
         s = [
-            f"while{space(1)}{unparse(test)}{space()}:",
+            f"while{space()}{unparse(test)}{space()}:",
             *indent(body, randrange(2, 5)),
         ]
         if orelse:
@@ -621,7 +735,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
 
         return "\n".join(
             [
-                f"with{space(1)}{f'{space()},{space()}'.join(map(unparse, items))}{space()}:",
+                f"with{space()}{f'{space()},{space()}'.join(map(unparse, items))}{space()}:",
                 *indent(body, randrange(2, 5)),
             ]
         )
@@ -631,11 +745,11 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         if not value:
             return f"yield{space()};"
 
-        return f"yield{space(1)}{unparse(value)}"
+        return f"yield{space()}{unparse(value)}"
     if isinstance(node, ast.YieldFrom):
         value = node.value
 
-        return f"yield{space(1)}from{space(1)}{unparse(value)}"
+        return f"yield{space()}from{space()}{unparse(value)}"
 
     if isinstance(node, ast.arg):
         arg, annotation = node.arg, node.annotation
@@ -699,16 +813,16 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         target, iter_, ifs, is_async = node.target, node.iter, node.ifs, node.is_async
 
         return (
-            f"async{space(1)}" if is_async else ""
-            + f"for{space(1)}{unparse(target)}{space(1)}in{space(1)}{unparse(iter_)}"
-            + (f"{space(1)}" if ifs else "")
-            + f"{space(1)}".join(f"if{space(1)}{unparse(if_)}" for if_ in ifs)
+            f"async{space()}" if is_async else ""
+            + f"for{space()}{unparse(target)}{space()}in{space()}{unparse(iter_)}"
+            + (f"{space()}" if ifs else "")
+            + f"{space()}".join(f"if{space()}{unparse(if_)}" for if_ in ifs)
         )
     if isinstance(node, ast.withitem):
         context_expr, optional_vars = node.context_expr, node.optional_vars
 
         return f"{unparse(context_expr)}" + (
-            f"{space(1)}as{space(1)}{unparse(optional_vars)}" if optional_vars else ""
+            f"{space()}as{space()}{unparse(optional_vars)}" if optional_vars else ""
         )
 
     return ast.unparse(node)
