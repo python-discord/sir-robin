@@ -188,7 +188,7 @@ def unparse(node: ast.AST, nl_able: bool = False) -> str:
         test, msg = node.test, node.msg
 
         return (
-            f"assert{space(1)}{test}"
+            f"assert{space(1)}{unparse(test)}"
             + (f",{space()}{unparse(msg)}" if msg else "")
             + f"{space()};"
         )
