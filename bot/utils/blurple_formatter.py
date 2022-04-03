@@ -238,7 +238,7 @@ def _write_fstring_inner(node):
     elif isinstance(node, FormattedValue):
         return unparse(node)
     else:
-        raise ValueError(f"Unexpected node inside ast.JoinedStr, {node!r}")
+        raise ValueError(f"Unexpected node inside ast.JoinedStr: {node!r}")
 
 
 def unparse(node: ast.AST, nl_able: bool = False, avoid_backslashes: bool = True) -> str:
