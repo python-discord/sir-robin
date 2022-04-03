@@ -177,16 +177,20 @@ def indent(nodes: list[ast.AST], n: int) -> Generator[str, None, None]:
             yield from (f"{n * ' '}{line}" for line in stmt_lines)
             curr_len = 0
             curr_chunk = []
-    yield n * " " + space().join(curr_chunk)
+
+    if curr_chunk:
+        yield n * " " + space().join(curr_chunk)
 
 
-def _str_literal_helper(string, *, quote_types=_ALL_QUOTES, escape_special_whitespace=False):
+def _str_literal_helper(
+  string: str, *, quote_types: tuple = _ALL_QUOTES, escape_special_whitespace: bool = False
+) -> tuple[str]:
     """
     Helper for writing string literals, minimizing escapes.
     Returns the tuple (string literal to write, possible quote types).
     Equivalent behaviour to ast._Unparser._str_literal_helper.
     """
-    def escape_char(c):
+    def escape_char(c: str) -> str:
         # \n and \t are non-printable, but we only escape them if
         # escape_special_whitespace is True
         if not escape_special_whitespace and c in "\n\t":
@@ -211,14 +215,14 @@ def _str_literal_helper(string, *, quote_types=_ALL_QUOTES, escape_special_white
     if escaped_string:
         # Sort so that we prefer '''"''' over """\""""
         possible_quotes.sort(key=lambda q: q[0] == escaped_string[-1])
-        # If we're using triple quotes and we'd need to escape a final
-        # quote, escape it
+        # If we're using triple quotes, escape the final quote if we need to
         if possible_quotes[0][0] == escaped_string[-1]:
             assert len(possible_quotes[0]) == 3
             escaped_string = escaped_string[:-1] + "\\" + escaped_string[-1]
     return escaped_string, possible_quotes
 
-def _write_str_avoiding_backslashes(string, *, quote_types=_ALL_QUOTES):
+
+def _write_str_avoiding_backslashes(string: str, *, quote_types: tuple = _ALL_QUOTES) -> str:
     """
     Return string literal value with a best effort attempt to avoid backslashes.
     Equivalent behaviour to ast._Unparser._write_str_avoiding_backslashes.
@@ -228,7 +232,7 @@ def _write_str_avoiding_backslashes(string, *, quote_types=_ALL_QUOTES):
     return f"{quote_type}{space()}{string}{space()}{quote_type}"
 
 
-def _write_fstring_inner(node):
+def _write_fstring_inner(node: ast.AST) -> str:
     if isinstance(node, ast.JoinedStr):
         # for both the f-string itself, and format_spec
         return f"{space()}".join(map(_write_fstring_inner, node.values))
@@ -576,6 +580,7 @@ def unparse(node: ast.AST, nl_able: bool = False, avoid_backslashes: bool = True
     if isinstance(node, ast.JoinedStr):
         if avoid_backslashes:
             return _write_str_avoiding_backslashes(_write_fstring_inner(node))
+
         fstring_parts = []
         quote_types = list(_ALL_QUOTES)
 
@@ -711,7 +716,7 @@ def unparse(node: ast.AST, nl_able: bool = False, avoid_backslashes: bool = True
         return (
             f"({space()}"
             + f"{space()},{space()}".join(unparse(elt, True) for elt in elts)
-            + f"{space()},{space()}" * (len(elts) == 1)
+            + "," * (len(elts) == 1)
             + f"{space()})"
         )
     if isinstance(node, ast.UnaryOp):
