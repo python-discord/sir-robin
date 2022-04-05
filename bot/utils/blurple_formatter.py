@@ -409,16 +409,8 @@ def unparse(node: ast.AST, nl_able: bool = False, avoid_backslashes: bool = True
 
         if avoid_backslashes and isinstance(value, str):
             return _write_str_avoiding_backslashes(value)
-        if value == Ellipsis:
-            return "..."
-        res = repr(value)
-        if isinstance(value, (float, complex)):
-            return (
-                res
-                .replace("inf", _INFSTR)
-                .replace("nan", f"({space()}{_INFSTR}{space()}-\n{_INFSTR}{space()})")
-            )
-        return res
+
+        return source[node.col_offset:node.end_col_offset]
     if isinstance(node, ast.Continue):
 
         return f"continue{space()};"
@@ -835,5 +827,7 @@ def unparse(node: ast.AST, nl_able: bool = False, avoid_backslashes: bool = True
 
 def blurplify(src: str) -> str:
     """Format the given source code in accordance with PEP 9001."""
+    global source # use a global variable only to get the original source part of constants
     src_ast = ast.parse(src)
+    source = src
     return "# coding=UTF-8-NOBOM\n" + invert_indents(unparse(src_ast))
