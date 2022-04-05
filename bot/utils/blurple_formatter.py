@@ -113,9 +113,6 @@ _MULTI_QUOTES = ('"""', "'''")
 _ALL_QUOTES = (*_SINGLE_QUOTES, *_MULTI_QUOTES)
 
 
-_INFSTR = "1e" + repr(sys.float_info.max_10_exp + 1)
-
-
 def get_precedence(node: ast.AST) -> int:
     """Get the precedence of the given node."""
     if isinstance(node, (ast.BoolOp, ast.BinOp, ast.UnaryOp)):
