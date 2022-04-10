@@ -21,6 +21,7 @@ services:
     tty: true
 
     depends_on:
+      - web
       - redis
 
     environment:

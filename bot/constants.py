@@ -227,6 +227,12 @@ def _parse_aoc_leaderboard_env() -> dict[str, AdventOfCodeLeaderboard]:
         leaderboards[leaderboard_id] = AdventOfCodeLeaderboard(leaderboard_id, session, join_code)
 
 
+class URLs(NamedTuple):
+    site_api_schema = environ.get("SITE_API_SCHEMA", "http://")
+    site_api = environ.get("SITE_API", "web:8000")
+    site_api_token = environ.get("SITE_API_TOKEN", "suitable-for-development-only")
+
+
 class AdventOfCode(NamedTuple):
     # Information for the several leaderboards we have
     leaderboards = _parse_aoc_leaderboard_env()

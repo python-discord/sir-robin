@@ -3,7 +3,6 @@ from typing import Optional
 
 import aiohttp
 import discord
-import aiohttp
 from botcore.utils.extensions import walk_extensions
 from botcore.utils.logging import get_logger
 from botcore.utils.scheduling import create_task

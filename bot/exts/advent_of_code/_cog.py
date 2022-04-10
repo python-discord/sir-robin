@@ -6,6 +6,7 @@ from typing import Optional
 import arrow
 import discord
 from async_rediscache import RedisCache
+from botcore.site_api import APIClient
 from botcore.utils import members
 from botcore.utils.logging import get_logger
 from discord.ext import commands, tasks
@@ -13,7 +14,7 @@ from discord.ext import commands, tasks
 from bot.bot import SirRobin
 from bot.constants import WHITELISTED_CHANNELS
 from bot.constants import AdventOfCode as AocConfig
-from bot.constants import Channels, Client, Colours, Emojis, Month, Roles
+from bot.constants import Channels, Client, Colours, Emojis, Month, Roles, URLs
 from bot.exts.advent_of_code import _helpers
 from bot.exts.advent_of_code.views.dayandstarview import AoCDropdownView
 from bot.utils.decorators import (InChannelCheckFailure, in_interval,
@@ -44,7 +45,9 @@ class AdventOfCode(commands.Cog):
     completionist_block_list = RedisCache()
 
     def __init__(self, bot: SirRobin):
+
         self.bot = bot
+        self.api = APIClient(site_api_url=(URLs.site_api_schema + URLs.site_api), site_api_token=URLs.site_api_token)
 
         self._base_url = f"https://adventofcode.com/{AocConfig.year}"
         self.global_leaderboard_url = f"https://adventofcode.com/{AocConfig.year}/leaderboard"
@@ -136,7 +139,7 @@ class AdventOfCode(commands.Cog):
         if completionist_role in member.roles:
             await member.remove_roles(completionist_role)
 
-        await self.completionist_block_list.set(member.id, "sentinel")
+        await self.api.post("api/bot/aoc-completionist-blocks", json={"user": member.id})
         await ctx.send(f":+1: Blocked {member.mention} from getting the AoC completionist role.")
 
     @commands.guild_only()
