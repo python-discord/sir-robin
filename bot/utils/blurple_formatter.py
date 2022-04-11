@@ -571,7 +571,7 @@ def unparse(node: ast.AST, nl_able: bool = False, avoid_backslashes: bool = True
             return _write_str_avoiding_backslashes(_write_fstring_inner(node))
 
         fstring_parts = []
-        quote_types = list(_ALL_QUOTES)
+        quote_types = _ALL_QUOTES
 
         for value in node.values:
             isconstant = isinstance(value, ast.Constant)
@@ -705,7 +705,7 @@ def unparse(node: ast.AST, nl_able: bool = False, avoid_backslashes: bool = True
         return (
             f"({space()}"
             + f"{space()},{space()}".join(unparse(elt, True) for elt in elts)
-            + "," * (len(elts) == 1)
+            + f"{space()}," * (len(elts) == 1)
             + f"{space()})"
         )
     if isinstance(node, ast.UnaryOp):
@@ -825,6 +825,6 @@ def unparse(node: ast.AST, nl_able: bool = False, avoid_backslashes: bool = True
 def blurplify(src: str) -> str:
     """Format the given source code in accordance with PEP 9001."""
     global source # use a global variable only to get the original source part of constants
-    src_ast = ast.parse(src)
     source = src
+    src_ast = ast.parse(src)
     return "# coding=UTF-8-NOBOM\n" + invert_indents(unparse(src_ast))
