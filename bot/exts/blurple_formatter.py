@@ -6,7 +6,7 @@ from botcore.utils.regex import FORMATTED_CODE_REGEX
 from discord.ext import commands
 
 from bot.bot import SirRobin
-from bot.utils import blurple_formatter, services
+from bot.utils import blurple_formatter
 
 
 class BlurpleFormatter(commands.Cog):
@@ -14,6 +14,7 @@ class BlurpleFormatter(commands.Cog):
 
     def __init__(self, bot: SirRobin):
         self.bot = bot
+        self.lock = asyncio.Lock()
 
     @staticmethod
     def _format_code(code: str) -> str:
@@ -27,7 +28,8 @@ class BlurpleFormatter(commands.Cog):
         if match := FORMATTED_CODE_REGEX.match(code):
             code = match.group("code")
         try:
-            blurpified = await asyncio.to_thread(self._format_code, code)
+            async with self.lock:
+                blurpified = await asyncio.to_thread(self._format_code, code)
         except SyntaxError as e:
             err_info = "".join(traceback.format_exception_only(type(e), e)).replace("`", "`\u200d")
             embed = discord.Embed(
@@ -36,15 +38,6 @@ class BlurpleFormatter(commands.Cog):
                 color=0xCD6D6D,
             )
             await ctx.send(embed=embed, allowed_mentions=discord.AllowedMentions.none())
-            return
-
-        if len(blurpified) > 2000:
-            paste = await services.send_to_paste_service(blurpified)
-            if not paste:
-                await ctx.send(":warning: Failed to upload full output")
-            else:
-                await ctx.send(f":white_check_mark: Formatted code too big, full output: {paste}")
-
             return
 
         await ctx.send(f"```py\n{blurpified}\n```", allowed_mentions=discord.AllowedMentions.none())
