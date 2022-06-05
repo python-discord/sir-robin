@@ -8,7 +8,7 @@ from bot import constants
 
 aoc_URL = "https://adventofcode.com/{year}/day/{day}"
 
-class AoC(commands.Cog):
+class OffSeasonAoC(commands.Cog):
     def __init__(self, bot: SirRobin) -> None:
         self.bot = bot
         self.loop: Optional[tasks.Loop] = None
@@ -64,4 +64,4 @@ class AoC(commands.Cog):
         
 async def setup(bot: SirRobin):
     """Load the summer AoC cog"""
-    await bot.add_cog(AoC(bot))
+    await bot.add_cog(OffSeasonAoC(bot))
