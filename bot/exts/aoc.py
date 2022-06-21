@@ -12,6 +12,7 @@ AOC_URL = "https://adventofcode.com/{year}/day/{day}"
 
 class OffSeasonAoC(commands.Cog):
     """Cog that handles all off season advent of code (AoC) functionality."""
+
     def __init__(self, bot: SirRobin) -> None:
         self.bot = bot
         self.loop: Optional[tasks.Loop] = None
