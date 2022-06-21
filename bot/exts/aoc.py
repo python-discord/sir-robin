@@ -7,7 +7,7 @@ from discord.utils import MISSING
 from bot import constants
 from bot.bot import SirRobin
 
-aoc_URL = "https://adventofcode.com/{year}/day/{day}"
+AOC_URL = "https://adventofcode.com/{year}/day/{day}"
 
 
 class OffSeasonAoC(commands.Cog):
@@ -26,7 +26,7 @@ class OffSeasonAoC(commands.Cog):
             return
 
         channel: discord.TextChannel = self.bot.get_channel(constants.Channels.aoc_forum_channel)
-        link = aoc_URL.format(year=self.year, day=self.current_day)
+        link = AOC_URL.format(year=self.year, day=self.current_day)
         thread_starter = await channel.send(link)  # This will be the message from which the thread will be created
         await thread_starter.create_thread(name=f"Off-season AoC #{self.current_day}")
 
