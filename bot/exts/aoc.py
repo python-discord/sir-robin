@@ -66,6 +66,6 @@ class OffSeasonAoC(commands.Cog):
             await ctx.send("The AoC loop is currently not running.")
 
 
-async def setup(bot: SirRobin):
+async def setup(bot: SirRobin) -> None:
     """Load the summer AoC cog"""
     await bot.add_cog(OffSeasonAoC(bot))
