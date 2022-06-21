@@ -11,6 +11,7 @@ aoc_URL = "https://adventofcode.com/{year}/day/{day}"
 
 
 class OffSeasonAoC(commands.Cog):
+    """Cog that handles all off season advent of code (AoC) functionality"""
     def __init__(self, bot: SirRobin) -> None:
         self.bot = bot
         self.loop: Optional[tasks.Loop] = None
@@ -19,6 +20,7 @@ class OffSeasonAoC(commands.Cog):
         self.current_day: Optional[int] = None
 
     async def aoc_task(self) -> None:
+        """The actual coroutine that handles creating threads for summer AoC. Should be passed into task."""
         if self.current_day > 25:
             self.loop.cancel()
             return
@@ -32,6 +34,7 @@ class OffSeasonAoC(commands.Cog):
 
     @commands.command()
     async def summer_aoc(self, ctx: commands.Context, year: int, days: int, start_day: int = 1) -> None:
+        """Dynamically create and start a background task to handle summer AoC."""
         if not (year >= 2015 and year <= 2021):
             raise commands.BadArgument("Year must be between 2015 and 2021, inclusive")
 
@@ -59,6 +62,7 @@ class OffSeasonAoC(commands.Cog):
 
     @commands.command()
     async def stop_aoc(self, ctx: commands.Context) -> None:
+        """Stops a running summer AoC loop, if one is already running."""
         if self.loop:
             self.loop.cancel()  # .cancel() doesn't allow the current iteration to finish
             await ctx.send("Stopped running AoC loop")
@@ -67,5 +71,5 @@ class OffSeasonAoC(commands.Cog):
 
 
 async def setup(bot: SirRobin) -> None:
-    """Load the summer AoC cog"""
+    """Load the summer AoC cog."""
     await bot.add_cog(OffSeasonAoC(bot))
