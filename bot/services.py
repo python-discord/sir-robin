@@ -8,7 +8,7 @@ from bot.log import get_logger
 log = get_logger(__name__)
 
 FAILED_REQUEST_ATTEMPTS = 3
-PASTE_URL = "https://paste.pythondiscord.com/"
+PASTE_URL = "https://paste.pythondiscord.com"
 
 
 async def send_to_paste_service(contents: str, *, extension: str = "") -> Optional[str]:
