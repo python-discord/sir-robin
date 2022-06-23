@@ -19,8 +19,23 @@ class SirRobin(commands.Bot):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+        # This session may want to be recreated on login/disconnect.
+        # Additionally, on the bot repo we use a different connector that is more "stable".
+        self.http_session: Optional[aiohttp.ClientSession] = None
+
         self._guild_available: Optional[asyncio.Event] = None
         self.http_session: Optional[aiohttp.ClientSession] = None
+
+    async def login(self, *args, **kwargs) -> None:
+        """On login, create an aiohttp client session to be used across the bot."""
+        self.http_session = aiohttp.ClientSession()
+        await super().login(*args, **kwargs)
+
+    async def close(self) -> None:
+        """On close, cleanly close the aiohttp client session."""
+        await self.http_session.close()
+        await super().close()
 
     async def add_cog(self, cog: commands.Cog, **kwargs) -> None:
         """
@@ -31,13 +46,16 @@ class SirRobin(commands.Bot):
         await super().add_cog(cog, **kwargs)
         log.info(f"Cog loaded: {cog.qualified_name}")
 
-    async def setup_hook(self) -> None:
-        """Default Async initialisation method for Discord.py."""
-        create_task(self.check_channels(), event_loop=self.loop)
-        create_task(self.send_log(constants.Client.name, "Connected!"), event_loop=self.loop)
-
+    async def load_all_extensions(self) -> None:
+        """Loads all the extensions in the `exts` module."""
         for ext in walk_extensions(exts):
             await self.load_extension(ext)
+
+    async def setup_hook(self) -> None:
+        """Default Async initialisation method for Discord.py."""
+        create_task(self.load_all_extensions(), event_loop=self.loop)
+        create_task(self.check_channels(), event_loop=self.loop)
+        create_task(self.send_log(constants.Client.name, "Connected!"), event_loop=self.loop)
 
     async def check_channels(self) -> None:
         """Verifies that all channel constants refer to channels which exist."""
