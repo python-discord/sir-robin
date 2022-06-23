@@ -1,6 +1,6 @@
 from discord import Colour, Embed
 from discord.ext.commands import (BadArgument, Cog, CommandError,
-                                  CommandNotFound, Context,
+                                  CommandNotFound, Context, MissingAnyRole,
                                   MissingRequiredArgument)
 
 from bot.bot import SirRobin
@@ -51,6 +51,10 @@ class ErrorHandler(Cog):
             return
         elif isinstance(error, MissingRequiredArgument):
             embed = self._get_error_embed("Missing required argument", str(error))
+            await ctx.send(embed=embed)
+            return
+        elif isinstance(error, MissingAnyRole):
+            embed = self._get_error_embed("Permission error", "You are not allowed to use this command!")
             await ctx.send(embed=embed)
             return
 

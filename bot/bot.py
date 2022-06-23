@@ -27,11 +27,6 @@ class SirRobin(commands.Bot):
         self._guild_available: Optional[asyncio.Event] = None
         self.http_session: Optional[aiohttp.ClientSession] = None
 
-    async def login(self, *args, **kwargs) -> None:
-        """On login, create an aiohttp client session to be used across the bot."""
-        self.http_session = aiohttp.ClientSession()
-        await super().login(*args, **kwargs)
-
     async def close(self) -> None:
         """On close, cleanly close the aiohttp client session."""
         await self.http_session.close()
