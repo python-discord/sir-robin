@@ -46,7 +46,7 @@ class OffSeasonAoC(commands.Cog):
         self.year = year
         self.current_day = start_day
 
-        if self.loop:
+        if self.loop and self.loop.is_running:
             await ctx.send("A loop is already running!")
         else:
             await ctx.send("Starting loop...")
@@ -66,7 +66,7 @@ class OffSeasonAoC(commands.Cog):
     @commands.has_any_role("Admins", "Event Lead", "Event Runner")
     async def stop_aoc(self, ctx: commands.Context) -> None:
         """Stops a running summer AoC loop, if one is already running."""
-        if self.loop:
+        if self.loop and self.loop.is_running:
             self.loop.cancel()  # .cancel() doesn't allow the current iteration to finish
             await ctx.send("Stopped running AoC loop")
         else:
