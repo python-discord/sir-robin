@@ -34,6 +34,7 @@ class OffSeasonAoC(commands.Cog):
         self.current_day += 1
 
     @commands.command()
+    @commands.has_any_role("Admins", "Event Lead", "Event Runner")
     async def summer_aoc(self, ctx: commands.Context, year: int, days: int, start_day: int = 1) -> None:
         """Dynamically create and start a background task to handle summer AoC."""
         if not (year >= 2015 and year <= 2021):
@@ -62,6 +63,7 @@ class OffSeasonAoC(commands.Cog):
             self.loop.start()
 
     @commands.command()
+    @commands.has_any_role("Admins", "Event Lead", "Event Runner")
     async def stop_aoc(self, ctx: commands.Context) -> None:
         """Stops a running summer AoC loop, if one is already running."""
         if self.loop:
