@@ -35,7 +35,7 @@ class OffSeasonAoC(commands.Cog):
 
     @commands.command()
     @commands.has_any_role("Admins", "Event Lead", "Event Runner")
-    async def summer_aoc(self, ctx: commands.Context, year: int, days: int, start_day: int = 1) -> None:
+    async def summer_aoc(self, ctx: commands.Context, year: int, day_interval: int, start_day: int = 1) -> None:
         """Dynamically create and start a background task to handle summer AoC."""
         if not (year >= 2015 and year <= 2021):
             raise commands.BadArgument("Year must be between 2015 and 2021, inclusive")
@@ -54,7 +54,7 @@ class OffSeasonAoC(commands.Cog):
                 self.aoc_task,
                 seconds=0,
                 minutes=0,
-                hours=(days * 24),
+                hours=(day_interval * 24),
                 time=MISSING,
                 count=None,
                 reconnect=True
