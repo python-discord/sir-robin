@@ -31,4 +31,6 @@ class Client(NamedTuple):
     debug = environ.get("BOT_DEBUG", "true").lower() == "true"
     in_ci = environ.get("IN_CI", "false").lower() == "true"
     use_fake_redis = environ.get("USE_FAKEREDIS", "false").lower() == "true"
+    code_jam_api = environ.get("CODE_JAM_API", "http://code-jam-management.default.svc.cluster.local:8000")
+    code_jam_token = environ.get("CODE_JAM_API_KEY", "badbot13m0n8f570f942013fc818f234916ca531")
     github_bot_repo = "https://github.com/python-discord/sir-robin"

@@ -4,6 +4,7 @@ from typing import Optional
 
 import aiohttp
 import discord
+from botcore.site_api import APIClient
 from botcore.utils.extensions import walk_extensions
 from botcore.utils.logging import get_logger
 from botcore.utils.scheduling import create_task
@@ -22,6 +23,7 @@ class SirRobin(commands.Bot):
 
         # This session may want to be recreated on login/disconnect.
         # Additionally, on the bot repo we use a different connector that is more "stable".
+        self.code_jam_mgmt_api: Optional[APIClient] = None
         self.http_session: Optional[aiohttp.ClientSession] = None
 
         self._guild_available: Optional[asyncio.Event] = None
@@ -30,6 +32,7 @@ class SirRobin(commands.Bot):
     async def close(self) -> None:
         """On close, cleanly close the aiohttp client session."""
         await self.http_session.close()
+        await self.code_jam_mgmt_api.close()
         await super().close()
 
     async def add_cog(self, cog: commands.Cog, **kwargs) -> None:
@@ -137,7 +140,10 @@ class SirRobin(commands.Bot):
         self.http.connector = self._connector
 
         self.http_session = aiohttp.ClientSession(connector=self._connector)
-
+        self.code_jam_mgmt_api = APIClient(
+            site_api_url=constants.Client.code_jam_api,
+            site_api_token=constants.Client.code_jam_token
+        )
         await super().login(*args, **kwargs)
 
 
