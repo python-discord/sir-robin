@@ -7,10 +7,7 @@ class Channels(NamedTuple):
     devlog = int(environ.get("CHANNEL_DEVLOG", 622895325144940554))
     code_jam_planning = int(environ.get("CHANNEL_CODE_JAM_PLANNING", 490217981872177157))
     sir_lancebot_playground = int(environ.get("CHANNEL_COMMUNITY_BOT_COMMANDS", 607247579608121354))
-
-
-class Categories(NamedTuple):
-    summer_code_jam = int(environ.get("CATEGORY_SUMMER_CODE_JAM", 861692638540857384))
+    summer_code_jam = int(environ.get("CATEGORY_SUMMER_CODE_JAM", 987738098525937745))
 
 
 class Emojis(NamedTuple):

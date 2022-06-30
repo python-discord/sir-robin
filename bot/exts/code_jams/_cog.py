@@ -11,7 +11,7 @@ from discord.ext import commands
 
 from bot.bot import SirRobin
 from bot.constants import Emojis, Roles
-from bot.exts.code_jams import _channels
+from bot.exts.code_jams import _creation_utils
 from bot.services import send_to_paste_service
 
 log = get_logger(__name__)
@@ -69,11 +69,12 @@ class CodeJams(commands.Cog):
                 teams[row["Team Name"]].append((member, row["Team Leader"].upper() == "Y"))
 
             team_leaders = await ctx.guild.create_role(name="Code Jam Team Leaders", colour=TEAM_LEADERS_COLOUR)
+            await _creation_utils.create_team_leader_channel(ctx.guild, team_leaders)
 
             for team_name, team_members in teams.items():
-                await _channels.create_team_channel(ctx.guild, team_name, team_members, team_leaders)
+                team_role = await _creation_utils.create_team_role(ctx.guild, team_name, team_members, team_leaders)
+                team_channel_id = await _creation_utils.create_team_channel(ctx.guild, team_name, team_role)
 
-            await _channels.create_team_leader_channel(ctx.guild, team_leaders)
             await ctx.send(f"{Emojis.check_mark} Created Code Jam with {len(teams)} teams.")
 
     @codejam.command()
@@ -85,12 +86,13 @@ class CodeJams(commands.Cog):
         A confirmation message is displayed with the categories and channels to be deleted.. Pressing the added reaction
         deletes those channels.
         """
+
         def predicate_deletion_emoji_reaction(reaction: discord.Reaction, user: discord.User) -> bool:
             """Return True if the reaction :boom: was added by the context message author on this message."""
             return (
-                reaction.message.id == message.id
-                and user.id == ctx.author.id
-                and str(reaction) == DELETION_REACTION
+                    reaction.message.id == message.id
+                    and user.id == ctx.author.id
+                    and str(reaction) == DELETION_REACTION
             )
 
         # A copy of the list of channels is stored. This is to make sure that we delete precisely the channels displayed
@@ -124,9 +126,10 @@ class CodeJams(commands.Cog):
 
     @staticmethod
     async def _build_confirmation_message(
-        categories: dict[discord.CategoryChannel, list[discord.abc.GuildChannel]]
+            categories: dict[discord.CategoryChannel, list[discord.abc.GuildChannel]]
     ) -> str:
         """Sends details of the channels to be deleted to the pasting service, and formats the confirmation message."""
+
         def channel_repr(channel: discord.abc.GuildChannel) -> str:
             """Formats the channel name and ID and a readable format."""
             return f"{channel.name} ({channel.id})"
@@ -214,7 +217,7 @@ class CodeJams(commands.Cog):
     @staticmethod
     def jam_categories(guild: Guild) -> list[discord.CategoryChannel]:
         """Get all the code jam team categories."""
-        return [category for category in guild.categories if category.name == _channels.CATEGORY_NAME]
+        return [category for category in guild.categories if category.name == _creation_utils.CATEGORY_NAME]
 
     @staticmethod
     def team_channel(guild: Guild, criterion: t.Union[str, Member]) -> t.Optional[discord.TextChannel]:
