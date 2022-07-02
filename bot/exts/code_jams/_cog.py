@@ -2,6 +2,7 @@ import asyncio
 import csv
 import typing as t
 from collections import defaultdict
+from datetime import datetime
 
 import discord
 from botcore.utils.logging import get_logger
@@ -12,12 +13,48 @@ from discord.ext import commands
 from bot.bot import SirRobin
 from bot.constants import Emojis, Roles
 from bot.exts.code_jams import _creation_utils
+from bot.exts.code_jams._views import JamTeamInfoConfirmation, JamCreationConfirmation
 from bot.services import send_to_paste_service
 
 log = get_logger(__name__)
 
 TEAM_LEADERS_COLOUR = 0x11806a
 DELETION_REACTION = "\U0001f4a5"
+
+
+async def creation_flow(ctx: commands.Context, teams: dict[str: list[dict[str: Member, str: bool]]], bot: SirRobin):
+    team_leaders = await ctx.guild.create_role(name="Code Jam Team Leaders", colour=TEAM_LEADERS_COLOUR)
+    await _creation_utils.create_team_leader_channel(ctx.guild, team_leaders)
+    jam_api_format = {"name": f"Summer Code Jam {datetime.now().year}", "ongoing": True, "teams": []}
+    for team_name, team_members in teams.items():
+        team_role = await _creation_utils.create_team_role(
+            ctx.guild,
+            team_name,
+            team_members,
+            team_leaders
+        )
+        team_channel_id = await _creation_utils.create_team_channel(ctx.guild, team_name, team_role)
+        jam_api_format["teams"].append(
+            {
+                "name": team_name,
+                "users": [
+                    {"user_id": entry["member"].id, "is_leader": entry["is_leader"]} for entry in team_members
+                ],
+                "discord_role_id": team_role.id,
+                "discord_channel_id": team_channel_id
+            }
+        )
+    await bot.code_jam_mgmt_api.post("codejams", json=jam_api_format)
+    success_embed = Embed(
+        title=f"Successfully created Code Jam with {len(teams)} teams",
+        colour=discord.Colour.green(),
+        description="Would you like send out the team announcement?"
+    )
+    success_embed.set_footer(text="Code Jam team generation")
+    await ctx.send(
+        embed=success_embed,
+        view=JamTeamInfoConfirmation(bot, ctx.guild, ctx.author)
+    )
 
 
 class CodeJams(commands.Cog):
@@ -66,16 +103,18 @@ class CodeJams(commands.Cog):
                     log.trace(f"Got an invalid member ID: {row['Team Member Discord ID']}")
                     continue
 
-                teams[row["Team Name"]].append((member, row["Team Leader"].upper() == "Y"))
+                teams[row["Team Name"]].append({"member": member, "is_leader": row["Team Leader"].upper() == "Y"})
+            warning_embed = Embed(
+                colour=discord.Colour.orange(),
+                title=f"Warning!",
+                description=f"{len(teams)} teams, and roles will be created, are you sure?"
+            )
+            warning_embed.set_footer(text="Code Jam team generation")
 
-            team_leaders = await ctx.guild.create_role(name="Code Jam Team Leaders", colour=TEAM_LEADERS_COLOUR)
-            await _creation_utils.create_team_leader_channel(ctx.guild, team_leaders)
-
-            for team_name, team_members in teams.items():
-                team_role = await _creation_utils.create_team_role(ctx.guild, team_name, team_members, team_leaders)
-                team_channel_id = await _creation_utils.create_team_channel(ctx.guild, team_name, team_role)
-
-            await ctx.send(f"{Emojis.check_mark} Created Code Jam with {len(teams)} teams.")
+            await ctx.send(
+                embed=warning_embed,
+                view=JamCreationConfirmation(ctx, teams, self.bot, ctx.guild, ctx.author, creation_flow)
+            )
 
     @codejam.command()
     @commands.has_any_role(Roles.admins)
@@ -226,10 +265,10 @@ class CodeJams(commands.Cog):
             for channel in category.channels:
                 if isinstance(channel, discord.TextChannel):
                     if (
-                        # If it's a string.
-                        criterion == channel.name or criterion == CodeJams.team_name(channel)
-                        # If it's a member.
-                        or criterion in channel.overwrites
+                            # If it's a string.
+                            criterion == channel.name or criterion == CodeJams.team_name(channel)
+                            # If it's a member.
+                            or criterion in channel.overwrites
                     ):
                         return channel
 

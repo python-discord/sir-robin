@@ -8,6 +8,7 @@ class Channels(NamedTuple):
     code_jam_planning = int(environ.get("CHANNEL_CODE_JAM_PLANNING", 490217981872177157))
     sir_lancebot_playground = int(environ.get("CHANNEL_COMMUNITY_BOT_COMMANDS", 607247579608121354))
     summer_code_jam = int(environ.get("CATEGORY_SUMMER_CODE_JAM", 987738098525937745))
+    summer_code_jam_announcements = int(environ.get("SUMMER_CODE_JAM_ANNOUNCEMENTS", 988765608172736542))
 
 
 class Emojis(NamedTuple):
@@ -18,6 +19,7 @@ class Roles(NamedTuple):
     admins = int(environ.get("ROLE_ADMINS", 267628507062992896))
     code_jam_event_team = int(environ.get("ROLE_CODE_JAM_EVENT_TEAM", 787816728474288181))
     events_lead = int(environ.get("ROLE_EVENTS_LEAD", 778361735739998228))
+    code_jam_participants = int(environ.get("CODE_JAM_PARTICIPANTS", 991678713093705781))
 
 
 class Client(NamedTuple):
