@@ -7,7 +7,9 @@ from discord.utils import MISSING
 from bot import constants
 from bot.bot import SirRobin
 
+
 AOC_URL = "https://adventofcode.com/{year}/day/{day}"
+LAST_DAY = 25
 
 
 class OffSeasonAoC(commands.Cog):
@@ -22,7 +24,7 @@ class OffSeasonAoC(commands.Cog):
 
     async def aoc_task(self) -> None:
         """The actual coroutine that handles creating threads for summer AoC. Should be passed into task."""
-        if self.current_day > 25:
+        if self.current_day > LAST_DAY:
             self.loop.cancel()
             return
 
@@ -40,8 +42,8 @@ class OffSeasonAoC(commands.Cog):
         if not (year >= 2015 and year <= 2021):
             raise commands.BadArgument("Year must be between 2015 and 2021, inclusive")
 
-        if not (start_day >= 1 and start_day <= 25):
-            raise commands.BadArgument("Start day must be between 1 and 25, inclusive")
+        if not (start_day >= 1 and start_day <= LAST_DAY):
+            raise commands.BadArgument(f"Start day must be between 1 and {LAST_DAY}, inclusive.")
 
         self.year = year
         self.current_day = start_day
