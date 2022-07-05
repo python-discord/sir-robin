@@ -2,6 +2,7 @@ import csv
 import typing as t
 from collections import defaultdict
 from typing import Optional
+from urllib.parse import quote as quote_url
 
 import discord
 from botcore.site_api import APIClient, ResponseCodeError
@@ -193,17 +194,29 @@ class CodeJams(commands.Cog):
     @commands.has_any_role(Roles.admins)
     async def remove(self, ctx: commands.Context, member: Member) -> None:
         """Remove the participant from their team. Does not remove the participants or leader roles."""
-        channel = self.team_channel(ctx.guild, member)
-        if not channel:
-            await ctx.send(":x: I can't find the team channel for this member.")
-            return
-
-        await channel.set_permissions(
-            member,
-            overwrite=None,
-            reason=f"Participant removed from the team  {self.team_name(channel)}."
-        )
-        await ctx.send(f"Removed the participant from `{self.team_name(channel)}`.")
+        try:
+            team = await self.bot.code_jam_mgmt_api.get(f"users/{member.id}/current_team",
+                                                        raise_for_status=True)
+        except ResponseCodeError as err:
+            if err.response.status == 404:
+                await ctx.send(":x: It seems like the user is not a participant!")
+            else:
+                await ctx.send("Something went wrong while processing the request! We have notified the team!")
+                log.error(err.response)
+        else:
+            try:
+                await self.bot.code_jam_mgmt_api.delete(
+                    f"teams/{quote_url(str(team['team']['id']))}/users/{quote_url(str(team['user_id']))}"
+                )
+            except ResponseCodeError as err:
+                if err.response.status == 404:
+                    await ctx.send(":x: Team or user could not be found!")
+                elif err.response.status == 400:
+                    await ctx.send(":x: The member given is not part of the team! (Might have been removed already)")
+            else:
+                team_role = ctx.guild.get_role(team["team"]["discord_role_id"])
+                await member.remove_roles(team_role)
+                await ctx.send(f"Successfully removed {Member.mention} from team {team['team']['name']}")
 
     @staticmethod
     def jam_categories(guild: Guild) -> list[discord.CategoryChannel]:
