@@ -1,12 +1,11 @@
 import unittest
 from unittest.mock import AsyncMock, MagicMock, create_autospec, patch, call
-
 from discord import CategoryChannel
 from discord.ext.commands import BadArgument
 
 from bot.constants import Roles
 from bot.exts import code_jams
-from bot.exts.code_jams import _cog, _creation_utils
+from bot.exts.code_jams import _cog, _creation_utils, _flows
 from tests.helpers import (
     MockAttachment, MockBot, MockCategoryChannel, MockContext, MockGuild, MockMember, MockRole, MockTextChannel,
     autospec
@@ -62,13 +61,11 @@ class JamCodejamCreateTests(unittest.IsolatedAsyncioTestCase):
         team_leaders = MockRole()
 
         self.guild.get_member.return_value = MockMember()
-
         self.ctx.guild.create_role = AsyncMock()
         self.ctx.guild.create_role.return_value = team_leaders
         self.cog.add_roles = AsyncMock()
         teams = {"Team": [{"member": MockMember(), "is_leader": True}]}
-
-        await _cog.creation_flow(self.ctx, teams, AsyncMock())
+        await _flows.creation_flow(self.ctx, teams, AsyncMock())
         create_team_channel.assert_awaited_once()
         create_team_role.assert_awaited_once()
         create_team_leader_channel.assert_awaited_once_with(
@@ -144,12 +141,13 @@ class JamCodejamCreateTests(unittest.IsolatedAsyncioTestCase):
             "my-team",
             overwrites=get_overwrites.return_value
         )
+
     async def test_jam_normal_roles_adding(self):
         """Should add the Jam team role to every team member, and Team Lead Role to Team Leads."""
         leader = MockMember()
         leader_role = MockRole(name="Team Leader")
         members = [{"member": leader, "is_leader": True}] + [{"member": MockMember(), "is_leader": False} for _ in
-                                                                   range(4)]
+                                                             range(4)]
         team_role = await _creation_utils.create_team_role(MockGuild(), team_name="Team", members=members,
                                                            team_leaders=leader_role)
         for entry in members:
@@ -158,6 +156,17 @@ class JamCodejamCreateTests(unittest.IsolatedAsyncioTestCase):
             else:
                 entry["member"].add_roles.assert_has_calls([call(team_role), call(leader_role)], any_order=True)
                 self.assertTrue(entry["member"].add_roles.call_count == 2)
+
+    async def test_jam_delete_channels_and_roles(self):
+        category_channels = {AsyncMock(): [MockTextChannel(), MockTextChannel()]}
+        roles = [MockRole(), MockRole()]
+        await _flows.deletion_flow(category_channels, roles)
+        for role in roles:
+            role.delete.assert_awaited_once()
+        for category, channels in category_channels.items():
+            category.delete.assert_awaited_once()
+            for channel in channels:
+                channel.delete.assert_awaited_once()
 
 
 class CodeJamSetup(unittest.IsolatedAsyncioTestCase):
