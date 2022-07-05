@@ -1,22 +1,22 @@
 import csv
 import typing as t
 from collections import defaultdict
-from datetime import datetime
 from typing import Optional
 
 import discord
+from botcore.site_api import APIClient, ResponseCodeError
 from botcore.utils.logging import get_logger
-from botcore.site_api import APIClient
 from botcore.utils.members import get_or_fetch_member
-from botcore.site_api import ResponseCodeError
 from discord import Colour, Embed, Guild, Member
 from discord.ext import commands
 
 from bot.bot import SirRobin
 from bot.constants import Roles
 from bot.exts.code_jams import _creation_utils
-from bot.exts.code_jams._views import JamCreationConfirmation, JamEndConfirmation, JamTeamInfoConfirmation
 from bot.exts.code_jams._flows import creation_flow, deletion_flow
+from bot.exts.code_jams._views import (JamCreationConfirmation,
+                                       JamEndConfirmation,
+                                       JamTeamInfoConfirmation)
 from bot.services import send_to_paste_service
 
 log = get_logger(__name__)
@@ -71,7 +71,7 @@ class CodeJams(commands.Cog):
                 teams[row["Team Name"]].append({"member": member, "is_leader": row["Team Leader"].upper() == "Y"})
             warning_embed = Embed(
                 colour=discord.Colour.orange(),
-                title=f"Warning!",
+                title="Warning!",
                 description=f"{len(teams)} teams, and roles will be created, are you sure?"
             )
             warning_embed.set_footer(text="Code Jam team generation")
@@ -84,6 +84,7 @@ class CodeJams(commands.Cog):
     @codejam.command()
     @commands.has_any_role(Roles.admins)
     async def announce(self, ctx: commands.Context) -> None:
+        """A command to send an announcement embed to the CJ announcement channel."""
         team_info_view = JamTeamInfoConfirmation(self.bot, ctx.guild, ctx.author)
         embed_conf = Embed(title="Would you like to announce the teams?", colour=discord.Colour.og_blurple())
         await ctx.send(
@@ -97,10 +98,10 @@ class CodeJams(commands.Cog):
         """
         Delete all code jam channels.
 
-        A confirmation message is displayed with the categories and channels to be deleted.. Pressing the "Confirm" button will perform
-        the deletion process.
+        A confirmation message is displayed with the categories and channels
+        that are going to be deleted, by pressing "Confirm" the deletion
+        process will begin.
         """
-
         categories = self.jam_categories(ctx.guild)
         roles = await self.jam_roles(ctx.guild, self.bot.code_jam_mgmt_api)
         if not categories and not roles:
@@ -206,6 +207,7 @@ class CodeJams(commands.Cog):
 
     @staticmethod
     async def jam_roles(guild: Guild, mgmt_client: APIClient) -> Optional[list[discord.Role]]:
+        """Get all the code jam team roles."""
         try:
             roles_raw = await mgmt_client.get("teams", raise_for_status=True, params={"current_jam": "true"})
         except ResponseCodeError:

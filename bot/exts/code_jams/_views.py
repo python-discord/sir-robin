@@ -1,11 +1,9 @@
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 import discord
-from discord.ext import commands
-from botcore.utils.logging import get_logger
 from botcore.site_api import ResponseCodeError
-
-from typing import TYPE_CHECKING
+from botcore.utils.logging import get_logger
+from discord.ext import commands
 
 if TYPE_CHECKING:
     from bot.bot import SirRobin
@@ -16,6 +14,7 @@ log = get_logger(__name__)
 
 
 class JamTeamInfoConfirmation(discord.ui.View):
+    """A basic view to confirm Team announcement."""
 
     def __init__(self, bot: 'SirRobin', guild: discord.Guild, original_author: discord.Member):
         super().__init__()
@@ -25,6 +24,7 @@ class JamTeamInfoConfirmation(discord.ui.View):
 
     @discord.ui.button(label='Cancel', style=discord.ButtonStyle.grey)
     async def cancel(self, button: discord.ui.Button, interaction: discord.Interaction) -> None:
+        """A button to cancel the announcement."""
         button.label = "Cancelled"
         button.disabled = True
         self.announce.disabled = True
@@ -33,6 +33,7 @@ class JamTeamInfoConfirmation(discord.ui.View):
 
     @discord.ui.button(label='Announce teams', style=discord.ButtonStyle.green)
     async def announce(self, button: discord.ui.Button, interaction: discord.Interaction) -> None:
+        """A button to send the announcement."""
         button.label = "Teams have been announced!"
         button.disabled = True
         self.cancel.disabled = True
@@ -58,6 +59,7 @@ class JamTeamInfoConfirmation(discord.ui.View):
 
 
 class JamTeamInfoView(discord.ui.View):
+    """A persistent view to show Team related data to users."""
 
     def __init__(self, bot: 'SirRobin'):
         super().__init__(timeout=None)
@@ -65,6 +67,7 @@ class JamTeamInfoView(discord.ui.View):
 
     @discord.ui.button(label="Show me my team!", style=discord.ButtonStyle.blurple, custom_id="CJ:PERS:SHOW_TEAM")
     async def show_team(self, button: discord.ui.Button, interaction: discord.Interaction) -> None:
+        """A button that sends an ephemeral embed with the team's description."""
         try:
             team = await self.bot.code_jam_mgmt_api.get(f"users/{interaction.user.id}/current_team",
                                                         raise_for_status=True)
@@ -91,6 +94,8 @@ class JamTeamInfoView(discord.ui.View):
 
 
 class JamCreationConfirmation(discord.ui.View):
+    """A basic view with a callback, to trigger and confirm the CJ creation flow."""
+
     def __init__(
             self,
             ctx: commands.Context,
@@ -109,6 +114,7 @@ class JamCreationConfirmation(discord.ui.View):
 
     @discord.ui.button(label='Cancel', style=discord.ButtonStyle.grey)
     async def cancel(self, button: discord.ui.Button, interaction: discord.Interaction) -> None:
+        """A button to cancel the team creation."""
         button.label = "Cancelled"
         button.disabled = True
         self.confirm.disabled = True
@@ -117,6 +123,7 @@ class JamCreationConfirmation(discord.ui.View):
 
     @discord.ui.button(label='Confirm', style=discord.ButtonStyle.green)
     async def confirm(self, button: discord.ui.Button, interaction: discord.Interaction) -> None:
+        """A button to confirm the team creation."""
         button.label = "Confirmed"
         button.disabled = True
         self.cancel.disabled = True
@@ -136,6 +143,8 @@ class JamCreationConfirmation(discord.ui.View):
 
 
 class JamEndConfirmation(discord.ui.View):
+    """A basic view to confirm the ending of a CJ."""
+
     def __init__(
             self,
             category_channels: dict[discord.CategoryChannel: list[discord.TextChannel]],
@@ -151,6 +160,7 @@ class JamEndConfirmation(discord.ui.View):
 
     @discord.ui.button(label='Cancel', style=discord.ButtonStyle.grey)
     async def cancel(self, button: discord.ui.Button, interaction: discord.Interaction) -> None:
+        """A button to cancel ending a CJ."""
         button.label = "Cancelled"
         button.disabled = True
         self.confirm.disabled = True
@@ -159,6 +169,7 @@ class JamEndConfirmation(discord.ui.View):
 
     @discord.ui.button(label='Confirm', style=discord.ButtonStyle.green)
     async def confirm(self, button: discord.ui.Button, interaction: discord.Interaction) -> None:
+        """A button to confirm ending a CJ."""
         button.label = "Confirmed"
         button.disabled = True
         self.cancel.disabled = True

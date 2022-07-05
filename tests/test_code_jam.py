@@ -1,15 +1,15 @@
 import unittest
-from unittest.mock import AsyncMock, MagicMock, create_autospec, patch, call
+from unittest.mock import AsyncMock, MagicMock, call, create_autospec, patch
+
 from discord import CategoryChannel
 from discord.ext.commands import BadArgument
 
 from bot.constants import Roles
 from bot.exts import code_jams
 from bot.exts.code_jams import _cog, _creation_utils, _flows
-from tests.helpers import (
-    MockAttachment, MockBot, MockCategoryChannel, MockContext, MockGuild, MockMember, MockRole, MockTextChannel,
-    autospec
-)
+from tests.helpers import (MockAttachment, MockBot, MockCategoryChannel,
+                           MockContext, MockGuild, MockMember, MockRole,
+                           MockTextChannel, autospec)
 
 TEST_CSV = b"""\
 Team Name,Team Member Discord ID,Team Leader

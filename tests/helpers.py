@@ -13,7 +13,8 @@ from botcore.site_api import APIClient
 from discord.ext.commands import Context
 
 from bot.bot import SirRobin as Bot
-from tests._autospec import autospec  # noqa: F401 other modules import it via this module
+from tests._autospec import \
+    autospec  # noqa: F401 other modules import it via this module
 
 for logger in logging.Logger.manager.loggerDict.values():
     # Set all loggers to CRITICAL by default to prevent screen clutter during testing
