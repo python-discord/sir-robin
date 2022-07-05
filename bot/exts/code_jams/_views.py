@@ -72,10 +72,12 @@ class JamTeamInfoView(discord.ui.View):
             team = await self.bot.code_jam_mgmt_api.get(f"users/{interaction.user.id}/current_team",
                                                         raise_for_status=True)
         except ResponseCodeError as err:
-            if err.response == 404:
+            if err.response.status == 404:
                 interaction.response.send_message("It seems like you're not a participant!")
             else:
-                interaction.response.send_message("Something went wrong!")
+                interaction.response.send_message(
+                    "Something went wrong while processing the request! We have notified the team!"
+                )
                 log.error(err.response)
         else:
             response_embed = discord.Embed(
