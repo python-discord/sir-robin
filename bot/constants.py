@@ -1,6 +1,12 @@
 from os import environ
 from typing import NamedTuple
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv(override=True)
+except ModuleNotFoundError:
+    pass
+
 
 class Channels(NamedTuple):
     bot_commands = 267659945086812160

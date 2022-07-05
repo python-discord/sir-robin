@@ -2,7 +2,7 @@ from typing import Optional
 
 from aiohttp import ClientConnectorError
 
-from bot.bot import bot
+import bot
 from bot.log import get_logger
 
 log = get_logger(__name__)
@@ -24,7 +24,7 @@ async def send_to_paste_service(contents: str, *, extension: str = "") -> Option
     paste_url = f"{PASTE_URL}/documents"
     for attempt in range(1, FAILED_REQUEST_ATTEMPTS + 1):
         try:
-            async with bot.http_session.post(paste_url, data=contents) as response:
+            async with bot.instance.http_session.post(paste_url, data=contents) as response:
                 response_json = await response.json()
         except ClientConnectorError:
             log.warning(
