@@ -9,6 +9,7 @@ from botcore.utils.extensions import walk_extensions
 from botcore.utils.logging import get_logger
 from botcore.utils.scheduling import create_task
 from discord.ext import commands
+from async_rediscache import RedisSession
 
 from bot import constants, exts
 
@@ -18,7 +19,7 @@ log = get_logger(__name__)
 class SirRobin(commands.Bot):
     """Sir-Robin core."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, redis_session, **kwargs):
         super().__init__(**kwargs)
 
         # This session may want to be recreated on login/disconnect.
@@ -27,7 +28,12 @@ class SirRobin(commands.Bot):
         self.http_session: Optional[aiohttp.ClientSession] = None
 
         self._guild_available: Optional[asyncio.Event] = None
-        self.http_session: Optional[aiohttp.ClientSession] = None
+        self.redis_session = redis_session
+
+    async def login(self, *args, **kwargs) -> None:
+        """On login, create an aiohttp client session to be used across the bot."""
+        self.http_session = aiohttp.ClientSession()
+        await super().login(*args, **kwargs)
 
     async def close(self) -> None:
         """On close, cleanly close the aiohttp client session."""
@@ -156,8 +162,19 @@ _intents.webhooks = False
 _intents.message_content = True
 _intents.members = True
 
+redis_session = RedisSession(
+    address=(constants.RedisConfig.host, constants.RedisConfig.port),
+    password=constants.RedisConfig.password,
+    minsize=1,
+    maxsize=20,
+    use_fakeredis=constants.RedisConfig.use_fakeredis,
+    global_namespace="sir-robin"
+)
+loop = asyncio.get_event_loop()
+loop.run_until_complete(redis_session.connect())
 
 bot = SirRobin(
+    redis_session=redis_session,
     command_prefix=constants.Client.prefix,
     activity=discord.Game("The Not-Quite-So-Bot-as-Sir-Lancebot"),
     intents=_intents,
