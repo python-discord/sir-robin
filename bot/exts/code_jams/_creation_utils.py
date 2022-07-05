@@ -36,6 +36,7 @@ async def _create_category(guild: discord.Guild) -> discord.CategoryChannel:
 async def _get_category(guild: discord.Guild) -> discord.CategoryChannel:
     """
     Return a code jam category.
+
     If all categories are full or none exist, create a new category.
     """
     for category in guild.categories:
@@ -63,6 +64,7 @@ async def create_team_role(
         members: list[dict[str: discord.Member, str: bool]],
         team_leaders: discord.Role
 ) -> discord.Role:
+    """Create the team's role."""
     await _add_team_leader_roles(members, team_leaders)
     team_role = await guild.create_role(name=team_name, reason="Code Jam team creation")
     for entry in members:
@@ -77,7 +79,6 @@ async def create_team_channel(
 
 ) -> int:
     """Create the team's text channel."""
-
     # Get permission overwrites and category
     team_channel_overwrites = _get_overwrites(guild, team_role)
     code_jam_category = await _get_category(guild)

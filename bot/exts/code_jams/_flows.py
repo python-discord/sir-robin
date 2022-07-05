@@ -1,13 +1,12 @@
 from datetime import datetime
 
 import discord
-from discord.ext import commands
 from discord import Embed, Member
+from discord.ext import commands
 
 from bot.bot import SirRobin
 from bot.exts.code_jams import _creation_utils
 from bot.exts.code_jams._views import JamTeamInfoConfirmation
-from bot.constants import Channels
 
 TEAM_LEADERS_COLOUR = 0x11806a
 
@@ -17,6 +16,15 @@ async def creation_flow(
         teams: dict[str: list[dict[str: Member, str: bool]]],
         bot: SirRobin
 ) -> None:
+    """
+    The Code Jam Team and Role creation flow.
+
+    This "flow" will first create the role for the CJ Team leaders, and the channel.
+    Then it'll create the team roles first, then the team channels.
+    After that all the information regarding the teams will be uploaded to
+    the Code Jam Management System, via an HTTP request.
+    Finally, a view of Team Announcement will be sent.
+    """
     team_leaders = await ctx.guild.create_role(name="Code Jam Team Leaders", colour=TEAM_LEADERS_COLOUR)
     await _creation_utils.create_team_leader_channel(ctx.guild, team_leaders)
     jam_api_format = {"name": f"Summer Code Jam {datetime.now().year}", "ongoing": True, "teams": []}
@@ -54,6 +62,12 @@ async def creation_flow(
 
 async def deletion_flow(category_channels: dict[discord.CategoryChannel: list[discord.TextChannel]],
                         roles: list[discord.Role]) -> None:
+    """
+    The Code Jam Team and Role deletion flow.
+
+    The "flow" will delete the channels in each category, and the category itself.
+    Then it'll delete all the Team roles, leaving the CJ Leaders related channel, and Roles intact.
+    """
     for category, channels in category_channels.items():
         for channel in channels:
             await channel.delete(reason="Code jam ended.")
