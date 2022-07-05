@@ -140,20 +140,25 @@ class CodeJams(commands.Cog):
         """
         Send an info embed about the member with the team they're in.
 
-        The team is found by searching the permissions of the team channels.
+        The team is found by issuing a request to the CJ Management System
         """
-        channel = self.team_channel(ctx.guild, member)
-        if not channel:
-            await ctx.send(":x: I can't find the team channel for this member.")
-            return
+        try:
+            team = await self.bot.code_jam_mgmt_api.get(f"users/{member.id}/current_team",
+                                                        raise_for_status=True)
+        except ResponseCodeError as err:
+            if err.response.status == 404:
+                await ctx.send(":x: It seems like the user is not a participant!")
+            else:
+                await ctx.send("Something went wrong while processing the request! We have notified the team!")
+                log.error(err.response)
+        else:
+            embed = Embed(
+                title=str(member),
+                colour=Colour.og_blurple()
+            )
+            embed.add_field(name="Team", value=team["team"]["name"], inline=True)
 
-        embed = Embed(
-            title=str(member),
-            colour=Colour.og_blurple()
-        )
-        embed.add_field(name="Team", value=self.team_name(channel), inline=True)
-
-        await ctx.send(embed=embed)
+            await ctx.send(embed=embed)
 
     @codejam.command()
     @commands.has_any_role(Roles.admins)
