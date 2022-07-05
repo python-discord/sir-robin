@@ -1,60 +1,25 @@
-import asyncio
 import csv
 import typing as t
 from collections import defaultdict
 from datetime import datetime
+from typing import Optional
 
 import discord
 from botcore.utils.logging import get_logger
+from botcore.site_api import APIClient
 from botcore.utils.members import get_or_fetch_member
+from botcore.site_api import ResponseCodeError
 from discord import Colour, Embed, Guild, Member
 from discord.ext import commands
 
 from bot.bot import SirRobin
-from bot.constants import Emojis, Roles
+from bot.constants import Roles
 from bot.exts.code_jams import _creation_utils
-from bot.exts.code_jams._views import JamTeamInfoConfirmation, JamCreationConfirmation
+from bot.exts.code_jams._views import JamCreationConfirmation, JamEndConfirmation, JamTeamInfoConfirmation
+from bot.exts.code_jams._flows import creation_flow, deletion_flow
 from bot.services import send_to_paste_service
 
 log = get_logger(__name__)
-
-TEAM_LEADERS_COLOUR = 0x11806a
-DELETION_REACTION = "\U0001f4a5"
-
-
-async def creation_flow(ctx: commands.Context, teams: dict[str: list[dict[str: Member, str: bool]]], bot: SirRobin):
-    team_leaders = await ctx.guild.create_role(name="Code Jam Team Leaders", colour=TEAM_LEADERS_COLOUR)
-    await _creation_utils.create_team_leader_channel(ctx.guild, team_leaders)
-    jam_api_format = {"name": f"Summer Code Jam {datetime.now().year}", "ongoing": True, "teams": []}
-    for team_name, team_members in teams.items():
-        team_role = await _creation_utils.create_team_role(
-            ctx.guild,
-            team_name,
-            team_members,
-            team_leaders
-        )
-        team_channel_id = await _creation_utils.create_team_channel(ctx.guild, team_name, team_role)
-        jam_api_format["teams"].append(
-            {
-                "name": team_name,
-                "users": [
-                    {"user_id": entry["member"].id, "is_leader": entry["is_leader"]} for entry in team_members
-                ],
-                "discord_role_id": team_role.id,
-                "discord_channel_id": team_channel_id
-            }
-        )
-    await bot.code_jam_mgmt_api.post("codejams", json=jam_api_format)
-    success_embed = Embed(
-        title=f"Successfully created Code Jam with {len(teams)} teams",
-        colour=discord.Colour.green(),
-        description="Would you like send out the team announcement?"
-    )
-    success_embed.set_footer(text="Code Jam team generation")
-    await ctx.send(
-        embed=success_embed,
-        view=JamTeamInfoConfirmation(bot, ctx.guild, ctx.author)
-    )
 
 
 class CodeJams(commands.Cog):
@@ -118,74 +83,55 @@ class CodeJams(commands.Cog):
 
     @codejam.command()
     @commands.has_any_role(Roles.admins)
+    async def announce(self, ctx: commands.Context) -> None:
+        team_info_view = JamTeamInfoConfirmation(self.bot, ctx.guild, ctx.author)
+        embed_conf = Embed(title="Would you like to announce the teams?", colour=discord.Colour.og_blurple())
+        await ctx.send(
+            embed=embed_conf,
+            view=team_info_view
+        )
+
+    @codejam.command()
+    @commands.has_any_role(Roles.admins)
     async def end(self, ctx: commands.Context) -> None:
         """
         Delete all code jam channels.
 
-        A confirmation message is displayed with the categories and channels to be deleted.. Pressing the added reaction
-        deletes those channels.
+        A confirmation message is displayed with the categories and channels to be deleted.. Pressing the "Confirm" button will perform
+        the deletion process.
         """
 
-        def predicate_deletion_emoji_reaction(reaction: discord.Reaction, user: discord.User) -> bool:
-            """Return True if the reaction :boom: was added by the context message author on this message."""
-            return (
-                    reaction.message.id == message.id
-                    and user.id == ctx.author.id
-                    and str(reaction) == DELETION_REACTION
-            )
-
-        # A copy of the list of channels is stored. This is to make sure that we delete precisely the channels displayed
-        # in the confirmation message.
         categories = self.jam_categories(ctx.guild)
-        category_channels = {category: category.channels.copy() for category in categories}
-
-        confirmation_message = await self._build_confirmation_message(category_channels)
-        message = await ctx.send(confirmation_message)
-        await message.add_reaction(DELETION_REACTION)
-        try:
-            await self.bot.wait_for(
-                'reaction_add',
-                check=predicate_deletion_emoji_reaction,
-                timeout=10
-            )
-
-        except asyncio.TimeoutError:
-            await message.clear_reaction(DELETION_REACTION)
-            await ctx.send("Command timed out.", reference=message)
+        roles = await self.jam_roles(ctx.guild, self.bot.code_jam_mgmt_api)
+        if not categories and not roles:
+            await ctx.send(":x: The Code Jam channels and roles have already been deleted! ")
             return
 
-        else:
-            await message.clear_reaction(DELETION_REACTION)
-            for category, channels in category_channels.items():
-                for channel in channels:
-                    await channel.delete(reason="Code jam ended.")
-                await category.delete(reason="Code jam ended.")
+        category_channels: dict[discord.CategoryChannel: list[discord.TextChannel]] = {
+            category: category.channels.copy() for category in categories
+        }
 
-            await message.add_reaction(Emojis.check_mark)
-
-    @staticmethod
-    async def _build_confirmation_message(
-            categories: dict[discord.CategoryChannel, list[discord.abc.GuildChannel]]
-    ) -> str:
-        """Sends details of the channels to be deleted to the pasting service, and formats the confirmation message."""
-
-        def channel_repr(channel: discord.abc.GuildChannel) -> str:
-            """Formats the channel name and ID and a readable format."""
-            return f"{channel.name} ({channel.id})"
-
-        def format_category_info(category: discord.CategoryChannel, channels: list[discord.abc.GuildChannel]) -> str:
-            """Displays the category and the channels within it in a readable format."""
-            return f"{channel_repr(category)}:\n" + "\n".join("  - " + channel_repr(channel) for channel in channels)
-
-        deletion_details = "\n\n".join(
-            format_category_info(category, channels) for category, channels in categories.items()
-        )
-
-        url = await send_to_paste_service(deletion_details)
-        if url is None:
+        details = "Categories and Channels: \n"
+        for category, channels in category_channels.items():
+            details += f"{category.name}[{category.id}]: {','.join([channel.name for channel in channels])}\n"
+        details += "Roles:\n"
+        for role in roles:
+            details += f"{role.name}[{role.id}]\n"
+        url = await send_to_paste_service(details)
+        if not url:
             url = "**Unable to send deletion details to the pasting service.**"
-
-        return f"Are you sure you want to delete all code jam channels?\n\nThe channels to be deleted: {url}"
+        warning_embed = Embed(title="Are you sure?", colour=discord.Colour.orange())
+        warning_embed.add_field(
+            name="For a detailed list of which roles, categories and channels will be deleted see:",
+            value=url
+        )
+        confirm_view = JamEndConfirmation(category_channels, roles, deletion_flow, ctx.author)
+        await ctx.send(
+            embed=warning_embed,
+            view=confirm_view
+        )
+        await confirm_view.wait()
+        await ctx.send("Code Jam has officially ended! :sunrise:")
 
     @codejam.command()
     @commands.has_any_role(Roles.admins, Roles.code_jam_event_team)
@@ -257,6 +203,20 @@ class CodeJams(commands.Cog):
     def jam_categories(guild: Guild) -> list[discord.CategoryChannel]:
         """Get all the code jam team categories."""
         return [category for category in guild.categories if category.name == _creation_utils.CATEGORY_NAME]
+
+    @staticmethod
+    async def jam_roles(guild: Guild, mgmt_client: APIClient) -> Optional[list[discord.Role]]:
+        try:
+            roles_raw = await mgmt_client.get("teams", raise_for_status=True, params={"current_jam": "true"})
+        except ResponseCodeError:
+            log.error("Could not fetch Roles from the Code Jam Management API")
+            return
+        else:
+            roles = []
+            for role in roles_raw:
+                if role := guild.get_role(role["discord_role_id"]):
+                    roles.append(role)
+            return roles
 
     @staticmethod
     def team_channel(guild: Guild, criterion: t.Union[str, Member]) -> t.Optional[discord.TextChannel]:

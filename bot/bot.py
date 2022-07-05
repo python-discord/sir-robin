@@ -11,6 +11,7 @@ from botcore.utils.scheduling import create_task
 from discord.ext import commands
 
 from bot import constants, exts
+from bot.exts.code_jams._views import JamTeamInfoView
 
 log = get_logger(__name__)
 
@@ -51,9 +52,11 @@ class SirRobin(commands.Bot):
 
     async def setup_hook(self) -> None:
         """Default Async initialisation method for Discord.py."""
+        await super().setup_hook()
         create_task(self.load_all_extensions(), event_loop=self.loop)
         create_task(self.check_channels(), event_loop=self.loop)
         create_task(self.send_log(constants.Client.name, "Connected!"), event_loop=self.loop)
+        self.add_view(JamTeamInfoView(self))
 
     async def check_channels(self) -> None:
         """Verifies that all channel constants refer to channels which exist."""
@@ -155,7 +158,6 @@ _intents.typing = False
 _intents.webhooks = False
 _intents.message_content = True
 _intents.members = True
-
 
 bot = SirRobin(
     command_prefix=constants.Client.prefix,
