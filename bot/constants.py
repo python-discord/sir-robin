@@ -12,8 +12,8 @@ class Channels(NamedTuple):
     bot_commands = 267659945086812160
     devlog = int(environ.get("CHANNEL_DEVLOG", 622895325144940554))
     code_jam_planning = int(environ.get("CHANNEL_CODE_JAM_PLANNING", 490217981872177157))
-    sir_lancebot_playground = int(environ.get("CHANNEL_COMMUNITY_BOT_COMMANDS", 607247579608121354))
     aoc_main_channel = int(environ.get("AOC_MAIN_CHANNEL", 897932085766004786))
+    sir_lancebot_playground = int(environ.get("CHANNEL_COMMUNITY_BOT_COMMANDS", 607247579608121354))
 
 
 class Categories(NamedTuple):
@@ -28,6 +28,7 @@ class Roles(NamedTuple):
     admins = int(environ.get("ROLE_ADMINS", 267628507062992896))
     code_jam_event_team = int(environ.get("ROLE_CODE_JAM_EVENT_TEAM", 787816728474288181))
     events_lead = int(environ.get("ROLE_EVENTS_LEAD", 778361735739998228))
+    event_runner = int(environ.get("EVENT_RUNNER", 940911658799333408))
 
 
 class Client(NamedTuple):

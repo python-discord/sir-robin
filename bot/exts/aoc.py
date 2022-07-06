@@ -9,7 +9,7 @@ from datetime import timedelta
 from discord.ext import commands, tasks
 from discord.utils import MISSING
 
-from bot import constants
+from bot.constants import Channels, Roles
 from bot.bot import SirRobin
 
 
@@ -52,6 +52,14 @@ class OffSeasonAoC(commands.Cog):
 
         self.bot.loop.create_task(self.load_event_state())
 
+    async def cog_check(self, ctx: commands.Context) -> bool:
+        """Role-lock all commands in this cog."""
+        return await commands.has_any_role(
+            Roles.admins,
+            Roles.events_lead,
+            Roles.event_runner,
+        ).predicate(ctx)
+
     @commands.command()
     async def info(self, ctx: commands.Context) -> None:
         """Give info about the state of the event."""
@@ -69,7 +77,6 @@ class OffSeasonAoC(commands.Cog):
         await ctx.send(msg)
 
     @commands.command()
-    @commands.has_any_role("Admins", "Event Lead", "Event Runner")
     async def summer_aoc(self, ctx: commands.Context, year: int, day_interval: int, start_day: int = 1) -> None:
         """Dynamically create and start a background task to handle summer AoC."""
         if not FIRST_YEAR <= year <= 2021:
@@ -86,7 +93,6 @@ class OffSeasonAoC(commands.Cog):
         await self.start_event(year, day_interval, start_day)
 
     @commands.command()
-    @commands.has_any_role("Admins", "Event Lead", "Event Runner")
     async def stop_aoc(self, ctx: commands.Context) -> None:
         """Stops a summer AoC event if one is running."""
         was_running = await self.stop_event()
@@ -174,7 +180,7 @@ class OffSeasonAoC(commands.Cog):
             return
 
         log.info(f"Posting puzzle for day {self.current_day}")
-        channel: discord.TextChannel = self.bot.get_channel(constants.Channels.aoc_main_channel)
+        channel: discord.TextChannel = self.bot.get_channel(Channels.aoc_main_channel)
         link = AOC_URL.format(year=self.year, day=self.current_day)
         thread_starter = await channel.send(link)  # This will be the message from which the thread will be created
         await thread_starter.create_thread(name=f"Off-season AoC #{self.current_day}")
