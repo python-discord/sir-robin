@@ -73,10 +73,11 @@ class JamTeamInfoView(discord.ui.View):
                                                         raise_for_status=True)
         except ResponseCodeError as err:
             if err.response.status == 404:
-                interaction.response.send_message("It seems like you're not a participant!")
+                await interaction.response.send_message("It seems like you're not a participant!", ephemeral=True)
             else:
-                interaction.response.send_message(
-                    "Something went wrong while processing the request! We have notified the team!"
+                await interaction.response.send_message(
+                    "Something went wrong while processing the request! We have notified the team!",
+                    ephemeral=True
                 )
                 log.error(err.response)
         else:
