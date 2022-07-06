@@ -1,8 +1,10 @@
 import asyncio
+import socket
 from typing import Optional
 
 import aiohttp
 import discord
+from botcore.site_api import APIClient
 from botcore.utils.extensions import walk_extensions
 from botcore.utils.logging import get_logger
 from botcore.utils.scheduling import create_task
@@ -21,18 +23,16 @@ class SirRobin(commands.Bot):
 
         # This session may want to be recreated on login/disconnect.
         # Additionally, on the bot repo we use a different connector that is more "stable".
+        self.code_jam_mgmt_api: Optional[APIClient] = None
         self.http_session: Optional[aiohttp.ClientSession] = None
 
         self._guild_available: Optional[asyncio.Event] = None
-
-    async def login(self, *args, **kwargs) -> None:
-        """On login, create an aiohttp client session to be used across the bot."""
-        self.http_session = aiohttp.ClientSession()
-        await super().login(*args, **kwargs)
+        self.http_session: Optional[aiohttp.ClientSession] = None
 
     async def close(self) -> None:
         """On close, cleanly close the aiohttp client session."""
         await self.http_session.close()
+        await self.code_jam_mgmt_api.close()
         await super().close()
 
     async def add_cog(self, cog: commands.Cog, **kwargs) -> None:
@@ -122,6 +122,29 @@ class SirRobin(commands.Bot):
         gateway event before giving up and thus not populating the cache for unavailable guilds.
         """
         await self._guild_available.wait()
+
+    async def login(self, *args, **kwargs) -> None:
+        """Re-create the connector and set up sessions before logging into Discord."""
+        # Use asyncio for DNS resolution instead of threads so threads aren't spammed.
+        self._resolver = aiohttp.AsyncResolver()
+
+        # Use AF_INET as its socket family to prevent HTTPS related problems both locally
+        # and in production.
+        self._connector = aiohttp.TCPConnector(
+            resolver=self._resolver,
+            family=socket.AF_INET,
+        )
+
+        # Client.login() will call HTTPClient.static_login() which will create a session using
+        # this connector attribute.
+        self.http.connector = self._connector
+
+        self.http_session = aiohttp.ClientSession(connector=self._connector)
+        self.code_jam_mgmt_api = APIClient(
+            site_api_url=constants.Client.code_jam_api,
+            site_api_token=constants.Client.code_jam_token
+        )
+        await super().login(*args, **kwargs)
 
 
 _intents = discord.Intents.default()  # Default is all intents except for privileged ones (Members, Presences, ...)

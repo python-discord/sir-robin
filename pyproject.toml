@@ -8,6 +8,7 @@ authors = ["Python Discord <info@pythondiscord.com>"]
 python = "3.9.*"
 "discord.py" = {url = "https://github.com/Rapptz/discord.py/archive/beafaa8a8b8006357c2a1ca6802ed80e000f4cda.zip"}
 bot-core = {url = "https://github.com/python-discord/bot-core/archive/refs/tags/v4.0.0.zip"}
+aiodns = "^3.0.0"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"
@@ -21,6 +22,12 @@ flake8-todo = "^0.7"
 pep8-naming = "^0.12.1"
 pre-commit = "^2.17.0"
 python-dotenv = "^0.19.2"
+taskipy = "^1.10.1"
+
+[tool.taskipy.tasks]
+start = "python -m bot"
+lint = "pre-commit run --all-files"
+precommit = "pre-commit install"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
