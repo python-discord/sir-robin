@@ -21,6 +21,20 @@ FIRST_YEAR = 2015
 POST_TIME = 5  # UTC
 
 
+INFO_TEMPLATE = """
+is_running: {is_running}
+\twait_task active: {wait_task_active}
+\tloop_task active: {loop_task_active}
+
+year: {year}
+current_day: {current_day}
+day_interval: {day_interval}
+
+POST_TIME: {post_time}:00 UTC
+FIRST_YEAR: {first_year}
+LAST_DAY: {last_day}
+"""
+
 class OffSeasonAoC(commands.Cog):
     """Cog that handles all off season advent of code (AoC) functionality."""
 
@@ -41,6 +55,21 @@ class OffSeasonAoC(commands.Cog):
         looping = (self.loop_task is not None) and self.loop_task.is_running()
         return waiting or looping
 
+    @commands.command()
+    async def info(self, ctx: commands.Context) -> None:
+        """Give info about the state of the event."""
+        msg = INFO_TEMPLATE.format(
+            is_running=self.is_running,
+            wait_task_active=(self.wait_task is not None) and not self.wait_task.done(),
+            loop_task_active=(self.loop_task is not None) and self.loop_task.is_running(),
+            year=self.year,
+            current_day=self.current_day,
+            day_interval=self.day_interval,
+            post_time=POST_TIME,
+            first_year=FIRST_YEAR,
+            last_day=LAST_DAY,
+        )
+        await ctx.send(msg)
 
     @commands.command()
     @commands.has_any_role("Admins", "Event Lead", "Event Runner")
