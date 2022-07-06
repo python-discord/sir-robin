@@ -60,7 +60,12 @@ class OffSeasonAoC(commands.Cog):
             Roles.event_runner,
         ).predicate(ctx)
 
-    @commands.command()
+    @commands.group(invoke_without_command=True, name="summeraoc")
+    async def summer_aoc_group(self, ctx: commands.Context):
+        """Commands for running the Summer AoC event"""
+        await ctx.send_help(ctx.command)
+
+    @summer_aoc_group.command(name="info")
     async def info(self, ctx: commands.Context) -> None:
         """Give info about the state of the event."""
         msg = INFO_TEMPLATE.format(
@@ -76,8 +81,8 @@ class OffSeasonAoC(commands.Cog):
         )
         await ctx.send(msg)
 
-    @commands.command()
-    async def summer_aoc(self, ctx: commands.Context, year: int, day_interval: int, start_day: int = 1) -> None:
+    @summer_aoc_group.command(name="start")
+    async def start(self, ctx: commands.Context, year: int, day_interval: int, start_day: int = 1) -> None:
         """Dynamically create and start a background task to handle summer AoC."""
         if not FIRST_YEAR <= year <= 2021:
             raise commands.BadArgument(f"Year must be between {FIRST_YEAR} and 2021, inclusive")
@@ -92,8 +97,8 @@ class OffSeasonAoC(commands.Cog):
         await ctx.send("Starting Summer AoC event...")
         await self.start_event(year, day_interval, start_day)
 
-    @commands.command()
-    async def stop_aoc(self, ctx: commands.Context) -> None:
+    @summer_aoc_group.command(name="stop")
+    async def stop(self, ctx: commands.Context) -> None:
         """Stops a summer AoC event if one is running."""
         was_running = await self.stop_event()
         if was_running:
