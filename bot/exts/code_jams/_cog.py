@@ -14,7 +14,8 @@ from discord.ext import commands
 from bot.bot import SirRobin
 from bot.constants import Roles
 from bot.exts.code_jams import _creation_utils
-from bot.exts.code_jams._flows import creation_flow, deletion_flow
+from bot.exts.code_jams._flows import (TEAM_LEADER_ROLE_NAME, creation_flow,
+                                       deletion_flow)
 from bot.exts.code_jams._views import (JamCreationConfirmation,
                                        JamEndConfirmation,
                                        JamTeamInfoConfirmation)
@@ -151,7 +152,7 @@ class CodeJams(commands.Cog):
                 await ctx.send(":x: It seems like the user is not a participant!")
             else:
                 await ctx.send("Something went wrong while processing the request! We have notified the team!")
-                log.error(err.response)
+                log.error(f"Something went wrong with processing the request! {err}")
         else:
             embed = Embed(
                 title=str(member),
@@ -163,31 +164,83 @@ class CodeJams(commands.Cog):
 
     @codejam.command()
     @commands.has_any_role(Roles.admins)
-    async def move(self, ctx: commands.Context, member: Member, new_team_name: str) -> None:
-        """Move participant from one team to another by changing the user's permissions for the relevant channels."""
-        old_team_channel = self.team_channel(ctx.guild, member)
-        if not old_team_channel:
-            await ctx.send(":x: I can't find the team channel for this member.")
+    async def move(self, ctx: commands.Context, member: Member, *, new_team_name: str) -> None:
+        """Move participant from one team to another by issuing an HTTP request to the Code Jam Management system."""
+        # Query the team the user has to be moved to
+        try:
+            team_to_move_in = await self.bot.code_jam_mgmt_api.get("teams/find", params={"name": new_team_name},
+                                                                   raise_for_status=True)
+        except ResponseCodeError as err:
+            if err.response.status == 404:
+                await ctx.send(f":x: Team `{new_team_name}` does not exists in the database!")
+            else:
+                await ctx.send("Something went wrong while processing the request! We have notified the team!")
+                log.error(f"Something went wrong with processing the request! {err}")
             return
 
-        if old_team_channel.name == new_team_name or self.team_name(old_team_channel) == new_team_name:
-            await ctx.send(f"`{member}` is already in `{new_team_name}`.")
+        # Query the current team of the member
+        try:
+            team = await self.bot.code_jam_mgmt_api.get(f"users/{member.id}/current_team",
+                                                        raise_for_status=True)
+        except ResponseCodeError as err:
+            if err.response.status == 404:
+                await ctx.send(":x: It seems like the user is not a participant!")
+            else:
+                await ctx.send("Something went wrong while processing the request! We have notified the team!")
+                log.error(err.response)
+            return
+        # Remove the member from their current team.
+        try:
+            await self.bot.code_jam_mgmt_api.delete(
+                f"teams/{quote_url(str(team['team']['id']))}/users/{quote_url(str(team['user_id']))}",
+                raise_for_status=True
+            )
+        except ResponseCodeError as err:
+            if err.response.status == 404:
+                await ctx.send(":x: Team or user could not be found!")
+            elif err.response.status == 400:
+                await ctx.send(":x: The member given is not part of the team! (Might have been removed already)")
+            else:
+                await ctx.send("Something went wrong while processing the request! We have notified the team!")
+                log.error(f"Something went wrong with processing the request! {err}")
             return
 
-        new_team_channel = self.team_channel(ctx.guild, new_team_name)
-        if not new_team_channel:
-            await ctx.send(f":x: I can't find a team channel named `{new_team_name}`.")
+        # Actually remove the role to modify the permissions.
+        team_role = ctx.guild.get_role(team["team"]["discord_role_id"])
+        await member.remove_roles(team_role)
+
+        # Decide whether the member should be a team leader in their new team.
+        is_leader = False
+        members = team["team"]["users"]
+        for memb in members:
+            if memb["user_id"] == member.id and memb["is_leader"]:
+                is_leader = True
+
+        # Add the user to the new team in the database.
+        try:
+            await self.bot.code_jam_mgmt_api.post(
+                f"teams/{team_to_move_in['id']}/users/{member.id}",
+                params={"is_leader": str(is_leader)},
+                raise_for_status=True
+            )
+        except ResponseCodeError as err:
+            if err.response.status == 404:
+                await ctx.send(":x: Team or user could not be found.")
+                log.info(err)
+            elif err.response.status == 400:
+                await ctx.send(f":x: user {member.mention} is already in {team_to_move_in['team']['name']}")
+            else:
+                await ctx.send(
+                    "Something went wrong while processing the request! We have notified the team!"
+                )
+                log.error(f"Something went wrong with processing the request! {err}")
             return
 
-        await old_team_channel.set_permissions(member, overwrite=None, reason=f"Participant moved to {new_team_name}")
-        await new_team_channel.set_permissions(
-            member,
-            overwrite=discord.PermissionOverwrite(read_messages=True),
-            reason=f"Participant moved from {old_team_channel.name}"
-        )
+        await member.add_roles(ctx.guild.get_role(team_to_move_in['discord_role_id']))
 
         await ctx.send(
-            f"Participant moved from `{self.team_name(old_team_channel)}` to `{self.team_name(new_team_channel)}`."
+            f"Success! Participant {member.mention} has been moved "
+            f"from {team['team']['name']} to {team_to_move_in['name']}"
         )
 
     @codejam.command()
@@ -203,20 +256,29 @@ class CodeJams(commands.Cog):
             else:
                 await ctx.send("Something went wrong while processing the request! We have notified the team!")
                 log.error(err.response)
-        else:
-            try:
-                await self.bot.code_jam_mgmt_api.delete(
-                    f"teams/{quote_url(str(team['team']['id']))}/users/{quote_url(str(team['user_id']))}"
-                )
-            except ResponseCodeError as err:
-                if err.response.status == 404:
-                    await ctx.send(":x: Team or user could not be found!")
-                elif err.response.status == 400:
-                    await ctx.send(":x: The member given is not part of the team! (Might have been removed already)")
+            return
+
+        try:
+            await self.bot.code_jam_mgmt_api.delete(
+                f"teams/{quote_url(str(team['team']['id']))}/users/{quote_url(str(team['user_id']))}",
+                raise_for_status=True
+            )
+        except ResponseCodeError as err:
+            if err.response.status == 404:
+                await ctx.send(":x: Team or user could not be found!")
+            elif err.response.status == 400:
+                await ctx.send(":x: The member given is not part of the team! (Might have been removed already)")
             else:
-                team_role = ctx.guild.get_role(team["team"]["discord_role_id"])
-                await member.remove_roles(team_role)
-                await ctx.send(f"Successfully removed {Member.mention} from team {team['team']['name']}")
+                await ctx.send("Something went wrong while processing the request! We have notified the team!")
+                log.error(err.response)
+            return
+
+        team_role = ctx.guild.get_role(team["team"]["discord_role_id"])
+        await member.remove_roles(team_role)
+        for role in member.roles:
+            if role.name == TEAM_LEADER_ROLE_NAME:
+                await member.remove_roles(role)
+        await ctx.send(f"Successfully removed {member.mention} from team {team['team']['name']}")
 
     @staticmethod
     def jam_categories(guild: Guild) -> list[discord.CategoryChannel]:

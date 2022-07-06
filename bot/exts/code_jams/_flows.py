@@ -9,6 +9,7 @@ from bot.exts.code_jams import _creation_utils
 from bot.exts.code_jams._views import JamTeamInfoConfirmation
 
 TEAM_LEADERS_COLOUR = 0x11806a
+TEAM_LEADER_ROLE_NAME = "Code Jam Team Leaders"
 
 
 async def creation_flow(
@@ -25,7 +26,7 @@ async def creation_flow(
     the Code Jam Management System, via an HTTP request.
     Finally, a view of Team Announcement will be sent.
     """
-    team_leaders = await ctx.guild.create_role(name="Code Jam Team Leaders", colour=TEAM_LEADERS_COLOUR)
+    team_leaders = await ctx.guild.create_role(name=TEAM_LEADER_ROLE_NAME, colour=TEAM_LEADERS_COLOUR)
     await _creation_utils.create_team_leader_channel(ctx.guild, team_leaders)
     jam_api_format = {"name": f"Summer Code Jam {datetime.now().year}", "ongoing": True, "teams": []}
     for team_name, team_members in teams.items():
