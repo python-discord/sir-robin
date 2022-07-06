@@ -1,6 +1,12 @@
 from os import environ
 from typing import NamedTuple
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv(override=True)
+except ModuleNotFoundError:
+    pass
+
 
 class Channels(NamedTuple):
     bot_commands = 267659945086812160
@@ -35,3 +41,10 @@ class Client(NamedTuple):
     code_jam_api = environ.get("CODE_JAM_API", "http://code-jam-management.default.svc.cluster.local:8000")
     code_jam_token = environ.get("CODE_JAM_API_KEY", "badbot13m0n8f570f942013fc818f234916ca531")
     github_bot_repo = "https://github.com/python-discord/sir-robin"
+
+
+class RedisConfig(NamedTuple):
+    host = environ.get("REDIS_HOST", "redis.default.svc.cluster.local")
+    port = environ.get("REDIS_PORT", 6379)
+    password = environ.get("REDIS_PASSWORD")
+    use_fakeredis = environ.get("USE_FAKEREDIS", "false").lower() == "true"

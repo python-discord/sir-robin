@@ -4,6 +4,7 @@ from typing import Optional
 
 import aiohttp
 import discord
+from async_rediscache import RedisSession
 from botcore.site_api import APIClient
 from botcore.utils.extensions import walk_extensions
 from botcore.utils.logging import get_logger
@@ -18,7 +19,7 @@ log = get_logger(__name__)
 class SirRobin(commands.Bot):
     """Sir-Robin core."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, redis_session: RedisSession, **kwargs):
         super().__init__(**kwargs)
 
         # This session may want to be recreated on login/disconnect.
@@ -27,7 +28,7 @@ class SirRobin(commands.Bot):
         self.http_session: Optional[aiohttp.ClientSession] = None
 
         self._guild_available: Optional[asyncio.Event] = None
-        self.http_session: Optional[aiohttp.ClientSession] = None
+        self.redis_session = redis_session
 
     async def close(self) -> None:
         """On close, cleanly close the aiohttp client session."""
@@ -145,20 +146,3 @@ class SirRobin(commands.Bot):
             site_api_token=constants.Client.code_jam_token
         )
         await super().login(*args, **kwargs)
-
-
-_intents = discord.Intents.default()  # Default is all intents except for privileged ones (Members, Presences, ...)
-_intents.bans = False
-_intents.integrations = False
-_intents.invites = False
-_intents.typing = False
-_intents.webhooks = False
-_intents.message_content = True
-_intents.members = True
-
-
-bot = SirRobin(
-    command_prefix=constants.Client.prefix,
-    activity=discord.Game("The Not-Quite-So-Bot-as-Sir-Lancebot"),
-    intents=_intents,
-)
