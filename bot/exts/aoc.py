@@ -29,7 +29,7 @@ class OffSeasonAoC(commands.Cog):
             self.loop.cancel()
             return
 
-        channel: discord.TextChannel = self.bot.get_channel(constants.Channels.aoc_forum_channel)
+        channel: discord.TextChannel = self.bot.get_channel(constants.Channels.aoc_main_channel)
         link = AOC_URL.format(year=self.year, day=self.current_day)
         thread_starter = await channel.send(link)  # This will be the message from which the thread will be created
         await thread_starter.create_thread(name=f"Off-season AoC #{self.current_day}")
