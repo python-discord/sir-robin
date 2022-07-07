@@ -8,7 +8,7 @@ from async_rediscache import RedisCache
 from discord.ext import commands, tasks
 from discord.utils import MISSING
 
-from bot.constants import Channels, Roles
+from bot.constants import Channels, Client, Roles
 from bot.bot import SirRobin
 from bot.utils.time import next_time_occurence, time_until
 
@@ -65,18 +65,23 @@ class SummerAoC(commands.Cog):
 
     @commands.group(invoke_without_command=True, name="summeraoc", aliases=["roc", "revivalofcode"])
     async def summer_aoc_group(self, ctx: commands.Context) -> None:
-        """Commands for running the Summer AoC event"""
-        await ctx.send_help(ctx.command)
+        """Commands for managing the Summer AoC event."""
+        desc = "\n".join(
+            f"*{command.help}*\n```{Client.prefix}summeraoc {command.name} {command.signature}```"
+            for command in sorted(self.summer_aoc_group.walk_commands(), key=hash)
+        )
+        embed = discord.Embed(description=desc)
+        await ctx.send(embed=embed)
 
     @summer_aoc_group.command(name="info")
     async def info(self, ctx: commands.Context) -> None:
-        """Give info about the state of the event."""
+        """Display info about the state of the event."""
         embed = self.get_info_embed()
         await ctx.send(embed=embed)
 
     @summer_aoc_group.command(name="start")
     async def start(self, ctx: commands.Context, year: int, day_interval: int, post_time: int = 0) -> None:
-        """Start the Summer AoC event."""
+        """Start the Summer AoC event. To specify a starting day other than `1`, use the `force` command."""
         if not FIRST_YEAR <= year <= LAST_YEAR:
             raise commands.BadArgument(f"Year must be between {FIRST_YEAR} and {LAST_YEAR}, inclusive")
 
@@ -102,7 +107,10 @@ class SummerAoC(commands.Cog):
 
     @summer_aoc_group.command(name="force")
     async def force_day(self, ctx: commands.Context, day: int, now: Optional[Literal["now"]] = None) -> None:
-        """Force-set the current day of Summer AoC event."""
+        """
+        Force-set the current day of the event. Use `now` to post the puzzle immediately.
+        Can be used without starting the event first as long as the necessary settings are already stored.
+        """
         if not self.is_configured():
             await ctx.send(
                 content="The necessary settings are not configured to start the event",
@@ -124,7 +132,7 @@ class SummerAoC(commands.Cog):
 
     @summer_aoc_group.command(name="stop")
     async def stop(self, ctx: commands.Context) -> None:
-        """Stop a Summer AoC event if one is running."""
+        """Stop the event."""
         was_running = await self.stop_event()
         if was_running:
             await ctx.send("Summer AoC event stopped")
