@@ -41,7 +41,7 @@ class OffSeasonAoC(commands.Cog):
 
     cache = RedisCache()
 
-    def __init__(self, bot: SirRobin) -> None:
+    def __init__(self, bot: SirRobin):
         self.bot = bot
         self.wait_task: Optional[asyncio.Task] = None
         self.loop_task: Optional[tasks.Loop] = None
@@ -62,7 +62,7 @@ class OffSeasonAoC(commands.Cog):
         ).predicate(ctx)
 
     @commands.group(invoke_without_command=True, name="summeraoc")
-    async def summer_aoc_group(self, ctx: commands.Context):
+    async def summer_aoc_group(self, ctx: commands.Context) -> None:
         """Commands for running the Summer AoC event"""
         await ctx.send_help(ctx.command)
 
