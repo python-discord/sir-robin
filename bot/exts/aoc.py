@@ -5,12 +5,12 @@ import arrow
 import asyncio
 import discord
 from async_rediscache import RedisCache
-from datetime import timedelta
 from discord.ext import commands, tasks
 from discord.utils import MISSING
 
 from bot.constants import Channels, Roles
 from bot.bot import SirRobin
+from bot.utils.time import next_time_occurence, time_until
 
 
 log = logging.getLogger(__name__)
@@ -24,16 +24,14 @@ LAST_YEAR = arrow.get().year - 1
 
 INFO_TEMPLATE = """
 is_running: {is_running}
-\twait_task active: {wait_task_active}
-\tloop_task active: {loop_task_active}
+wait_task active: {wait_task_active}
+loop_task active: {loop_task_active}
 
 year: {year}
 current_day: {current_day}
 day_interval: {day_interval}
 
-POST_TIME: {post_time}:00 UTC
-FIRST_YEAR: {first_year}
-LAST_DAY: {last_day}
+next post: {next_post}
 """
 
 class OffSeasonAoC(commands.Cog):
@@ -69,18 +67,8 @@ class OffSeasonAoC(commands.Cog):
     @summer_aoc_group.command(name="info")
     async def info(self, ctx: commands.Context) -> None:
         """Give info about the state of the event."""
-        msg = INFO_TEMPLATE.format(
-            is_running=self.is_running,
-            wait_task_active=(self.wait_task is not None) and not self.wait_task.done(),
-            loop_task_active=(self.loop_task is not None) and self.loop_task.is_running(),
-            year=self.year,
-            current_day=self.current_day,
-            day_interval=self.day_interval,
-            post_time=POST_TIME,
-            first_year=FIRST_YEAR,
-            last_day=LAST_DAY,
-        )
-        await ctx.send(msg)
+        embed = self.get_info_embed()
+        await ctx.send(embed=embed)
 
     @summer_aoc_group.command(name="start")
     async def start(self, ctx: commands.Context, year: int, day_interval: int, start_day: int = 1) -> None:
@@ -193,6 +181,22 @@ class OffSeasonAoC(commands.Cog):
 
         self.current_day += 1
         await self.save_event_state()
+
+    def get_info_embed(self) -> discord.Embed:
+        """Generate an embed with info about the event state."""
+        desc = INFO_TEMPLATE.format(
+            is_running=self.is_running,
+            wait_task_active=(self.wait_task is not None) and not self.wait_task.done(),
+            loop_task_active=(self.loop_task is not None) and self.loop_task.is_running(),
+            year=self.year,
+            current_day=self.current_day,
+            day_interval=self.day_interval,
+            next_post=f"<t:{int(next_time_occurence(hour=POST_TIME).timestamp())}>" if self.is_running else "N/A"
+        )
+        return discord.Embed(
+            title="Summer AoC event state",
+            description=desc,
+        )
 
 
 async def setup(bot: SirRobin) -> None:
