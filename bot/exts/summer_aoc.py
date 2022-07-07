@@ -111,7 +111,11 @@ class SummerAoC(commands.Cog):
         self.post_time = post_time
         await self.save_event_state()
 
-        await ctx.send("Starting Summer AoC event...")
+        embed = self.get_info_embed()
+        embed.color = discord.Color.green()
+        embed.title = "Event started!"
+        await ctx.send(embed=embed)
+
         await self.start_event()
 
     @summer_aoc_group.command(name="force")
@@ -124,10 +128,10 @@ class SummerAoC(commands.Cog):
             raise commands.BadArgument(f"Unrecognized option: {now}")
 
         if not self.is_configured():
-            await ctx.send(
-                content="The necessary settings are not configured to start the event",
-                embed=self.get_info_embed(),
-            )
+            embed = self.get_info_embed()
+            embed.title = "The necessary settings are not configured to start the event"
+            embed.color = discord.Color.red()
+            await ctx.send(embed=embed)
             return
 
         if not 1 <= day <= LAST_DAY:
@@ -140,6 +144,14 @@ class SummerAoC(commands.Cog):
         await self.save_event_state()
         if now:
             await self.post_puzzle()
+
+        embed = self.get_info_embed()
+        title = "Event is now running"
+        if now:
+            title = "Puzzle posted and event is now running"
+        embed.title = title
+        embed.color = discord.Color.green()
+        await ctx.send(embed=embed)
         await self.start_event()
 
     @summer_aoc_group.command(name="stop")
