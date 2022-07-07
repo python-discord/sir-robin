@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING, Callable
 import discord
 from botcore.site_api import ResponseCodeError
 from botcore.utils.logging import get_logger
-from discord.ext import commands
 
 if TYPE_CHECKING:
     from bot.bot import SirRobin
@@ -95,49 +94,7 @@ class JamTeamInfoView(discord.ui.View):
             )
 
 
-class JamCreationConfirmation(discord.ui.View):
-    """A basic view with a callback, to trigger and confirm the CJ creation flow."""
-
-    def __init__(
-            self,
-            original_author: discord.Member,
-            callback: Callable
-    ):
-        super().__init__()
-        self.original_author = original_author
-        self.callback = callback
-
-    @discord.ui.button(label='Cancel', style=discord.ButtonStyle.grey)
-    async def cancel(self, button: discord.ui.Button, interaction: discord.Interaction) -> None:
-        """A button to cancel the team creation."""
-        button.label = "Cancelled"
-        button.disabled = True
-        self.confirm.disabled = True
-        await interaction.response.edit_message(view=self)
-        self.stop()
-
-    @discord.ui.button(label='Confirm', style=discord.ButtonStyle.green)
-    async def confirm(self, button: discord.ui.Button, interaction: discord.Interaction) -> None:
-        """A button to confirm the team creation."""
-        button.label = "Confirmed"
-        button.disabled = True
-        self.cancel.disabled = True
-        await interaction.response.edit_message(view=self)
-        self.stop()
-        await self.callback()
-
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        """Global check to ensure that the interacting user is the user who invoked the command originally."""
-        if interaction.user != self.original_author:
-            await interaction.response.send_message(
-                ":x: You can't interact with someone else's response. Please run the command yourself!",
-                ephemeral=True
-            )
-            return False
-        return True
-
-
-class JamEndConfirmation(discord.ui.View):
+class JamConfirmation(discord.ui.View):
     """A basic view to confirm the ending of a CJ."""
 
     def __init__(
@@ -151,7 +108,7 @@ class JamEndConfirmation(discord.ui.View):
 
     @discord.ui.button(label='Cancel', style=discord.ButtonStyle.grey)
     async def cancel(self, button: discord.ui.Button, interaction: discord.Interaction) -> None:
-        """A button to cancel ending a CJ."""
+        """A button to cancel an action."""
         button.label = "Cancelled"
         button.disabled = True
         self.confirm.disabled = True
@@ -160,7 +117,7 @@ class JamEndConfirmation(discord.ui.View):
 
     @discord.ui.button(label='Confirm', style=discord.ButtonStyle.green)
     async def confirm(self, button: discord.ui.Button, interaction: discord.Interaction) -> None:
-        """A button to confirm ending a CJ."""
+        """A button to confirm an action."""
         button.label = "Confirmed"
         button.disabled = True
         self.cancel.disabled = True

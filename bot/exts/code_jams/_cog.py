@@ -1,9 +1,9 @@
 import csv
 import typing as t
 from collections import defaultdict
+from functools import partial
 from typing import Optional
 from urllib.parse import quote as quote_url
-from functools import partial
 
 import discord
 from botcore.site_api import APIClient, ResponseCodeError
@@ -17,9 +17,7 @@ from bot.constants import Roles
 from bot.exts.code_jams import _creation_utils
 from bot.exts.code_jams._flows import (TEAM_LEADER_ROLE_NAME, creation_flow,
                                        deletion_flow)
-from bot.exts.code_jams._views import (JamCreationConfirmation,
-                                       JamEndConfirmation,
-                                       JamTeamInfoConfirmation)
+from bot.exts.code_jams._views import JamConfirmation, JamTeamInfoConfirmation
 from bot.services import send_to_paste_service
 
 log = get_logger(__name__)
@@ -81,7 +79,7 @@ class CodeJams(commands.Cog):
             callback = partial(creation_flow, ctx, teams, self.bot)
             await ctx.send(
                 embed=warning_embed,
-                view=JamCreationConfirmation(original_author=ctx.author, callback=callback)
+                view=JamConfirmation(author=ctx.author, callback=callback)
             )
 
     @codejam.command()
@@ -130,7 +128,7 @@ class CodeJams(commands.Cog):
             value=url
         )
         callback = partial(deletion_flow, category_channels, roles)
-        confirm_view = JamEndConfirmation(author=ctx.author, callback=callback)
+        confirm_view = JamConfirmation(author=ctx.author, callback=callback)
         await ctx.send(
             embed=warning_embed,
             view=confirm_view
