@@ -3,6 +3,7 @@ import typing as t
 from collections import defaultdict
 from typing import Optional
 from urllib.parse import quote as quote_url
+from functools import partial
 
 import discord
 from botcore.site_api import APIClient, ResponseCodeError
@@ -77,10 +78,10 @@ class CodeJams(commands.Cog):
                 description=f"{len(teams)} teams, and roles will be created, are you sure?"
             )
             warning_embed.set_footer(text="Code Jam team generation")
-
+            callback = partial(creation_flow, ctx, teams, self.bot)
             await ctx.send(
                 embed=warning_embed,
-                view=JamCreationConfirmation(ctx, teams, self.bot, ctx.guild, ctx.author, creation_flow)
+                view=JamCreationConfirmation(original_author=ctx.author, callback=callback)
             )
 
     @codejam.command()
@@ -128,7 +129,8 @@ class CodeJams(commands.Cog):
             name="For a detailed list of which roles, categories and channels will be deleted see:",
             value=url
         )
-        confirm_view = JamEndConfirmation(category_channels, roles, deletion_flow, ctx.author)
+        callback = partial(deletion_flow, category_channels, roles)
+        confirm_view = JamEndConfirmation(author=ctx.author, callback=callback)
         await ctx.send(
             embed=warning_embed,
             view=confirm_view
@@ -226,7 +228,6 @@ class CodeJams(commands.Cog):
         except ResponseCodeError as err:
             if err.response.status == 404:
                 await ctx.send(":x: Team or user could not be found.")
-                log.info(err)
             elif err.response.status == 400:
                 await ctx.send(f":x: user {member.mention} is already in {team_to_move_in['team']['name']}")
             else:

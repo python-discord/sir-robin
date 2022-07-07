@@ -40,7 +40,6 @@ class JamTeamInfoConfirmation(discord.ui.View):
         self.stop()
         await interaction.response.edit_message(view=self)
         announcements = self.guild.get_channel(Channels.summer_code_jam_announcements)
-        log.info(Roles.code_jam_participants)
         await announcements.send(
             f"<@&{Roles.code_jam_participants}> ! You have been sorted into a team!"
             " Click the button below to get a detailed description!",
@@ -101,17 +100,10 @@ class JamCreationConfirmation(discord.ui.View):
 
     def __init__(
             self,
-            ctx: commands.Context,
-            teams: dict[str: list[dict[str: discord.Member, str: bool]]],
-            bot: 'SirRobin', guild: discord.Guild,
             original_author: discord.Member,
             callback: Callable
     ):
         super().__init__()
-        self.bot = bot
-        self.ctx = ctx
-        self.teams = teams
-        self.guild = guild
         self.original_author = original_author
         self.callback = callback
 
@@ -132,7 +124,7 @@ class JamCreationConfirmation(discord.ui.View):
         self.cancel.disabled = True
         await interaction.response.edit_message(view=self)
         self.stop()
-        await self.callback(self.ctx, self.teams, self.bot)
+        await self.callback()
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         """Global check to ensure that the interacting user is the user who invoked the command originally."""
@@ -150,14 +142,10 @@ class JamEndConfirmation(discord.ui.View):
 
     def __init__(
             self,
-            category_channels: dict[discord.CategoryChannel: list[discord.TextChannel]],
-            roles: list[discord.Role],
             callback: Callable,
             author: discord.Member
     ):
         super().__init__()
-        self.category_channels = category_channels
-        self.roles = roles
         self.original_author = author
         self.callback = callback
 
@@ -178,7 +166,7 @@ class JamEndConfirmation(discord.ui.View):
         self.cancel.disabled = True
         await interaction.response.edit_message(view=self)
         self.stop()
-        await self.callback(self.category_channels, self.roles)
+        await self.callback()
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         """Global check to ensure that the interacting user is the user who invoked the command originally."""
