@@ -63,7 +63,7 @@ class SummerAoC(commands.Cog):
             Roles.event_runner,
         ).predicate(ctx)
 
-    @commands.group(invoke_without_command=True, name="summeraoc")
+    @commands.group(invoke_without_command=True, name="summeraoc", aliases=["roc", "revivalofcode"])
     async def summer_aoc_group(self, ctx: commands.Context) -> None:
         """Commands for running the Summer AoC event"""
         await ctx.send_help(ctx.command)
