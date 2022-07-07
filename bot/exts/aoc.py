@@ -75,13 +75,13 @@ class OffSeasonAoC(commands.Cog):
         await ctx.send(embed=embed)
 
     @summer_aoc_group.command(name="start")
-    async def start(self, ctx: commands.Context, year: int, day_interval: int, start_day: int = 1) -> None:
+    async def start(self, ctx: commands.Context, year: int, day_interval: int) -> None:
         """Dynamically create and start a background task to handle summer AoC."""
         if not FIRST_YEAR <= year <= LAST_YEAR:
             raise commands.BadArgument(f"Year must be between {FIRST_YEAR} and {LAST_YEAR}, inclusive")
 
-        if not 1 <= start_day <= LAST_DAY:
-            raise commands.BadArgument(f"Start day must be between 1 and {LAST_DAY}, inclusive")
+        if day_interval < 1:
+            raise commands.BadArgument(f"Day interval must be at least 1")
 
         if self.is_running:
             await ctx.send("A summer AoC event is already running!")
@@ -89,7 +89,7 @@ class OffSeasonAoC(commands.Cog):
         
         self.is_running = True
         self.year = year
-        self.current_day = start_day
+        self.current_day = 1
         self.day_interval = day_interval
         await self.save_event_state()
 
