@@ -63,6 +63,15 @@ class SummerAoC(commands.Cog):
             Roles.event_runner,
         ).predicate(ctx)
 
+    async def cog_command_error(self, ctx: commands.Context, error: commands.CommandError) -> None:
+        """Send help text on user input error."""
+        if isinstance(error, commands.UserInputError):
+            desc = f"```{Client.prefix}summeraoc {ctx.command.name} {ctx.command.signature}```"
+            embed = discord.Embed(
+                description=desc,
+            )
+            await ctx.send(embed=embed)
+
     @commands.group(invoke_without_command=True, name="summeraoc", aliases=["roc", "revivalofcode"])
     async def summer_aoc_group(self, ctx: commands.Context) -> None:
         """Commands for managing the Summer AoC event."""
@@ -111,6 +120,9 @@ class SummerAoC(commands.Cog):
         Force-set the current day of the event. Use `now` to post the puzzle immediately.
         Can be used without starting the event first as long as the necessary settings are already stored.
         """
+        if now is not None and now.lower() != "now":
+            raise commands.BadArgument(f"Unrecognized option: {now}")
+
         if not self.is_configured():
             await ctx.send(
                 content="The necessary settings are not configured to start the event",
@@ -126,7 +138,7 @@ class SummerAoC(commands.Cog):
         self.is_running = True
         self.current_day = day
         await self.save_event_state()
-        if now is not None and now.lower() == "now":
+        if now:
             await self.post_puzzle()
         await self.start_event()
 
