@@ -19,6 +19,7 @@ AOC_URL = "https://adventofcode.com/{year}/day/{day}"
 LAST_DAY = 25
 FIRST_YEAR = 2015
 POST_TIME = 5  # UTC
+LAST_YEAR = arrow.get().year - 1
 
 
 INFO_TEMPLATE = """
@@ -84,8 +85,8 @@ class OffSeasonAoC(commands.Cog):
     @summer_aoc_group.command(name="start")
     async def start(self, ctx: commands.Context, year: int, day_interval: int, start_day: int = 1) -> None:
         """Dynamically create and start a background task to handle summer AoC."""
-        if not FIRST_YEAR <= year <= 2021:
-            raise commands.BadArgument(f"Year must be between {FIRST_YEAR} and 2021, inclusive")
+        if not FIRST_YEAR <= year <= LAST_YEAR:
+            raise commands.BadArgument(f"Year must be between {FIRST_YEAR} and {LAST_YEAR}, inclusive")
 
         if not (start_day >= 1 and start_day <= LAST_DAY):
             raise commands.BadArgument(f"Start day must be between 1 and {LAST_DAY}, inclusive")
