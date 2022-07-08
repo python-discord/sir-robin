@@ -40,6 +40,7 @@ We're revisiting an old Advent of Code event at a slower pace. To participate, c
  then come join us in this thread when you've solved it or need help!
 
 *Please remember to keep all solution spoilers for this puzzle in the thread.*
+If you have questions or suggestions about the event itself, head over to <#{discussion}>.
 {next_puzzle_text}
 """
 
@@ -300,6 +301,7 @@ class SummerAoC(commands.Cog):
             )
         post_text = POST_TEXT.format(
             public_name=PUBLIC_NAME,
+            discussion=Channels.summer_aoc_discussion,
             next_puzzle_text=next_puzzle_text,
         )
 

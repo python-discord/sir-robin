@@ -13,6 +13,7 @@ class Channels(NamedTuple):
     devlog = int(environ.get("CHANNEL_DEVLOG", 622895325144940554))
     code_jam_planning = int(environ.get("CHANNEL_CODE_JAM_PLANNING", 490217981872177157))
     summer_aoc_main = int(environ.get("SUMMER_AOC_MAIN_CHANNEL", 988979042847957042))
+    summer_aoc_discussion = int(environ.get("SUMMER_AOC_DISCUSSION", "will fill this in a couple days"))
     sir_lancebot_playground = int(environ.get("CHANNEL_COMMUNITY_BOT_COMMANDS", 607247579608121354))
 
 
