@@ -257,7 +257,7 @@ class SummerAoC(commands.Cog):
     async def post_puzzle(self) -> None:
         """Create a thread for the current day's puzzle."""
         if self.current_day > LAST_DAY:
-            log.info(f"Attempted to post puzzle after last day, stopping event")
+            log.error(f"Attempted to post puzzle after last day, stopping event")
             await self.stop_event()
             return
 
@@ -271,6 +271,8 @@ class SummerAoC(commands.Cog):
 
         self.current_day += 1
         await self.save_event_state()
+        if self.current_day > LAST_DAY:
+            await self.stop_event()
 
     def get_info_embed(self) -> discord.Embed:
         """Generate an embed with info about the event state."""
