@@ -1,17 +1,16 @@
+import asyncio
 import logging
 from typing import Literal, Optional
 
 import arrow
-import asyncio
 import discord
 from async_rediscache import RedisCache
 from discord.ext import commands, tasks
 from discord.utils import MISSING
 
-from bot.constants import Channels, Client, Roles
 from bot.bot import SirRobin
+from bot.constants import Channels, Client, Roles
 from bot.utils.time import next_time_occurence, time_until
-
 
 log = logging.getLogger(__name__)
 
@@ -114,20 +113,20 @@ class SummerAoC(commands.Cog):
         """
         Start the Summer AoC event.
         To specify a starting day other than `1`, use the `force` command.
-        """
+        """  # noqa: D205
         if not FIRST_YEAR <= year <= LAST_YEAR:
             raise commands.BadArgument(f"Year must be between {FIRST_YEAR} and {LAST_YEAR}, inclusive")
 
         if day_interval < 1:
-            raise commands.BadArgument(f"Day interval must be at least 1")
+            raise commands.BadArgument("Day interval must be at least 1")
 
         if not 0 <= post_time <= 23:
-            raise commands.BadArgument(f"Post time must be between 0 and 23")
+            raise commands.BadArgument("Post time must be between 0 and 23")
 
         if self.is_running:
             await ctx.send("A Summer AoC event is already running!")
             return
-        
+
         self.is_running = True
         self.year = year
         self.current_day = 1
@@ -147,7 +146,7 @@ class SummerAoC(commands.Cog):
         """
         Force-set the current day of the event. Use `now` to post the puzzle immediately.
         Can be used without starting the event first as long as the necessary settings are already stored.
-        """
+        """  # noqa: D205
         if now is not None and now.lower() != "now":
             raise commands.BadArgument(f"Unrecognized option: {now}")
 
@@ -201,10 +200,10 @@ class SummerAoC(commands.Cog):
             if self.is_configured():
                 await self.start_event()
             else:
-                log.error(f"Summer AoC state incomplete, failed to start event")
+                log.error("Summer AoC state incomplete, failed to start event")
                 self.is_running = False
                 self.save_event_state()
-    
+
     async def save_event_state(self) -> None:
         """Save the current state in redis."""
         await self.cache.update({
@@ -214,7 +213,7 @@ class SummerAoC(commands.Cog):
             "day_interval": self.day_interval,
             "post_time": self.post_time,
         })
-    
+
     async def start_event(self) -> None:
         """Start event by recording state and creating async tasks to post puzzles."""
         log.info(f"Starting Summer AoC event with {self.year=} {self.current_day=} {self.day_interval=}")
@@ -239,15 +238,15 @@ class SummerAoC(commands.Cog):
         was_waiting = self.wait_task and not self.wait_task.done()
         was_looping = self.loop_task and self.loop_task.is_running()
         if was_waiting and was_looping:
-            log.error(f"Both wait and loop tasks were active. Both should now be cancelled.")
+            log.error("Both wait and loop tasks were active. Both should now be cancelled.")
 
         if was_waiting:
             self.wait_task.cancel()
-            log.debug(f"Summer AoC stopped during wait task")
+            log.debug("Summer AoC stopped during wait task")
 
         if was_looping:
             self.loop_task.cancel()  # .cancel() doesn't allow the current iteration to finish
-            log.debug(f"Summer AoC stopped during loop task")
+            log.debug("Summer AoC stopped during loop task")
 
         self.is_running = False
         await self.save_event_state()
@@ -257,7 +256,7 @@ class SummerAoC(commands.Cog):
     async def post_puzzle(self) -> None:
         """Create a thread for the current day's puzzle."""
         if self.current_day > LAST_DAY:
-            log.error(f"Attempted to post puzzle after last day, stopping event")
+            log.error("Attempted to post puzzle after last day, stopping event")
             await self.stop_event()
             return
 

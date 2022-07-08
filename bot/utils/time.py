@@ -8,6 +8,7 @@ def next_time_occurence(hour: int, minute: int = 0, second: int = 0) -> arrow.Ar
     delta = time_until(hour, minute, second)
     return arrow.get() + delta
 
+
 def time_until(hour: int, minute: int = 0, second: int = 0) -> timedelta:
     """Return the difference between now and the next occurence of the given time of day in UTC."""
     now = arrow.get()
