@@ -20,6 +20,7 @@ LAST_DAY = 25
 FIRST_YEAR = 2015
 LAST_YEAR = arrow.get().year - 1
 PUBLIC_NAME = "Revival of Code"
+REAL_AOC_START = f"{arrow.get().year}-12-01T05:00:00"
 
 INFO_TEMPLATE = """
 is_running: {is_running}
@@ -32,6 +33,26 @@ day_interval: {day_interval}
 
 next post: {next_post}
 """
+
+POST_TEXT = """
+The next puzzle in our {public_name} is now released!
+
+We're revisiting an old Advent of Code event at a slower pace. To participate, check out the linked puzzle\
+ then come join us in this thread when you've solved it or need help!
+
+*Please remember to keep all solution spoilers for this puzzle in the thread.*
+{next_puzzle_text}
+"""
+
+NEXT_PUZZLE_TEXT = """
+The next puzzle will be posted <t:{timestamp}:R>.
+To receive notifications when new puzzles are released, run `!subscribe` in <#{bot_commands}>.
+"""
+
+LAST_PUZZLE_TEXT = """
+This is the last puzzle! ||...until Advent of Code starts <t:{timestamp}:R>!||
+"""
+
 
 class SummerAoC(commands.Cog):
     """Cog that handles all Summer AoC functionality."""
@@ -239,9 +260,11 @@ class SummerAoC(commands.Cog):
 
         log.info(f"Posting puzzle for day {self.current_day}")
         channel: discord.TextChannel = self.bot.get_channel(Channels.summer_aoc_main)
-        link = AOC_URL.format(year=self.year, day=self.current_day)
-        thread_starter = await channel.send(link)  # This will be the message from which the thread will be created
-        await thread_starter.create_thread(name=f"{PUBLIC_NAME} puzzle {self.current_day}")
+        thread_starter = await channel.send(
+            f"<@&{Roles.summer_aoc}>",
+            embed=self.get_puzzle_embed(),
+        )
+        await thread_starter.create_thread(name=f"Day {self.current_day} Spoilers")
 
         self.current_day += 1
         await self.save_event_state()
@@ -261,6 +284,28 @@ class SummerAoC(commands.Cog):
             title="Summer AoC event state",
             description=desc,
         )
+
+    def get_puzzle_embed(self) -> discord.Embed:
+        """Generate an embed for the day's puzzle post."""
+        if self.current_day == LAST_DAY:
+            next_puzzle_text = LAST_PUZZLE_TEXT.format(timestamp=int(arrow.get(REAL_AOC_START).timestamp()))
+        else:
+            next_puzzle_text = NEXT_PUZZLE_TEXT.format(
+                timestamp=int(next_time_occurence(hour=self.post_time).timestamp()),
+                bot_commands=Channels.bot_commands,
+            )
+        post_text = POST_TEXT.format(
+            public_name=PUBLIC_NAME,
+            next_puzzle_text=next_puzzle_text,
+        )
+
+        embed = discord.Embed(
+            title=f"**Day {self.current_day}  (puzzle link)**",
+            url=AOC_URL.format(year=self.year, day=self.current_day),
+            description=post_text,
+            color=discord.Color.yellow(),
+        )
+        return embed
 
 
 async def setup(bot: SirRobin) -> None:

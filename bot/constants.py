@@ -29,6 +29,7 @@ class Roles(NamedTuple):
     code_jam_event_team = int(environ.get("ROLE_CODE_JAM_EVENT_TEAM", 787816728474288181))
     events_lead = int(environ.get("ROLE_EVENTS_LEAD", 778361735739998228))
     event_runner = int(environ.get("EVENT_RUNNER", 940911658799333408))
+    summer_aoc = int(environ.get("ROLE_SUMMER_AOC", 988801794668908655))
 
 
 class Client(NamedTuple):
