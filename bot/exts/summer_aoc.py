@@ -111,7 +111,10 @@ class SummerAoC(commands.Cog):
 
     @summer_aoc_group.command(name="start")
     async def start(self, ctx: commands.Context, year: int, day_interval: int, post_time: int = 0) -> None:
-        """Start the Summer AoC event. To specify a starting day other than `1`, use the `force` command."""
+        """
+        Start the Summer AoC event.
+        To specify a starting day other than `1`, use the `force` command.
+        """
         if not FIRST_YEAR <= year <= LAST_YEAR:
             raise commands.BadArgument(f"Year must be between {FIRST_YEAR} and {LAST_YEAR}, inclusive")
 
