@@ -12,7 +12,7 @@ class Channels(NamedTuple):
     bot_commands = 267659945086812160
     devlog = int(environ.get("CHANNEL_DEVLOG", 622895325144940554))
     code_jam_planning = int(environ.get("CHANNEL_CODE_JAM_PLANNING", 490217981872177157))
-    aoc_main_channel = int(environ.get("AOC_MAIN_CHANNEL", 988979042847957042))
+    summer_aoc_main = int(environ.get("SUMMER_AOC_MAIN_CHANNEL", 988979042847957042))
     sir_lancebot_playground = int(environ.get("CHANNEL_COMMUNITY_BOT_COMMANDS", 607247579608121354))
 
 

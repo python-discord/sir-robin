@@ -19,8 +19,7 @@ AOC_URL = "https://adventofcode.com/{year}/day/{day}"
 LAST_DAY = 25
 FIRST_YEAR = 2015
 LAST_YEAR = arrow.get().year - 1
-POST_TIME = 0  # UTC
-
+PUBLIC_NAME = "Revival of Code"
 
 INFO_TEMPLATE = """
 is_running: {is_running}
@@ -34,8 +33,8 @@ day_interval: {day_interval}
 next post: {next_post}
 """
 
-class OffSeasonAoC(commands.Cog):
-    """Cog that handles all off season advent of code (AoC) functionality."""
+class SummerAoC(commands.Cog):
+    """Cog that handles all Summer AoC functionality."""
 
     cache = RedisCache()
 
@@ -48,12 +47,13 @@ class OffSeasonAoC(commands.Cog):
         self.year: Optional[int] = None
         self.current_day: Optional[int] = None
         self.day_interval: Optional[int] = None
+        self.post_time = 0
 
         self.bot.loop.create_task(self.load_event_state())
 
     def is_configured(self) -> bool:
         """Check whether all the necessary settings are configured to run the event."""
-        return all(setting is not None for setting in (self.year, self.current_day, self.day_interval))
+        return None not in (self.year, self.current_day, self.day_interval, self.post_time)
 
     async def cog_check(self, ctx: commands.Context) -> bool:
         """Role-lock all commands in this cog."""
@@ -75,22 +75,26 @@ class OffSeasonAoC(commands.Cog):
         await ctx.send(embed=embed)
 
     @summer_aoc_group.command(name="start")
-    async def start(self, ctx: commands.Context, year: int, day_interval: int) -> None:
-        """Dynamically create and start a background task to handle summer AoC."""
+    async def start(self, ctx: commands.Context, year: int, day_interval: int, post_time: int = 0) -> None:
+        """Start the Summer AoC event."""
         if not FIRST_YEAR <= year <= LAST_YEAR:
             raise commands.BadArgument(f"Year must be between {FIRST_YEAR} and {LAST_YEAR}, inclusive")
 
         if day_interval < 1:
             raise commands.BadArgument(f"Day interval must be at least 1")
 
+        if not 0 <= post_time <= 23:
+            raise commands.BadArgument(f"Post time must be between 0 and 23")
+
         if self.is_running:
-            await ctx.send("A summer AoC event is already running!")
+            await ctx.send("A Summer AoC event is already running!")
             return
         
         self.is_running = True
         self.year = year
         self.current_day = 1
         self.day_interval = day_interval
+        self.post_time = post_time
         await self.save_event_state()
 
         await ctx.send("Starting Summer AoC event...")
@@ -98,7 +102,7 @@ class OffSeasonAoC(commands.Cog):
 
     @summer_aoc_group.command(name="force")
     async def force_day(self, ctx: commands.Context, day: int, now: Optional[Literal["now"]] = None) -> None:
-        """Set the current day of Summer AoC event."""
+        """Force-set the current day of Summer AoC event."""
         if not self.is_configured():
             await ctx.send(
                 content="The necessary settings are not configured to start the event",
@@ -120,20 +124,21 @@ class OffSeasonAoC(commands.Cog):
 
     @summer_aoc_group.command(name="stop")
     async def stop(self, ctx: commands.Context) -> None:
-        """Stop a summer AoC event if one is running."""
+        """Stop a Summer AoC event if one is running."""
         was_running = await self.stop_event()
         if was_running:
             await ctx.send("Summer AoC event stopped")
         else:
-            await ctx.send("The summer AoC event is not currently running")
+            await ctx.send("The Summer AoC event is not currently running")
 
     async def load_event_state(self) -> None:
         """Check redis for the current state of the event."""
         state = await self.cache.to_dict()
-        self.is_running = state.get("is_running") or False
+        self.is_running = state.get("is_running", False)
         self.year = state.get("year")
         self.day_interval = state.get("day_interval")
         self.current_day = state.get("current_day")
+        self.post_time = state.get("post_time", 0)
         log.debug(f"Loaded state: {state}")
 
         if self.is_running:
@@ -151,14 +156,15 @@ class OffSeasonAoC(commands.Cog):
             "year": self.year,
             "current_day": self.current_day,
             "day_interval": self.day_interval,
+            "post_time": self.post_time,
         })
     
     async def start_event(self) -> None:
         """Start event by recording state and creating async tasks to post puzzles."""
-        log.info(f"Starting summer AoC event with {self.year=} {self.current_day=} {self.day_interval=}")
-        sleep_for = time_until(hour=POST_TIME)
+        log.info(f"Starting Summer AoC event with {self.year=} {self.current_day=} {self.day_interval=}")
+        sleep_for = time_until(hour=self.post_time)
         self.wait_task = asyncio.create_task(asyncio.sleep(sleep_for.total_seconds()))
-        log.debug(f"Waiting until {POST_TIME}:00 UTC to start summer AoC loop")
+        log.debug(f"Waiting until {self.post_time}:00 UTC to start Summer AoC loop")
         await self.wait_task
 
         self.loop_task = tasks.Loop(
@@ -173,7 +179,7 @@ class OffSeasonAoC(commands.Cog):
         self.loop_task.start()
 
     async def stop_event(self) -> bool:
-        """Cancel any active summer AoC tasks. Returns whether the event was running."""
+        """Cancel any active Summer AoC tasks. Returns whether the event was running."""
         was_waiting = self.wait_task and not self.wait_task.done()
         was_looping = self.loop_task and self.loop_task.is_running()
         if was_waiting and was_looping:
@@ -200,10 +206,10 @@ class OffSeasonAoC(commands.Cog):
             return
 
         log.info(f"Posting puzzle for day {self.current_day}")
-        channel: discord.TextChannel = self.bot.get_channel(Channels.aoc_main_channel)
+        channel: discord.TextChannel = self.bot.get_channel(Channels.summer_aoc_main)
         link = AOC_URL.format(year=self.year, day=self.current_day)
         thread_starter = await channel.send(link)  # This will be the message from which the thread will be created
-        await thread_starter.create_thread(name=f"Off-season AoC #{self.current_day}")
+        await thread_starter.create_thread(name=f"{PUBLIC_NAME} puzzle {self.current_day}")
 
         self.current_day += 1
         await self.save_event_state()
@@ -217,7 +223,7 @@ class OffSeasonAoC(commands.Cog):
             year=self.year,
             current_day=self.current_day,
             day_interval=self.day_interval,
-            next_post=f"<t:{int(next_time_occurence(hour=POST_TIME).timestamp())}>" if self.is_running else "N/A"
+            next_post=f"<t:{int(next_time_occurence(hour=self.post_time).timestamp())}>" if self.is_running else "N/A"
         )
         return discord.Embed(
             title="Summer AoC event state",
@@ -226,5 +232,5 @@ class OffSeasonAoC(commands.Cog):
 
 
 async def setup(bot: SirRobin) -> None:
-    """Load the summer AoC cog."""
-    await bot.add_cog(OffSeasonAoC(bot))
+    """Load the Summer AoC cog."""
+    await bot.add_cog(SummerAoC(bot))
