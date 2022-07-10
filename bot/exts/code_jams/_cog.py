@@ -73,7 +73,7 @@ class CodeJams(commands.Cog):
             warning_embed = Embed(
                 colour=discord.Colour.orange(),
                 title="Warning!",
-                description=f"{len(teams)} teams, and roles will be created, are you sure?"
+                description=f"{len(teams)} teams and roles will be created, are you sure?"
             )
             warning_embed.set_footer(text="Code Jam team generation")
             callback = partial(creation_flow, ctx, teams, self.bot)

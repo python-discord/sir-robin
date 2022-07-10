@@ -86,7 +86,7 @@ class JamTeamInfoView(discord.ui.View):
             team_channel = f"<#{team['team']['discord_channel_id']}>"
             team_members = [f"<@{member['user_id']}>" for member in team["team"]["users"]]
             response_embed.add_field(name="Your team's channel:", value=team_channel)
-            response_embed.add_field(name="Your team's members:", value="\n".join(team_members))
+            response_embed.add_field(name="You teammates:", value="\n".join(team_members))
             response_embed.set_footer(text="Good luck!")
             await interaction.response.send_message(
                 embed=response_embed,

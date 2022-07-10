@@ -100,7 +100,7 @@ async def move_flow(
         )
     except ResponseCodeError as err:
         if err.response.status == 404:
-            await ctx.send(f":x: Team `{new_team_name}` does not exists in the database!")
+            await ctx.send(f":x: Team `{new_team_name}` does not exist in the current jam!")
         else:
             await ctx.send("Something went wrong while processing the request! We have notified the team!")
             log.error(f"Something went wrong with processing the request! {err}")
