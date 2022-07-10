@@ -91,21 +91,6 @@ async def move_flow(
         member: discord.Member
 ) -> None:
     """Move participant from one team to another by issuing an HTTP request to the Code Jam Management system."""
-    # Query the team the user has to be moved to
-    try:
-        team_to_move_in = await bot.code_jam_mgmt_api.get(
-            "teams/find",
-            params={"name": new_team_name},
-            raise_for_status=True
-        )
-    except ResponseCodeError as err:
-        if err.response.status == 404:
-            await ctx.send(f":x: Team `{new_team_name}` does not exist in the current jam!")
-        else:
-            await ctx.send("Something went wrong while processing the request! We have notified the team!")
-            log.error(f"Something went wrong with processing the request! {err}")
-        return
-
     # Query the current team of the member
     try:
         team = await bot.code_jam_mgmt_api.get(f"users/{member.id}/current_team",
@@ -116,6 +101,21 @@ async def move_flow(
         else:
             await ctx.send("Something went wrong while processing the request! We have notified the team!")
             log.error(err.response)
+        return
+
+    # Query the team the user has to be moved to
+    try:
+        team_to_move_in = await bot.code_jam_mgmt_api.get(
+            "teams/find",
+            params={"name": new_team_name, "jam_id": team["team"]["jam_id"]},
+            raise_for_status=True
+        )
+    except ResponseCodeError as err:
+        if err.response.status == 404:
+            await ctx.send(f":x: Team `{new_team_name}` does not exist in the current jam!")
+        else:
+            await ctx.send("Something went wrong while processing the request! We have notified the team!")
+            log.error(f"Something went wrong with processing the request! {err}")
         return
 
     # Check if the user's current team and the team they want to move them to is not the same
