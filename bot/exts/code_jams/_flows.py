@@ -117,6 +117,12 @@ async def move_flow(
             await ctx.send("Something went wrong while processing the request! We have notified the team!")
             log.error(err.response)
         return
+
+    # Check if the user's current team and the team they want to move them to is not the same
+    if team_to_move_in["name"] == team["team"]["name"]:
+        await ctx.send(f":x: user {member.mention} is already in {team_to_move_in['name']}")
+        return
+
     # Remove the member from their current team.
     try:
         await bot.code_jam_mgmt_api.delete(
@@ -155,7 +161,7 @@ async def move_flow(
         if err.response.status == 404:
             await ctx.send(":x: Team or user could not be found.")
         elif err.response.status == 400:
-            await ctx.send(f":x: user {member.mention} is already in {team_to_move_in['team']['name']}")
+            await ctx.send(f":x: user {member.mention} is already in {team_to_move_in['name']}")
         else:
             await ctx.send(
                 "Something went wrong while processing the request! We have notified the team!"
