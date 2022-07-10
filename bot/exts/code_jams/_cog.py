@@ -29,13 +29,14 @@ class CodeJams(commands.Cog):
         self.bot = bot
 
     @commands.group(aliases=("cj", "jam"))
-    @commands.has_any_role(Roles.admins)
+    @commands.has_any_role(Roles.admins, Roles.events_lead)
     async def codejam(self, ctx: commands.Context) -> None:
         """A Group of commands for managing Code Jams."""
         if ctx.invoked_subcommand is None:
             await ctx.send_help(ctx.command)
 
     @codejam.command()
+    @commands.has_any_role(Roles.admins, Roles.events_lead)
     async def create(self, ctx: commands.Context, csv_file: t.Optional[str] = None) -> None:
         """
         Create code-jam teams from a CSV file or a link to one, specifying the team names, leaders and members.
@@ -82,7 +83,7 @@ class CodeJams(commands.Cog):
             )
 
     @codejam.command()
-    @commands.has_any_role(Roles.admins)
+    @commands.has_any_role(Roles.admins, Roles.events_lead)
     async def announce(self, ctx: commands.Context) -> None:
         """A command to send an announcement embed to the CJ announcement channel."""
         team_info_view = JamTeamInfoConfirmation(self.bot, ctx.guild, ctx.author)
@@ -93,7 +94,7 @@ class CodeJams(commands.Cog):
         )
 
     @codejam.command()
-    @commands.has_any_role(Roles.admins)
+    @commands.has_any_role(Roles.admins, Roles.events_lead)
     async def end(self, ctx: commands.Context) -> None:
         """
         Delete all code jam channels.
@@ -162,7 +163,7 @@ class CodeJams(commands.Cog):
             await ctx.send(embed=embed)
 
     @codejam.command()
-    @commands.has_any_role(Roles.admins)
+    @commands.has_any_role(Roles.admins, Roles.events_lead)
     async def move(self, ctx: commands.Context, member: Member, *, new_team_name: str) -> None:
         """Move participant from one team to another by issuing an HTTP request to the Code Jam Management system."""
         callback = partial(move_flow, self.bot, new_team_name, ctx, member)
@@ -172,7 +173,7 @@ class CodeJams(commands.Cog):
         )
 
     @codejam.command()
-    @commands.has_any_role(Roles.admins)
+    @commands.has_any_role(Roles.admins, Roles.events_lead)
     async def remove(self, ctx: commands.Context, member: Member) -> None:
         """Remove the participant from their team. Does not remove the participants or leader roles."""
         callback = partial(remove_flow, self.bot, member, ctx)
