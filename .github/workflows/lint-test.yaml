@@ -71,6 +71,10 @@ jobs:
           USE_FAKEREDIS: true
           IN_CI: true
 
+      - name: Run tests
+        run: pytest --disable-warnings -q
+
+
       # This step caches our pre-commit environment. To make sure we
       # do create a new environment when our pre-commit setup changes,
       # we create a cache key based on relevant factors.
