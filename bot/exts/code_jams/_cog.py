@@ -16,7 +16,8 @@ from bot.constants import Roles
 from bot.exts.code_jams import _creation_utils
 from bot.exts.code_jams._flows import (creation_flow, deletion_flow, move_flow,
                                        remove_flow)
-from bot.exts.code_jams._views import JamConfirmation, JamTeamInfoConfirmation
+from bot.exts.code_jams._views import (JamConfirmation, JamInfoView,
+                                       JamTeamInfoConfirmation)
 from bot.services import send_to_paste_service
 
 log = get_logger(__name__)
@@ -159,8 +160,7 @@ class CodeJams(commands.Cog):
                 colour=Colour.og_blurple()
             )
             embed.add_field(name="Team", value=team["team"]["name"], inline=True)
-
-            await ctx.send(embed=embed)
+            await ctx.send(embed=embed, view=JamInfoView(member, self.bot.code_jam_mgmt_api))
 
     @codejam.command()
     @commands.has_any_role(Roles.admins, Roles.events_lead)

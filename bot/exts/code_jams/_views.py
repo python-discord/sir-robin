@@ -1,7 +1,8 @@
 from typing import TYPE_CHECKING, Callable
+from urllib.parse import quote as quote_url
 
 import discord
-from botcore.site_api import ResponseCodeError
+from botcore.site_api import APIClient, ResponseCodeError
 from botcore.utils.logging import get_logger
 
 if TYPE_CHECKING:
@@ -134,3 +135,118 @@ class JamConfirmation(discord.ui.View):
             )
             return False
         return True
+
+
+class AddNoteModal(discord.ui.Modal, title="Add a Note for a Code Jam Participant"):
+    """A simple modal to add a note to a Jam participant."""
+
+    def __init__(self, member: discord.Member, mgmt_client: APIClient):
+        super().__init__()
+        self.member = member
+        self.mgmt_client = mgmt_client
+
+    note = discord.ui.TextInput(
+        label="Note",
+        placeholder="Your note..."
+    )
+
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        """Discord.py default to handle modal submission."""
+        try:
+            user = await self.mgmt_client.get(f"users/{quote_url(str(self.member.id))}/current_team",
+                                              raise_for_status=True)
+        except ResponseCodeError as err:
+            if err.response.status == 404:
+                await interaction.response.send_message(":x: Something went wrong, the user could not be found!")
+            else:
+                await interaction.response.send_message(":x: Something went wrong, we have notified the team!")
+                log.error(f"Something went wrong: {err}")
+            return
+        else:
+            jam_id = user["team"]["jam_id"]
+            try:
+                await self.mgmt_client.post(
+                    "infractions",
+                    json={
+                        "user_id": self.member.id,
+                        "jam_id": jam_id, "reason": self.note.value,
+                        "infraction_type": "note"
+                    },
+                    raise_for_status=True
+                )
+            except ResponseCodeError as err:
+                if err.response.status == 404:
+                    await interaction.response.send_message(
+                        "Something went wrong! The user could not be found!",
+                        ephemeral=True
+                    )
+                else:
+                    await interaction.response.send_message(":x: Something went wrong, we have notified the team!")
+                    log.error(f"Something went wrong: {err}")
+                return
+            else:
+                await interaction.response.send_message('Your note has been saved!', ephemeral=True)
+
+    async def on_error(self, error: Exception, interaction: discord.Interaction) -> None:
+        """Discord.py default to handle modal error."""
+        await interaction.response.send_message('Something went wrong with processing your form', ephemeral=True)
+
+
+class JamInfoView(discord.ui.View):
+    """
+    A basic view that displays basic information about a CJ participant.
+
+    Additionally, you can either view the notes that was added to the participant
+    or create one of them.
+    """
+
+    def __init__(self, member: discord.Member, mgmt_client: APIClient):
+        super().__init__(timeout=900)
+        self.mgmt_client = mgmt_client
+        self.member = member
+
+    @discord.ui.button(label='Add Note', style=discord.ButtonStyle.green)
+    async def add_note(self, button: discord.ui.Button, interaction: discord.Interaction) -> None:
+        """A button to add a note."""
+        await interaction.response.send_modal(AddNoteModal(self.member, self.mgmt_client))
+
+    @discord.ui.button(label='View notes', style=discord.ButtonStyle.green)
+    async def view_notes(self, button: discord.ui.Button, interaction: discord.Interaction) -> None:
+        """A button to view the notes of a participant."""
+        try:
+            user = await self.mgmt_client.get(f"users/{quote_url(str(self.member.id))}", raise_for_status=True)
+        except ResponseCodeError as err:
+            if err.response.status == 404:
+                await interaction.response.send_message(":x: Something went wrong, the user could not be found!")
+            else:
+                await interaction.response.send_message(":x: Something went wrong, we have notified the team!")
+                log.error(f"Something went wrong: {err}")
+            return
+        else:
+            part_history = user["participation_history"]
+            notes = []
+            for entry in part_history:
+                for infraction in entry["infractions"]:
+                    notes.append(infraction)
+            if not notes:
+                await interaction.response.send_message(
+                    f":x:{self.member.mention} doesn't have any notes yet.",
+                    ephemeral=True
+                )
+            else:
+                if len(notes) > 25:
+                    notes = notes[:25]
+                notes_embed = discord.Embed(title=f"Notes on {self.member.name}", colour=discord.Colour.orange())
+                for note in notes:
+                    notes_embed.add_field(name=f"Jam - (ID: {note['jam_id']})", value=note["reason"])
+                await interaction.response.send_message(embed=notes_embed, ephemeral=True)
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        """Global check to ensure that the interacting user is the user who invoked the command originally."""
+        if interaction.guild.get_role(Roles.admins) in interaction.user.roles:
+            return True
+        await interaction.response.send_message(
+            ":x: You don't have permission to interact with this view!",
+            ephemeral=True
+        )
+        return False
