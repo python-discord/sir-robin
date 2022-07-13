@@ -1,5 +1,4 @@
-from typing import TYPE_CHECKING, Callable
-from urllib.parse import quote as quote_url
+from typing import TYPE_CHECKING, Any, Callable, Optional
 
 import discord
 from botcore.site_api import APIClient, ResponseCodeError
@@ -11,6 +10,28 @@ if TYPE_CHECKING:
 from bot.constants import Channels, Roles
 
 log = get_logger(__name__)
+
+
+async def interaction_fetch_user_data(
+        endpoint: str,
+        mgmt_client: APIClient,
+        interaction: discord.Interaction
+) -> Optional[dict[str, Any]]:
+    """A helper function for fetching and handling user related data in an interaction."""
+    try:
+        user = await mgmt_client.get(endpoint, raise_for_status=True)
+    except ResponseCodeError as err:
+        if err.response.status == 404:
+            await interaction.response.send_message(":x: The user could not be found.", ephemeral=True)
+        else:
+            await interaction.response.send_message(
+                ":x: Something went wrong! Full details have been logged.",
+                ephemeral=True
+            )
+            log.error(f"Something went wrong: {err}")
+        return
+    else:
+        return user
 
 
 class JamTeamInfoConfirmation(discord.ui.View):
@@ -68,8 +89,10 @@ class JamTeamInfoView(discord.ui.View):
     async def show_team(self, button: discord.ui.Button, interaction: discord.Interaction) -> None:
         """A button that sends an ephemeral embed with the team's description."""
         try:
-            team = await self.bot.code_jam_mgmt_api.get(f"users/{interaction.user.id}/current_team",
-                                                        raise_for_status=True)
+            team = await self.bot.code_jam_mgmt_api.get(
+                f"users/{interaction.user.id}/current_team",
+                raise_for_status=True
+            )
         except ResponseCodeError as err:
             if err.response.status == 404:
                 await interaction.response.send_message("It seems like you're not a participant!", ephemeral=True)
@@ -152,20 +175,13 @@ class AddNoteModal(discord.ui.Modal, title="Add a Note for a Code Jam Participan
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
         """Discord.py default to handle modal submission."""
-        try:
-            user = await self.mgmt_client.get(
-                f"users/{self.member.id}/current_team",
-                raise_for_status=True
-            )
-        except ResponseCodeError as err:
-            if err.response.status == 404:
-                await interaction.response.send_message(":x: The user could not be found.", ephemeral=True)
-            else:
-                await interaction.response.send_message(
-                    ":x: Something went wrong! Full details have been logged.",
-                    ephemeral=True
+        if not (
+                user := await interaction_fetch_user_data(
+                    f"users/{self.member.id}/current_team",
+                    self.mgmt_client,
+                    interaction
                 )
-                log.error(f"Something went wrong: {err}")
+        ):
             return
         else:
             jam_id = user["team"]["jam_id"]
@@ -220,14 +236,7 @@ class JamInfoView(discord.ui.View):
     @discord.ui.button(label='View notes', style=discord.ButtonStyle.green)
     async def view_notes(self, button: discord.ui.Button, interaction: discord.Interaction) -> None:
         """A button to view the notes of a participant."""
-        try:
-            user = await self.mgmt_client.get(f"users/{quote_url(str(self.member.id))}", raise_for_status=True)
-        except ResponseCodeError as err:
-            if err.response.status == 404:
-                await interaction.response.send_message(":x: Something went wrong, the user could not be found!")
-            else:
-                await interaction.response.send_message(":x: Something went wrong, we have notified the team!")
-                log.error(f"Something went wrong: {err}")
+        if not (user := await interaction_fetch_user_data(f"users/{self.member.id}", self.mgmt_client, interaction)):
             return
         else:
             part_history = user["participation_history"]
