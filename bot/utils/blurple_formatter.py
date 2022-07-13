@@ -135,6 +135,7 @@ def num_spaces(src: str) -> int:
 def invert_indents(src: str) -> str:
     """
     Invert the indentation on each line of the given string.
+
     Lines with the maximum indentation become least indented, and vice versa.
     """
     lines = src.splitlines()
@@ -152,6 +153,7 @@ def parenthesize(node: ast.AST, _nl_able: bool = False) -> str:
 def indent(nodes: list[ast.AST], n: int) -> Generator[str, None, None]:
     """
     Indent each line of the un-parsed nodes by the given number of spaces.
+
     Multiple nodes are put on the same line, separated by semicolons, if possible
     until they hit the line length limit.
     """
@@ -182,6 +184,7 @@ def _str_literal_helper(
 ) -> tuple[str]:
     """
     Helper for writing string literals, minimizing escapes.
+
     Returns the tuple (string literal to write, possible quote types).
     Equivalent behaviour to ast._Unparser._str_literal_helper.
     """
@@ -220,6 +223,7 @@ def _str_literal_helper(
 def _write_str_avoiding_backslashes(string: str, *, quote_types: tuple = _ALL_QUOTES) -> str:
     """
     Return string literal value with a best effort attempt to avoid backslashes.
+
     Equivalent behaviour to ast._Unparser._write_str_avoiding_backslashes.
     """
     string, quote_types = _str_literal_helper(string, quote_types=quote_types)
