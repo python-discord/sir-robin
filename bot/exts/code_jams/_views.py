@@ -153,13 +153,18 @@ class AddNoteModal(discord.ui.Modal, title="Add a Note for a Code Jam Participan
     async def on_submit(self, interaction: discord.Interaction) -> None:
         """Discord.py default to handle modal submission."""
         try:
-            user = await self.mgmt_client.get(f"users/{quote_url(str(self.member.id))}/current_team",
-                                              raise_for_status=True)
+            user = await self.mgmt_client.get(
+                f"users/{self.member.id}/current_team",
+                raise_for_status=True
+            )
         except ResponseCodeError as err:
             if err.response.status == 404:
-                await interaction.response.send_message(":x: Something went wrong, the user could not be found!")
+                await interaction.response.send_message(":x: The user could not be found.", ephemeral=True)
             else:
-                await interaction.response.send_message(":x: Something went wrong, we have notified the team!")
+                await interaction.response.send_message(
+                    ":x: Something went wrong! Full details have been logged.",
+                    ephemeral=True
+                )
                 log.error(f"Something went wrong: {err}")
             return
         else:
@@ -177,11 +182,14 @@ class AddNoteModal(discord.ui.Modal, title="Add a Note for a Code Jam Participan
             except ResponseCodeError as err:
                 if err.response.status == 404:
                     await interaction.response.send_message(
-                        "Something went wrong! The user could not be found!",
+                        ":x: The user could not be found!",
                         ephemeral=True
                     )
                 else:
-                    await interaction.response.send_message(":x: Something went wrong, we have notified the team!")
+                    await interaction.response.send_message(
+                        ":x: Something went wrong! Full details have been logged.",
+                        ephemeral=True
+                    )
                     log.error(f"Something went wrong: {err}")
                 return
             else:
@@ -189,15 +197,14 @@ class AddNoteModal(discord.ui.Modal, title="Add a Note for a Code Jam Participan
 
     async def on_error(self, error: Exception, interaction: discord.Interaction) -> None:
         """Discord.py default to handle modal error."""
-        await interaction.response.send_message('Something went wrong with processing your form', ephemeral=True)
+        await interaction.response.send_message(":x: Something went wrong while processing your form.", ephemeral=True)
 
 
 class JamInfoView(discord.ui.View):
     """
     A basic view that displays basic information about a CJ participant.
 
-    Additionally, you can either view the notes that was added to the participant
-    or create one of them.
+    Additionally, notes for a participant can be added and viewed.
     """
 
     def __init__(self, member: discord.Member, mgmt_client: APIClient):
@@ -230,7 +237,7 @@ class JamInfoView(discord.ui.View):
                     notes.append(infraction)
             if not notes:
                 await interaction.response.send_message(
-                    f":x:{self.member.mention} doesn't have any notes yet.",
+                    f":x: {self.member.mention} doesn't have any notes yet.",
                     ephemeral=True
                 )
             else:
@@ -242,7 +249,7 @@ class JamInfoView(discord.ui.View):
                 await interaction.response.send_message(embed=notes_embed, ephemeral=True)
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        """Global check to ensure that the interacting user is the user who invoked the command originally."""
+        """Global check to ensure the interacting user is an admin."""
         if interaction.guild.get_role(Roles.admins) in interaction.user.roles:
             return True
         await interaction.response.send_message(
