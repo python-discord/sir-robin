@@ -1,4 +1,4 @@
-import ast, sys
+import ast
 from collections.abc import Generator
 from random import randrange
 
@@ -135,7 +135,6 @@ def num_spaces(src: str) -> int:
 def invert_indents(src: str) -> str:
     """
     Invert the indentation on each line of the given string.
-
     Lines with the maximum indentation become least indented, and vice versa.
     """
     lines = src.splitlines()
@@ -153,7 +152,6 @@ def parenthesize(node: ast.AST, _nl_able: bool = False) -> str:
 def indent(nodes: list[ast.AST], n: int) -> Generator[str, None, None]:
     """
     Indent each line of the un-parsed nodes by the given number of spaces.
-
     Multiple nodes are put on the same line, separated by semicolons, if possible
     until they hit the line length limit.
     """
@@ -180,7 +178,7 @@ def indent(nodes: list[ast.AST], n: int) -> Generator[str, None, None]:
 
 
 def _str_literal_helper(
-  string: str, *, quote_types: tuple = _ALL_QUOTES, escape_special_whitespace: bool = False
+    string: str, *, quote_types: tuple = _ALL_QUOTES, escape_special_whitespace: bool = False
 ) -> tuple[str]:
     """
     Helper for writing string literals, minimizing escapes.
@@ -236,7 +234,7 @@ def _write_fstring_inner(node: ast.AST) -> str:
     elif isinstance(node, ast.Constant) and isinstance(node.value, str):
         value = node.value.replace("{", "{{").replace("}", "}}")
         return value
-    elif isinstance(node, FormattedValue):
+    elif isinstance(node, ast.FormattedValue):
         return unparse(node)
     else:
         raise ValueError(f"Unexpected node inside ast.JoinedStr: {node!r}")
@@ -574,7 +572,7 @@ def unparse(node: ast.AST, nl_able: bool = False, avoid_backslashes: bool = True
         quote_types = _ALL_QUOTES
 
         for value in node.values:
-            isconstant = isinstance(value, ast.Constant)
+            is_constant = isinstance(value, ast.Constant)
             value, quote_types = _str_literal_helper(
                 _write_fstring_inner(value),
                 quote_types=quote_types,
@@ -824,7 +822,7 @@ def unparse(node: ast.AST, nl_able: bool = False, avoid_backslashes: bool = True
 
 def blurplify(src: str) -> str:
     """Format the given source code in accordance with PEP 9001."""
-    global source # use a global variable only to get the original source part of constants
+    global source  # use a global variable only to get the original source part of constants
     source = src
     src_ast = ast.parse(src)
     return "# coding=UTF-8-NOBOM\n" + invert_indents(unparse(src_ast))
