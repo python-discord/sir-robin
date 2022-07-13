@@ -5,7 +5,21 @@ from typing import NamedTuple
 class Channels(NamedTuple):
     bot_commands = 267659945086812160
     devlog = int(environ.get("CHANNEL_DEVLOG", 622895325144940554))
+    code_jam_planning = int(environ.get("CHANNEL_CODE_JAM_PLANNING", 490217981872177157))
     sir_lancebot_playground = int(environ.get("CHANNEL_COMMUNITY_BOT_COMMANDS", 607247579608121354))
+    summer_code_jam = int(environ.get("CATEGORY_SUMMER_CODE_JAM", 987738098525937745))
+    summer_code_jam_announcements = int(environ.get("SUMMER_CODE_JAM_ANNOUNCEMENTS", 988765608172736542))
+
+
+class Emojis(NamedTuple):
+    check_mark = "\u2705"
+
+
+class Roles(NamedTuple):
+    admins = int(environ.get("ROLE_ADMINS", 267628507062992896))
+    code_jam_event_team = int(environ.get("ROLE_CODE_JAM_EVENT_TEAM", 787816728474288181))
+    events_lead = int(environ.get("ROLE_EVENTS_LEAD", 778361735739998228))
+    code_jam_participants = int(environ.get("CODE_JAM_PARTICIPANTS", 991678713093705781))
 
 
 class Client(NamedTuple):
@@ -16,4 +30,6 @@ class Client(NamedTuple):
     debug = environ.get("BOT_DEBUG", "true").lower() == "true"
     in_ci = environ.get("IN_CI", "false").lower() == "true"
     use_fake_redis = environ.get("USE_FAKEREDIS", "false").lower() == "true"
+    code_jam_api = environ.get("CODE_JAM_API", "http://code-jam-management.default.svc.cluster.local:8000")
+    code_jam_token = environ.get("CODE_JAM_API_KEY", "badbot13m0n8f570f942013fc818f234916ca531")
     github_bot_repo = "https://github.com/python-discord/sir-robin"

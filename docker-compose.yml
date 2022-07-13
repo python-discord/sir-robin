@@ -4,6 +4,32 @@ x-restart-policy: &restart_policy
   restart: unless-stopped
 
 services:
+  postgres:
+    image: postgres:13-alpine
+    ports:
+      - "127.0.0.1:7777:5432"
+    environment:
+      POSTGRES_DB: codejam_management
+      POSTGRES_PASSWORD: codejam_management
+      POSTGRES_USER: codejam_management
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U codejam_management" ]
+      interval: 2s
+      timeout: 1s
+      retries: 5
+
+  code_jam_management:
+    image: ghcr.io/python-discord/code-jam-management:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://codejam_management:codejam_management@postgres:5432/codejam_management
+      CODE_JAM_API_KEY: suitable-for-development-only
+      CODE_JAM_API: http://code_jam_management:8000
+    ports:
+      - 8000:8000
+
   sir-robin:
     << : *restart_policy
     build:
