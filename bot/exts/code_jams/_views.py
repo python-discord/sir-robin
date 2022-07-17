@@ -161,6 +161,7 @@ class JamConfirmation(discord.ui.View):
         return True
 
     async def on_error(self, error: Exception, item: discord.ui.Item[Any], interaction: discord.Interaction) -> None:
+        """Discord.py default to handle a view error."""
         if isinstance(error, JamCategoryNameConflictError):
             await interaction.channel.send(
                 ":x: Due to a conflict regarding the names of the main Code Jam Category and the Code Jam Team category"
