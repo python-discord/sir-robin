@@ -169,8 +169,7 @@ class JamConfirmation(discord.ui.View):
             )
         else:
             await interaction.channel.send(
-                ":x: Something went wrong when confirming the view. Full details have been logged.",
-                ephemeral=True
+                ":x: Something went wrong when confirming the view. Full details have been logged."
             )
             log.error(f"Something went wrong: {error}")
 
