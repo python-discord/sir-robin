@@ -162,7 +162,7 @@ class CodeJams(commands.Cog):
                 colour=Colour.og_blurple()
             )
             embed.add_field(name="Team", value=team["team"]["name"], inline=True)
-            await ctx.send(embed=embed, view=JamInfoView(member, self.bot.code_jam_mgmt_api))
+            await ctx.send(embed=embed, view=JamInfoView(member, self.bot.code_jam_mgmt_api, ctx.author))
 
     @codejam.command()
     @commands.has_any_role(Roles.admins, Roles.events_lead)

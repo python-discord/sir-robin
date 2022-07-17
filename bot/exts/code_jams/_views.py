@@ -223,10 +223,11 @@ class JamInfoView(discord.ui.View):
     Additionally, notes for a participant can be added and viewed.
     """
 
-    def __init__(self, member: discord.Member, mgmt_client: APIClient):
+    def __init__(self, member: discord.Member, mgmt_client: APIClient, author: discord.Member):
         super().__init__(timeout=900)
         self.mgmt_client = mgmt_client
         self.member = member
+        self.author = author
 
     @discord.ui.button(label='Add Note', style=discord.ButtonStyle.green)
     async def add_note(self, button: discord.ui.Button, interaction: discord.Interaction) -> None:
@@ -259,7 +260,7 @@ class JamInfoView(discord.ui.View):
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         """Global check to ensure the interacting user is an admin."""
-        if interaction.guild.get_role(Roles.admins) in interaction.user.roles:
+        if interaction.guild.get_role(Roles.admins) in interaction.user.roles or interaction.user == self.author:
             return True
         await interaction.response.send_message(
             ":x: You don't have permission to interact with this view!",
