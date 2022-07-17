@@ -4,6 +4,7 @@ import discord
 from botcore.utils.logging import get_logger
 
 from bot.constants import Channels, Roles
+from bot.utils.exceptions import JamCategoryNameConflictError
 
 log = get_logger(__name__)
 
@@ -19,7 +20,6 @@ async def _create_category(guild: discord.Guild) -> discord.CategoryChannel:
         guild.default_role: discord.PermissionOverwrite(read_messages=False),
         guild.me: discord.PermissionOverwrite(read_messages=True)
     }
-
     category = await guild.create_category_channel(
         CATEGORY_NAME,
         overwrites=category_overwrites,
@@ -38,7 +38,13 @@ async def _get_category(guild: discord.Guild) -> discord.CategoryChannel:
     Return a code jam category.
 
     If all categories are full or none exist, create a new category.
+    If the main CJ category and the CJ Team's category has the same name
+    it raises a `JamCategoryNameConflictError`
     """
+    main_cj_category = guild.get_channel(Channels.summer_code_jam).name
+    if main_cj_category == CATEGORY_NAME:
+        raise JamCategoryNameConflictError()
+
     for category in guild.categories:
         if category.name == CATEGORY_NAME and len(category.channels) < MAX_CHANNELS:
             return category

@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from bot.bot import SirRobin
 
 from bot.constants import Channels, Roles
+from bot.utils.exceptions import JamCategoryNameConflictError
 
 log = get_logger(__name__)
 
@@ -145,8 +146,8 @@ class JamConfirmation(discord.ui.View):
         button.label = "Confirmed"
         button.disabled = True
         self.cancel.disabled = True
-        await interaction.response.edit_message(view=self)
         self.stop()
+        await interaction.response.edit_message(view=self)
         await self.callback()
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
@@ -158,6 +159,19 @@ class JamConfirmation(discord.ui.View):
             )
             return False
         return True
+
+    async def on_error(self, error: Exception, item: discord.ui.Item[Any], interaction: discord.Interaction) -> None:
+        if isinstance(error, JamCategoryNameConflictError):
+            await interaction.channel.send(
+                ":x: Due to a conflict regarding the names of the main Code Jam Category and the Code Jam Team category"
+                " the Code Jam creation was aborted."
+            )
+        else:
+            await interaction.channel.send(
+                ":x: Something went wrong when confirming the view. Full details have been logged.",
+                ephemeral=True
+            )
+            log.error(f"Something went wrong: {error}")
 
 
 class AddNoteModal(discord.ui.Modal, title="Add a Note for a Code Jam Participant"):
