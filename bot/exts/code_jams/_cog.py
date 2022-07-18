@@ -30,7 +30,6 @@ class CodeJams(commands.Cog):
         self.bot = bot
 
     @commands.group(aliases=("cj", "jam"))
-    @commands.has_any_role(Roles.admins, Roles.events_lead)
     async def codejam(self, ctx: commands.Context) -> None:
         """A Group of commands for managing Code Jams."""
         if ctx.invoked_subcommand is None:
@@ -138,7 +137,7 @@ class CodeJams(commands.Cog):
         await ctx.send("Code Jam has officially ended! :sunrise:")
 
     @codejam.command()
-    @commands.has_any_role(Roles.admins, Roles.code_jam_event_team)
+    @commands.has_any_role(Roles.admins, Roles.events_lead)
     async def info(self, ctx: commands.Context, member: Member) -> None:
         """
         Send an info embed about the member with the team they're in.
@@ -184,6 +183,37 @@ class CodeJams(commands.Cog):
             f"Are you sure you want to remove {member.mention} from the Code Jam?",
             view=JamConfirmation(author=ctx.author, callback=callback)
         )
+
+    @codejam.command()
+    @commands.has_any_role(Roles.admins, Roles.events_lead, Roles.code_jam_event_team, Roles.code_jam_participants)
+    async def pin(self, ctx: commands.Context) -> None:
+        """Lets Code Jam Participants to ping messages in their team channels."""
+        referenced_message = getattr(ctx.message.reference, "resolved", None)
+        if isinstance(referenced_message, discord.Message):
+            try:
+                team = await self.bot.code_jam_mgmt_api.get(
+                    f"users/{ctx.author.id}/current_team",
+                    raise_for_status=True
+                )
+            except ResponseCodeError as err:
+                if err.response.status == 404:
+                    await ctx.reply(":x: It seems like you're not a participant!")
+                else:
+                    await ctx.reply("Something went wrong while processing the request! We have notified the team!")
+                    log.error(f"Something went wrong with processing the request! {err}")
+                return
+            else:
+                if ctx.channel.id == int(team["team"]["discord_channel_id"]):
+                    try:
+                        await referenced_message.pin(reason="Code Jam organization")
+                    except discord.HTTPException as err:
+                        await ctx.reply("Something went wrong, you might have reached the 50 pins per channel limit!")
+                        log.trace(f"Something went wrong when pinng a CJ message: {err}")
+                else:
+                    await ctx.reply("You don't have permission to pin this message in this channel!")
+
+        else:
+            await ctx.reply(":x: You have to reply to a message in order to pin it!")
 
     @staticmethod
     def jam_categories(guild: Guild) -> list[discord.CategoryChannel]:
