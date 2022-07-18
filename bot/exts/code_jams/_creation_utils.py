@@ -2,6 +2,7 @@ import typing as t
 
 import discord
 from botcore.utils.logging import get_logger
+from discord.ext import commands
 
 from bot.constants import Channels, Roles
 from bot.utils.exceptions import JamCategoryNameConflictError
@@ -127,3 +128,19 @@ async def _add_team_leader_roles(members: list[dict[str: discord.Member, str: bo
     for entry in members:
         if entry["is_leader"]:
             await entry["member"].add_roles(team_leaders)
+
+
+async def pin_message(message: discord.Message, ctx: commands.Context, unpin: bool = False) -> None:
+    """A discord.py helper to pin or unpin messages and handle possible exceptions."""
+    try:
+        if unpin:
+            await message.unpin(reason="Code Jam organization")
+            await ctx.reply(":white_check_mark: The message has been unpinned!")
+        else:
+            await message.pin(reason="Code Jam organization")
+            await ctx.reply(":white_check_mark: The message has been pinned!")
+    except discord.HTTPException as err:
+        await ctx.reply(
+            f"Something went wrong, {'you might have reached the 50 pins per channel limit!' if not unpin else ''}"
+        )
+        log.trace(f"Something went wrong when pinng a CJ message: {err}")
