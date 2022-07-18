@@ -107,14 +107,19 @@ class JamTeamInfoView(discord.ui.View):
             team_channel = f"<#{team['team']['discord_channel_id']}>"
             team_members = []
             for member in team["team"]["users"]:
-                if member["is_leader"] and member["user_id"] == team["user_id"]:
-                    team_members.append(f"<@{member['user_id']}> (You're the team leader)")
-                else:
-                    team_members.append(f"<@{member['user_id']}> {'(Team Leader)' if member['is_leader'] else ''}")
+                message = f"<@{member['user_id']}>"
+
+                if member["is_leader"]:
+                    message += " (Team Leader)"
+
+                team_members.append(message)
 
             team_members_formatted = "\n".join(team_members)
-            response_text = f"You have been sorted into {team_channel}!\n" \
-                            f"Your teammates are:\n{team_members_formatted}"
+            response_text = (
+                f"You have been sorted into {team_channel}"
+                f"{', and **you are the leader**' if team['is_leader'] else ''}!\n"
+                f"Your teammates are:\n{team_members_formatted}"
+            )
             await interaction.response.send_message(
                 response_text,
                 ephemeral=True
