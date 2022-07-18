@@ -30,7 +30,6 @@ class CodeJams(commands.Cog):
         self.bot = bot
 
     @commands.group(aliases=("cj", "jam"))
-    @commands.has_any_role(Roles.admins, Roles.events_lead)
     async def codejam(self, ctx: commands.Context) -> None:
         """A Group of commands for managing Code Jams."""
         if ctx.invoked_subcommand is None:
