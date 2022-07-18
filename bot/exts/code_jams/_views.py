@@ -104,17 +104,24 @@ class JamTeamInfoView(discord.ui.View):
                 )
                 log.error(err.response)
         else:
-            response_embed = discord.Embed(
-                title=f"You have been sorted into {team['team']['name']}",
-                colour=discord.Colour.og_blurple()
-            )
             team_channel = f"<#{team['team']['discord_channel_id']}>"
-            team_members = [f"<@{member['user_id']}>" for member in team["team"]["users"]]
-            response_embed.add_field(name="Your team's channel:", value=team_channel)
-            response_embed.add_field(name="You teammates:", value="\n".join(team_members))
-            response_embed.set_footer(text="Good luck!")
+            team_members = []
+            for member in team["team"]["users"]:
+                message = f"<@{member['user_id']}>"
+
+                if member["is_leader"]:
+                    message += " (Team Leader)"
+
+                team_members.append(message)
+
+            team_members_formatted = "\n".join(team_members)
+            response_text = (
+                f"You have been sorted into {team_channel}"
+                f"{', and **you are the leader**' if team['is_leader'] else ''}!\n"
+                f"Your teammates are:\n{team_members_formatted}"
+            )
             await interaction.response.send_message(
-                embed=response_embed,
+                response_text,
                 ephemeral=True
             )
 
