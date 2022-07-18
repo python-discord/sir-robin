@@ -16,7 +16,8 @@ from bot.constants import Roles
 from bot.exts.code_jams import _creation_utils
 from bot.exts.code_jams._flows import (creation_flow, deletion_flow, move_flow,
                                        remove_flow)
-from bot.exts.code_jams._views import JamConfirmation, JamTeamInfoConfirmation
+from bot.exts.code_jams._views import (JamConfirmation, JamInfoView,
+                                       JamTeamInfoConfirmation)
 from bot.services import send_to_paste_service
 
 log = get_logger(__name__)
@@ -145,8 +146,10 @@ class CodeJams(commands.Cog):
         The team is found by issuing a request to the CJ Management System
         """
         try:
-            team = await self.bot.code_jam_mgmt_api.get(f"users/{member.id}/current_team",
-                                                        raise_for_status=True)
+            team = await self.bot.code_jam_mgmt_api.get(
+                f"users/{member.id}/current_team",
+                raise_for_status=True
+            )
         except ResponseCodeError as err:
             if err.response.status == 404:
                 await ctx.send(":x: It seems like the user is not a participant!")
@@ -159,8 +162,8 @@ class CodeJams(commands.Cog):
                 colour=Colour.og_blurple()
             )
             embed.add_field(name="Team", value=team["team"]["name"], inline=True)
-
-            await ctx.send(embed=embed)
+            embed.add_field(name="Team leader", value="Yes" if team["is_leader"] else "No", inline=True)
+            await ctx.send(embed=embed, view=JamInfoView(member, self.bot.code_jam_mgmt_api, ctx.author))
 
     @codejam.command()
     @commands.has_any_role(Roles.admins, Roles.events_lead)
