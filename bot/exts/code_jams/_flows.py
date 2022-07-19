@@ -8,6 +8,7 @@ from discord import Embed, Member
 from discord.ext import commands
 
 from bot.bot import SirRobin
+from bot.constants import Roles
 from bot.exts.code_jams import _creation_utils
 from bot.exts.code_jams._views import JamTeamInfoConfirmation
 
@@ -208,7 +209,9 @@ async def remove_flow(bot: SirRobin, member: discord.Member, ctx: commands.Conte
         return
 
     team_role = ctx.guild.get_role(team["team"]["discord_role_id"])
+    participant_role = ctx.guild.get_role(Roles.code_jam_participants)
     await member.remove_roles(team_role)
+    await member.remove_roles(participant_role)
     for role in member.roles:
         if role.name == TEAM_LEADER_ROLE_NAME:
             await member.remove_roles(role)
