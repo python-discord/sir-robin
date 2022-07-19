@@ -238,11 +238,9 @@ class CodeJams(commands.Cog):
             else:
                 if ctx.channel.id == int(team["team"]["discord_channel_id"]):
                     await _creation_utils.pin_message(referenced_message, ctx, unpin=True)
-                else:
-                    await ctx.reply("You don't have permission to pin this message in this channel!")
 
         else:
-            await ctx.reply(":x: You have to reply to a message in order to pin it!")
+            await ctx.reply(":x: You have to reply to a message in order to unpin it!")
 
     @staticmethod
     def jam_categories(guild: Guild) -> list[discord.CategoryChannel]:
