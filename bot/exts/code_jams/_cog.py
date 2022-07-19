@@ -14,7 +14,7 @@ from discord.ext import commands
 from bot.bot import SirRobin
 from bot.constants import Roles
 from bot.exts.code_jams import _creation_utils
-from bot.exts.code_jams._flows import (creation_flow, deletion_flow, move_flow,
+from bot.exts.code_jams._flows import (add_flow, creation_flow, deletion_flow, move_flow,
                                        pin_flow, remove_flow)
 from bot.exts.code_jams._views import (JamConfirmation, JamInfoView,
                                        JamTeamInfoConfirmation)
@@ -173,6 +173,16 @@ class CodeJams(commands.Cog):
         callback = partial(move_flow, self.bot, new_team_name, ctx, member)
         await ctx.send(
             f"Are you sure you want to move {member.mention} to {new_team_name}?",
+            view=JamConfirmation(author=ctx.author, callback=callback)
+        )
+
+    @codejam.command()
+    @commands.has_any_role(Roles.admins, Roles.events_lead)
+    async def add(self, ctx: commands.Context, member: Member, is_leader: bool = False, *, team_name: str) -> None:
+        """Add a member to the Code Jam by specifying the team's name, and whether they should be leaders."""
+        callback = partial(add_flow, self.bot, team_name, ctx, member, is_leader)
+        await ctx.send(
+            f"Are you sure you want to add {member.mention} to {team_name}?",
             view=JamConfirmation(author=ctx.author, callback=callback)
         )
 

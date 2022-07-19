@@ -85,6 +85,72 @@ async def deletion_flow(
         await role.delete(reason="Code Jam ended.")
 
 
+async def add_flow(
+        bot: SirRobin,
+        team_name: str,
+        ctx: commands.Context,
+        member: discord.Member,
+        is_leader: bool = False
+) -> None:
+    """Add a member to the Code Jam and assign the roles accordingly."""
+    # Check if the user is not already a participant
+    try:
+        team = await bot.code_jam_mgmt_api.get(
+            f"users/{member.id}/current_team",
+            raise_for_status=True
+        )
+    except ResponseCodeError as err:
+        if err.response.status == 404:
+            # The user is not a participant, so the flow will proceed.
+            try:
+                team_to_move_in = await bot.code_jam_mgmt_api.get(
+                    "teams/find",
+                    params={"name": team_name},
+                    raise_for_status=True
+                )
+            except ResponseCodeError as err:
+                if err.response.status == 404:
+                    await ctx.send(f":x: Team `{team_name}` does not exist in the current jam!")
+                else:
+                    await ctx.send("Something went wrong while processing the request! We have notified the team!")
+                    log.error(f"Something went wrong with processing the request! {err}")
+                return
+            # Add the user to the team in the database
+            try:
+                await bot.code_jam_mgmt_api.post(
+                    f"teams/{team_to_move_in['id']}/users/{member.id}",
+                    params={"is_leader": str(is_leader)},
+                    raise_for_status=True
+                )
+            except ResponseCodeError as err:
+                if err.response.status == 404:
+                    await ctx.send(":x: Team or user could not be found.")
+                elif err.response.status == 400:
+                    await ctx.send(f":x: user {member.mention} is already in {team_to_move_in['name']}")
+                else:
+                    await ctx.send(
+                        "Something went wrong while processing the request! We have notified the team!"
+                    )
+                    log.error(f"Something went wrong with processing the request! {err}")
+                return
+            # Assign the roles
+            await member.add_roles(discord.utils.get(ctx.guild.roles, name=TEAM_LEADER_ROLE_NAME))
+            await member.add_roles(ctx.guild.get_role(Roles.code_jam_participants))
+            await member.add_roles(ctx.guild.get_role(team_to_move_in['discord_role_id']))
+
+            await ctx.send(
+                f"Success! Participant {member.mention} has been added to {team_to_move_in['name']}."
+            )
+
+        else:
+            await ctx.send("Something went wrong while processing the request! We have notified the team!")
+            log.error(err.response)
+        return
+    else:
+        await ctx.reply(f":x: The user is already a participant! ({team['team']['name']})")
+        return
+
+
 async def move_flow(
         bot: SirRobin,
         new_team_name: str,
