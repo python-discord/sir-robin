@@ -101,7 +101,13 @@ async def add_flow(
         )
     except ResponseCodeError as err:
         if err.response.status == 404:
-            # The user is not a participant, so the flow will proceed.
+            # The user is not a participant, so the flow will proceed,
+            # and add the user to the database if it does not exist yet.
+            try:
+                await bot.code_jam_mgmt_api.post(f"users/{member.id}", raise_for_status=True)
+            except ResponseCodeError as err:
+                if err.response.status != 400:
+                    log.error(f"Something went wrong: {err}")
             try:
                 team_to_move_in = await bot.code_jam_mgmt_api.get(
                     "teams/find",
