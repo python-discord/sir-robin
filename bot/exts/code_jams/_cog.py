@@ -138,7 +138,7 @@ class CodeJams(commands.Cog):
         await ctx.send("Code Jam has officially ended! :sunrise:")
 
     @codejam.command()
-    @commands.has_any_role(Roles.admins, Roles.events_lead)
+    @commands.has_any_role(Roles.admins, Roles.code_jam_event_team)
     async def info(self, ctx: commands.Context, member: Member) -> None:
         """
         Send an info embed about the member with the team they're in.
