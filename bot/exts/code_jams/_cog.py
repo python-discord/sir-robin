@@ -188,11 +188,13 @@ class CodeJams(commands.Cog):
     @codejam.command()
     @commands.has_any_role(Roles.admins, Roles.events_lead, Roles.code_jam_event_team, Roles.code_jam_participants)
     @in_code_jam_category(_creation_utils.CATEGORY_NAME)
-    async def pin(self, ctx: commands.Context) -> None:
+    async def pin(self, ctx: commands.Context, message: Optional[discord.Message]) -> None:
         """Lets Code Jam Participants to pin messages in their team channels."""
-        referenced_message = getattr(ctx.message.reference, "resolved", None)
+        referenced_message = getattr(ctx.message.reference, "resolved", None) or message
         if not isinstance(referenced_message, discord.Message):
-            await ctx.reply(":x: You have to reply to a message in order to pin it!")
+            await ctx.reply(
+                ":x: You have to either reply to a message or provide a message link / message id in order to pin it."
+            )
             return
 
         if referenced_message.pinned:
@@ -219,11 +221,13 @@ class CodeJams(commands.Cog):
     @codejam.command()
     @commands.has_any_role(Roles.admins, Roles.events_lead, Roles.code_jam_event_team, Roles.code_jam_participants)
     @in_code_jam_category(_creation_utils.CATEGORY_NAME)
-    async def unpin(self, ctx: commands.Context) -> None:
+    async def unpin(self, ctx: commands.Context, message: Optional[discord.Message]) -> None:
         """Lets Code Jam Participants to unpin messages in their team channels."""
-        referenced_message = getattr(ctx.message.reference, "resolved", None)
+        referenced_message = getattr(ctx.message.reference, "resolved", None) or message
         if not isinstance(referenced_message, discord.Message):
-            await ctx.reply(":x: You have to reply to a message in order to unpin it!")
+            await ctx.reply(
+                ":x: You have to either reply to a message or provide a message link / message id in order to unpin it."
+            )
             return
 
         if not referenced_message.pinned:
