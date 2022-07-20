@@ -140,7 +140,8 @@ async def add_flow(
                     log.error(f"Something went wrong with processing the request! {err}")
                 return
             # Assign the roles
-            await member.add_roles(discord.utils.get(ctx.guild.roles, name=TEAM_LEADER_ROLE_NAME))
+            if is_leader:
+                await member.add_roles(discord.utils.get(ctx.guild.roles, name=TEAM_LEADER_ROLE_NAME))
             await member.add_roles(ctx.guild.get_role(Roles.code_jam_participants))
             await member.add_roles(ctx.guild.get_role(team_to_move_in['discord_role_id']))
 
