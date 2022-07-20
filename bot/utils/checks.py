@@ -1,5 +1,6 @@
 from typing import Callable, NoReturn, Union
 
+import discord
 from discord.ext import commands
 
 from bot.log import get_logger
@@ -22,3 +23,15 @@ def in_code_jam_category(code_jam_category_name: str) -> Callable:
         raise CodeJamCategoryCheckFailure()
 
     return commands.check(predicate)
+
+
+def message_is_in_code_jam_category(
+        message: discord.Message,
+        code_jam_category_name: str,
+        ctx: commands.Context
+) -> bool:
+    """Returns True if the message's channel is in one of the Code Jam Categories."""
+    code_jam_categories = filter(lambda category: category.name == code_jam_category_name, ctx.guild.categories)
+    if message.channel.category in code_jam_categories:
+        return True
+    return False
