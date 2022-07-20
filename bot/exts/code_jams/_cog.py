@@ -219,7 +219,6 @@ class CodeJams(commands.Cog):
             else:
                 await ctx.reply("Something went wrong while processing the request! We have notified the team!")
                 log.error(f"Something went wrong with processing the request! {err}")
-            return
         else:
             if ctx.channel.id == int(team["team"]["discord_channel_id"]) \
                     and message.channel.id == int(team["team"]["discord_channel_id"]):
@@ -260,7 +259,6 @@ class CodeJams(commands.Cog):
             else:
                 await ctx.reply("Something went wrong while processing the request! We have notified the team!")
                 log.error(f"Something went wrong with processing the request! {err}")
-            return
         else:
             if ctx.channel.id == int(team["team"]["discord_channel_id"]) \
                     and message.channel.id == int(team["team"]["discord_channel_id"]):

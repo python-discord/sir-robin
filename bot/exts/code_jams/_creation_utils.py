@@ -141,6 +141,6 @@ async def pin_message(message: discord.Message, ctx: commands.Context, unpin: bo
             await ctx.reply(":white_check_mark: The message has been pinned!")
     except discord.HTTPException as err:
         await ctx.reply(
-            f"Something went wrong, {'you might have reached the 50 pins per channel limit!' if not unpin else ''}"
+            f"Something went wrong {', you might have reached the 50 pins per channel limit!' if not unpin else ''}"
         )
-        log.trace(f"Something went wrong when pinng a CJ message: {err}")
+        log.trace(f"Something went wrong when pinning a CJ message: {err}")
