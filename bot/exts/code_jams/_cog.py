@@ -191,6 +191,7 @@ class CodeJams(commands.Cog):
     async def pin(self, ctx: commands.Context, message: Optional[discord.Message]) -> None:
         """Lets Code Jam Participants to pin messages in their team channels."""
         referenced_message = getattr(ctx.message.reference, "resolved", None) or message
+        roles = (Roles.admins, Roles.code_jam_event_team)
         if not isinstance(referenced_message, discord.Message):
             await ctx.reply(
                 ":x: You have to either reply to a message or provide a message link / message id in order to pin it."
@@ -199,6 +200,9 @@ class CodeJams(commands.Cog):
 
         if referenced_message.pinned:
             await ctx.reply(":x: The message has already been pinned!")
+            return
+        if any(role.id in roles for role in getattr(ctx.author, "roles", [])):
+            await _creation_utils.pin_message(referenced_message, ctx)
             return
         try:
             team = await self.bot.code_jam_mgmt_api.get(
@@ -224,6 +228,7 @@ class CodeJams(commands.Cog):
     async def unpin(self, ctx: commands.Context, message: Optional[discord.Message]) -> None:
         """Lets Code Jam Participants to unpin messages in their team channels."""
         referenced_message = getattr(ctx.message.reference, "resolved", None) or message
+        roles = (Roles.admins, Roles.code_jam_event_team)
         if not isinstance(referenced_message, discord.Message):
             await ctx.reply(
                 ":x: You have to either reply to a message or provide a message link / message id in order to unpin it."
@@ -232,6 +237,9 @@ class CodeJams(commands.Cog):
 
         if not referenced_message.pinned:
             await ctx.reply(":x: The message has already been unpinned!")
+            return
+        if any(role.id in roles for role in getattr(ctx.author, "roles", [])):
+            await _creation_utils.pin_message(referenced_message, ctx, unpin=True)
             return
         try:
             team = await self.bot.code_jam_mgmt_api.get(
