@@ -148,4 +148,4 @@ async def pin_message(message: discord.Message, ctx: commands.Context, unpin: bo
             await ctx.reply(f":x: Something went wrong with {func.__name__}ing your message!")
     else:
         log.trace(f"{func.__name__.capitalize()}ned message {message.id} in {channel_str}.")
-        await ctx.reply(f":white_check_mark: Message has been {func.__name__}ed.")
+        await ctx.reply(f":white_check_mark: Message has been {func.__name__}ned.")
