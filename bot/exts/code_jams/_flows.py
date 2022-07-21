@@ -1,8 +1,9 @@
 from datetime import datetime
 from urllib.parse import quote as quote_url
+from typing import Optional
 
 import discord
-from botcore.site_api import ResponseCodeError
+from botcore.site_api import APIClient, ResponseCodeError
 from botcore.utils.logging import get_logger
 from discord import Embed, Member
 from discord.ext import commands
@@ -13,7 +14,6 @@ from bot.exts.code_jams._views import JamTeamInfoConfirmation
 
 TEAM_LEADERS_COLOUR = 0x11806a
 TEAM_LEADER_ROLE_NAME = "Code Jam Team Leaders"
-
 log = get_logger(__name__)
 
 
@@ -213,3 +213,49 @@ async def remove_flow(bot: SirRobin, member: discord.Member, ctx: commands.Conte
         if role.name == TEAM_LEADER_ROLE_NAME:
             await member.remove_roles(role)
     await ctx.send(f"Successfully removed {member.mention} from team {team['team']['name']}")
+
+
+async def pin_flow(
+        ctx: commands.Context,
+        roles: tuple[int, ...],
+        mgmt_api: APIClient,
+        message: Optional[discord.Message] = None,
+        unpin: bool = False
+) -> None:
+    referenced_message = getattr(ctx.message.reference, "resolved", None) or message
+    if not isinstance(referenced_message, discord.Message):
+        await ctx.reply(
+            ":x: You have to either reply to a message or provide a message link / message id in order to (un)pin it."
+        )
+        return
+    if referenced_message.channel != ctx.channel:
+        await ctx.reply(f":x: You cannot {'un' if unpin else ''}pin a message outside of this team's channel.")
+        return
+
+    if referenced_message.pinned and not unpin:
+        await ctx.reply(":x: The message has already been pinned!")
+        return
+    elif not referenced_message.pinned and unpin:
+        await ctx.reply(":x: The message has already been unpinned!")
+        return
+
+    if any(role.id in roles for role in getattr(ctx.author, "roles", [])):
+        await _creation_utils.pin_message(referenced_message, ctx, unpin)
+        return
+    try:
+        team = await mgmt_api.get(
+            f"users/{ctx.author.id}/current_team",
+            raise_for_status=True
+        )
+    except ResponseCodeError as err:
+        if err.response.status == 404:
+            await ctx.reply(":x: It seems like you're not a participant!")
+        else:
+            await ctx.reply("Something went wrong while processing the request! We have notified the team!")
+            log.error(f"Something went wrong with processing the request! {err}")
+    else:
+        if ctx.channel.id == int(team["team"]["discord_channel_id"]) \
+                and referenced_message.channel.id == int(team["team"]["discord_channel_id"]):
+            await _creation_utils.pin_message(referenced_message, ctx, unpin)
+        else:
+            await ctx.reply(f"You don't have permission to {'un' if unpin else ''}pin this message in that channel!")

@@ -15,14 +15,14 @@ from bot.bot import SirRobin
 from bot.constants import Roles
 from bot.exts.code_jams import _creation_utils
 from bot.exts.code_jams._flows import (creation_flow, deletion_flow, move_flow,
-                                       remove_flow)
+                                       remove_flow, pin_flow)
 from bot.exts.code_jams._views import (JamConfirmation, JamInfoView,
                                        JamTeamInfoConfirmation)
 from bot.services import send_to_paste_service
-from bot.utils.checks import (in_code_jam_category,
-                              message_is_in_code_jam_category)
+from bot.utils.checks import in_code_jam_category
 
 log = get_logger(__name__)
+PIN_ALLOWED_ROLES: tuple[int, ...] = (Roles.admins, Roles.code_jam_event_team)
 
 
 class CodeJams(commands.Cog):
@@ -189,82 +189,16 @@ class CodeJams(commands.Cog):
     @codejam.command()
     @commands.has_any_role(Roles.admins, Roles.events_lead, Roles.code_jam_event_team, Roles.code_jam_participants)
     @in_code_jam_category(_creation_utils.CATEGORY_NAME)
-    async def pin(self, ctx: commands.Context, message: Optional[discord.Message]) -> None:
+    async def pin(self, ctx: commands.Context, message: Optional[discord.Message] = None) -> None:
         """Lets Code Jam Participants to pin messages in their team channels."""
-        referenced_message = getattr(ctx.message.reference, "resolved", None) or message
-        roles = (Roles.admins, Roles.code_jam_event_team)
-        if not isinstance(referenced_message, discord.Message):
-            await ctx.reply(
-                ":x: You have to either reply to a message or provide a message link / message id in order to pin it."
-            )
-            return
-        if not message_is_in_code_jam_category(message, _creation_utils.CATEGORY_NAME, ctx):
-            await ctx.reply(":x: You cannot pin a message outside of the Code Jam category!")
-            return
-
-        if referenced_message.pinned:
-            await ctx.reply(":x: The message has already been pinned!")
-            return
-        if any(role.id in roles for role in getattr(ctx.author, "roles", [])):
-            await _creation_utils.pin_message(referenced_message, ctx)
-            return
-        try:
-            team = await self.bot.code_jam_mgmt_api.get(
-                f"users/{ctx.author.id}/current_team",
-                raise_for_status=True
-            )
-        except ResponseCodeError as err:
-            if err.response.status == 404:
-                await ctx.reply(":x: It seems like you're not a participant!")
-            else:
-                await ctx.reply("Something went wrong while processing the request! We have notified the team!")
-                log.error(f"Something went wrong with processing the request! {err}")
-        else:
-            if ctx.channel.id == int(team["team"]["discord_channel_id"]) \
-                    and message.channel.id == int(team["team"]["discord_channel_id"]):
-                await _creation_utils.pin_message(referenced_message, ctx)
-            else:
-                await ctx.reply("You don't have permission to pin this message in that channel!")
+        await pin_flow(ctx, PIN_ALLOWED_ROLES, self.bot.code_jam_mgmt_api, message)
 
     @codejam.command()
     @commands.has_any_role(Roles.admins, Roles.events_lead, Roles.code_jam_event_team, Roles.code_jam_participants)
     @in_code_jam_category(_creation_utils.CATEGORY_NAME)
-    async def unpin(self, ctx: commands.Context, message: Optional[discord.Message]) -> None:
+    async def unpin(self, ctx: commands.Context, message: Optional[discord.Message] = None) -> None:
         """Lets Code Jam Participants to unpin messages in their team channels."""
-        referenced_message = getattr(ctx.message.reference, "resolved", None) or message
-        roles = (Roles.admins, Roles.code_jam_event_team)
-        if not isinstance(referenced_message, discord.Message):
-            await ctx.reply(
-                ":x: You have to either reply to a message or provide a message link / message id in order to unpin it."
-            )
-            return
-        if not message_is_in_code_jam_category(message, _creation_utils.CATEGORY_NAME, ctx):
-            await ctx.reply(":x: You cannot pin a message outside of the Code Jam category!")
-            return
-
-        if not referenced_message.pinned:
-            await ctx.reply(":x: The message has already been unpinned!")
-            return
-        if any(role.id in roles for role in getattr(ctx.author, "roles", [])):
-            await _creation_utils.pin_message(referenced_message, ctx, unpin=True)
-            return
-        try:
-            team = await self.bot.code_jam_mgmt_api.get(
-                f"users/{ctx.author.id}/current_team",
-                raise_for_status=True
-            )
-        except ResponseCodeError as err:
-            if err.response.status == 404:
-                await ctx.reply(":x: It seems like you're not a participant!")
-            else:
-                await ctx.reply("Something went wrong while processing the request! We have notified the team!")
-                log.error(f"Something went wrong with processing the request! {err}")
-        else:
-            if ctx.channel.id == int(team["team"]["discord_channel_id"]) \
-                    and message.channel.id == int(team["team"]["discord_channel_id"]):
-                await _creation_utils.pin_message(referenced_message, ctx, unpin=True)
-            else:
-                await ctx.reply("You don't have permission to pin this message in that channel!")
+        await pin_flow(ctx, PIN_ALLOWED_ROLES, self.bot.code_jam_mgmt_api, message, True)
 
     @staticmethod
     def jam_categories(guild: Guild) -> list[discord.CategoryChannel]:

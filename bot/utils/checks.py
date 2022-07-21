@@ -16,22 +16,9 @@ def in_code_jam_category(code_jam_category_name: str) -> Callable:
             return False
         if not ctx.message.channel.category:
             return False
-        code_jam_categories = filter(lambda category: category.name == code_jam_category_name, ctx.guild.categories)
-        if ctx.message.channel.category in code_jam_categories:
+        if ctx.message.channel.category.name == code_jam_category_name:
             return True
         log.trace(f"{ctx.author} tried to invoke {ctx.command.name} outside of the Code Jam categories.")
         raise CodeJamCategoryCheckFailure()
 
     return commands.check(predicate)
-
-
-def message_is_in_code_jam_category(
-        message: discord.Message,
-        code_jam_category_name: str,
-        ctx: commands.Context
-) -> bool:
-    """Returns True if the message's channel is in one of the Code Jam Categories."""
-    code_jam_categories = filter(lambda category: category.name == code_jam_category_name, ctx.guild.categories)
-    if message.channel.category in code_jam_categories:
-        return True
-    return False
