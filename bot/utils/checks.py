@@ -1,6 +1,5 @@
 from typing import Callable, NoReturn, Union
 
-import discord
 from discord.ext import commands
 
 from bot.log import get_logger

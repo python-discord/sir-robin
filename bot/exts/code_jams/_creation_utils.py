@@ -130,17 +130,22 @@ async def _add_team_leader_roles(members: list[dict[str: discord.Member, str: bo
             await entry["member"].add_roles(team_leaders)
 
 
-async def pin_message(message: discord.Message, ctx: commands.Context, unpin: bool = False) -> None:
-    """A discord.py helper to pin or unpin messages and handle possible exceptions."""
+async def pin_message(message: discord.Message, ctx: commands.Context, unpin: bool) -> None:
+    """Pin `message` if `pin` is True or unpin if it's False."""
+    channel_str = f"#{message.channel} ({message.channel.id})"
+    func = message.unpin if unpin else message.pin
+
     try:
-        if unpin:
-            await message.unpin(reason="Code Jam organization")
-            await ctx.reply(":white_check_mark: The message has been unpinned!")
+        await func()
+    except discord.HTTPException as e:
+        if e.code == 10008:
+            log.debug(f"Message {message.id} in {channel_str} doesn't exist; can't {func.__name__}.")
         else:
-            await message.pin(reason="Code Jam organization")
-            await ctx.reply(":white_check_mark: The message has been pinned!")
-    except discord.HTTPException as err:
-        await ctx.reply(
-            f"Something went wrong {', you might have reached the 50 pins per channel limit!' if not unpin else ''}"
-        )
-        log.trace(f"Something went wrong when pinning a CJ message: {err}")
+            log.exception(
+                f"Error {func.__name__}ning message {message.id} in {channel_str}: "
+                f"{e.status} ({e.code})"
+            )
+            await ctx.reply(f":x: Something went wrong with {func.__name__}ing your message!")
+    else:
+        log.trace(f"{func.__name__.capitalize()}ned message {message.id} in {channel_str}.")
+        await ctx.reply(f":white_check_mark: Message has been {func.__name__}ed.")

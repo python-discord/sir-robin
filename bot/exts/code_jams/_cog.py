@@ -15,7 +15,7 @@ from bot.bot import SirRobin
 from bot.constants import Roles
 from bot.exts.code_jams import _creation_utils
 from bot.exts.code_jams._flows import (creation_flow, deletion_flow, move_flow,
-                                       remove_flow, pin_flow)
+                                       pin_flow, remove_flow)
 from bot.exts.code_jams._views import (JamConfirmation, JamInfoView,
                                        JamTeamInfoConfirmation)
 from bot.services import send_to_paste_service

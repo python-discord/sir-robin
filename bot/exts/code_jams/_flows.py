@@ -1,6 +1,6 @@
 from datetime import datetime
-from urllib.parse import quote as quote_url
 from typing import Optional
+from urllib.parse import quote as quote_url
 
 import discord
 from botcore.site_api import APIClient, ResponseCodeError
@@ -222,14 +222,24 @@ async def pin_flow(
         message: Optional[discord.Message] = None,
         unpin: bool = False
 ) -> None:
+    """
+    Pin or unpin the given message.
+
+    Additional checks have been put in place, to ensure
+    messages can only be (un)pinned inside the Code Jam Category
+    by the Events Team and Admins, and participants can
+    only (un)pin messages in their own team channel.
+    """
     referenced_message = getattr(ctx.message.reference, "resolved", None) or message
+    pin_msg = f"{'un' if unpin else ''}pin"
     if not isinstance(referenced_message, discord.Message):
         await ctx.reply(
-            ":x: You have to either reply to a message or provide a message link / message id in order to (un)pin it."
+            ":x: You have to either reply to a message or provide a message link / message id"
+            f" in order to {pin_msg} it."
         )
         return
     if referenced_message.channel != ctx.channel:
-        await ctx.reply(f":x: You cannot {'un' if unpin else ''}pin a message outside of this team's channel.")
+        await ctx.reply(f":x: You cannot {pin_msg} a message outside of this team's channel.")
         return
 
     if referenced_message.pinned and not unpin:
@@ -254,8 +264,7 @@ async def pin_flow(
             await ctx.reply("Something went wrong while processing the request! We have notified the team!")
             log.error(f"Something went wrong with processing the request! {err}")
     else:
-        if ctx.channel.id == int(team["team"]["discord_channel_id"]) \
-                and referenced_message.channel.id == int(team["team"]["discord_channel_id"]):
-            await _creation_utils.pin_message(referenced_message, ctx, unpin)
+        if ctx.channel.id == int(team["team"]["discord_channel_id"]):
+            await _creation_utils.pin_message(referenced_message, ctx, unpin=unpin)
         else:
-            await ctx.reply(f"You don't have permission to {'un' if unpin else ''}pin this message in that channel!")
+            await ctx.reply(f"You don't have permission to {pin_msg} this message in this channel!")
