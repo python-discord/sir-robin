@@ -15,12 +15,14 @@ from bot.bot import SirRobin
 from bot.constants import Roles
 from bot.exts.code_jams import _creation_utils
 from bot.exts.code_jams._flows import (creation_flow, deletion_flow, move_flow,
-                                       remove_flow)
+                                       pin_flow, remove_flow)
 from bot.exts.code_jams._views import (JamConfirmation, JamInfoView,
                                        JamTeamInfoConfirmation)
 from bot.services import send_to_paste_service
+from bot.utils.checks import in_code_jam_category
 
 log = get_logger(__name__)
+PIN_ALLOWED_ROLES: tuple[int, ...] = (Roles.admins, Roles.code_jam_event_team)
 
 
 class CodeJams(commands.Cog):
@@ -30,7 +32,6 @@ class CodeJams(commands.Cog):
         self.bot = bot
 
     @commands.group(aliases=("cj", "jam"))
-    @commands.has_any_role(Roles.admins, Roles.events_lead)
     async def codejam(self, ctx: commands.Context) -> None:
         """A Group of commands for managing Code Jams."""
         if ctx.invoked_subcommand is None:
@@ -184,6 +185,20 @@ class CodeJams(commands.Cog):
             f"Are you sure you want to remove {member.mention} from the Code Jam?",
             view=JamConfirmation(author=ctx.author, callback=callback)
         )
+
+    @codejam.command()
+    @commands.has_any_role(Roles.admins, Roles.events_lead, Roles.code_jam_event_team, Roles.code_jam_participants)
+    @in_code_jam_category(_creation_utils.CATEGORY_NAME)
+    async def pin(self, ctx: commands.Context, message: Optional[discord.Message] = None) -> None:
+        """Lets Code Jam Participants to pin messages in their team channels."""
+        await pin_flow(ctx, PIN_ALLOWED_ROLES, self.bot.code_jam_mgmt_api, message)
+
+    @codejam.command()
+    @commands.has_any_role(Roles.admins, Roles.events_lead, Roles.code_jam_event_team, Roles.code_jam_participants)
+    @in_code_jam_category(_creation_utils.CATEGORY_NAME)
+    async def unpin(self, ctx: commands.Context, message: Optional[discord.Message] = None) -> None:
+        """Lets Code Jam Participants to unpin messages in their team channels."""
+        await pin_flow(ctx, PIN_ALLOWED_ROLES, self.bot.code_jam_mgmt_api, message, True)
 
     @staticmethod
     def jam_categories(guild: Guild) -> list[discord.CategoryChannel]:
