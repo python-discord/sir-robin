@@ -178,8 +178,15 @@ class CodeJams(commands.Cog):
 
     @codejam.command()
     @commands.has_any_role(Roles.admins, Roles.events_lead)
-    async def add(self, ctx: commands.Context, member: Member, is_leader: bool = False, *, team_name: str) -> None:
-        """Add a member to the Code Jam by specifying the team's name, and whether they should be a leader."""
+    async def add(
+            self,
+            ctx: commands.Context,
+            member: Member,
+            is_leader: Optional[bool] = False,
+            *,
+            team_name: str
+    ) -> None:
+        """Add a member to the Code Jam by specifying the team's name, and whether they should be leaders."""
         callback = partial(add_flow, self.bot, team_name, ctx, member, is_leader)
         await ctx.send(
             f"Are you sure you want to add {member.mention} to {team_name}?",
