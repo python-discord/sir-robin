@@ -130,7 +130,7 @@ async def add_flow(
                 )
             except ResponseCodeError as err:
                 if err.response.status == 404:
-                    await ctx.send(":x: Team or user could not be found.")
+                    await ctx.send(":x: User could not be found.")
                 elif err.response.status == 400:
                     await ctx.send(f":x: user {member.mention} is already in {team_to_move_in['name']}")
                 else:
