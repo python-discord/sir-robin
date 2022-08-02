@@ -114,6 +114,10 @@ class SummerAoC(commands.Cog):
         """
         Start the Summer AoC event.
         To specify a starting day other than `1`, use the `force` command.
+        
+        `year` must be an integer at least 2015.
+        `day_interval` must be an integer at least 1.
+        `post_time` must be an integer between 0 and 23.
         """  # noqa: D205
         if not FIRST_YEAR <= year <= LAST_YEAR:
             raise commands.BadArgument(f"Year must be between {FIRST_YEAR} and {LAST_YEAR}, inclusive")
