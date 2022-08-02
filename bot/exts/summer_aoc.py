@@ -46,7 +46,7 @@ If you have questions or suggestions about the event itself, head over to <#{dis
 
 NEXT_PUZZLE_TEXT = """
 The next puzzle will be posted <t:{timestamp}:R>.
-To receive notifications when new puzzles are released, run `!subscribe` in <#{bot_commands}>.
+To receive notifications when new puzzles are released, run `!subscribe` in <#{bot_commands}> and assign yourself the Revival of Code role.
 """
 
 LAST_PUZZLE_TEXT = """
