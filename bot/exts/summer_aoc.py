@@ -24,14 +24,10 @@ REAL_AOC_START = f"{arrow.get().year}-12-01T05:00:00"
 
 INFO_TEMPLATE = """
 is_running: {is_running}
-wait_task active: {wait_task_active}
-loop_task active: {loop_task_active}
-
 year: {year}
 current_day: {current_day}
 day_interval: {day_interval}
 first_post: {first_post}
-
 next post: {next_post}
 """
 
@@ -313,8 +309,6 @@ class SummerAoC(commands.Cog):
         """Generate an embed with info about the event state."""
         desc = INFO_TEMPLATE.format(
             is_running=self.is_running,
-            wait_task_active=(self.wait_task is not None) and not self.wait_task.done(),
-            loop_task_active=(self.loop_task is not None) and self.loop_task.is_running(),
             year=self.year,
             current_day=self.current_day,
             day_interval=self.day_interval,
