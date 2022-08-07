@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from datetime import timedelta
 from typing import Literal, Optional
 
 import arrow
@@ -10,7 +11,7 @@ from discord.utils import MISSING
 
 from bot.bot import SirRobin
 from bot.constants import Channels, Client, Roles
-from bot.utils.time import next_time_occurence, time_until
+from bot.utils.time import time_until
 
 log = logging.getLogger(__name__)
 
@@ -29,6 +30,7 @@ loop_task active: {loop_task_active}
 year: {year}
 current_day: {current_day}
 day_interval: {day_interval}
+first_post: {first_post}
 
 next post: {next_post}
 """
@@ -46,7 +48,8 @@ If you have questions or suggestions about the event itself, head over to <#{dis
 
 NEXT_PUZZLE_TEXT = """
 The next puzzle will be posted <t:{timestamp}:R>.
-To receive notifications when new puzzles are released, run `!subscribe` in <#{bot_commands}> and assign yourself the Revival of Code role.
+To receive notifications when new puzzles are released, run `!subscribe` in <#{bot_commands}> and assign yourself \
+the Revival of Code role.
 """
 
 LAST_PUZZLE_TEXT = """
@@ -69,12 +72,26 @@ class SummerAoC(commands.Cog):
         self.current_day: Optional[int] = None
         self.day_interval: Optional[int] = None
         self.post_time = 0
+        self.first_post_date: Optional[arrow.Arrow] = None
 
         self.bot.loop.create_task(self.load_event_state())
 
     def is_configured(self) -> bool:
         """Check whether all the necessary settings are configured to run the event."""
         return None not in (self.year, self.current_day, self.day_interval, self.post_time)
+
+    def next_post_time(self) -> Optional[arrow.Arrow]:
+        """Calculate the datetime of the next scheduled post or None if there isn't one."""
+        if not self.is_running:
+            return None
+        now = arrow.get()
+        if self.first_post_date is None:
+            delta = time_until(hour=self.post_time)
+        else:
+            since_start = now - self.first_post_date
+            day_interval = timedelta(days=self.day_interval)
+            delta = day_interval - (since_start % day_interval)
+        return now + delta
 
     async def cog_check(self, ctx: commands.Context) -> bool:
         """Role-lock all commands in this cog."""
@@ -114,7 +131,7 @@ class SummerAoC(commands.Cog):
         """
         Start the Summer AoC event.
         To specify a starting day other than `1`, use the `force` command.
-        
+
         `year` must be an integer at least 2015.
         `day_interval` must be an integer at least 1.
         `post_time` must be an integer between 0 and 23.
@@ -151,6 +168,7 @@ class SummerAoC(commands.Cog):
         """
         Force-set the current day of the event. Use `now` to post the puzzle immediately.
         Can be used without starting the event first as long as the necessary settings are already stored.
+        Does not reset the starting day (i.e. won't change the day cycle), but will set it if it's not already set.
         """  # noqa: D205
         if now is not None and now.lower() != "now":
             raise commands.BadArgument(f"Unrecognized option: {now}")
@@ -185,6 +203,8 @@ class SummerAoC(commands.Cog):
     @summer_aoc_group.command(name="stop")
     async def stop(self, ctx: commands.Context) -> None:
         """Stop the event."""
+        self.first_post_date = None  # Clean up; the start date should be reset when the event is started.
+        self.save_event_state()
         was_running = await self.stop_event()
         if was_running:
             await ctx.send("Summer AoC event stopped")
@@ -199,6 +219,10 @@ class SummerAoC(commands.Cog):
         self.day_interval = state.get("day_interval")
         self.current_day = state.get("current_day")
         self.post_time = state.get("post_time", 0)
+        first_post_date = state.get("first_post_date")
+        if first_post_date is not None:
+            first_post_date = arrow.get(first_post_date)
+        self.first_post_date = first_post_date
         log.debug(f"Loaded state: {state}")
 
         if self.is_running:
@@ -211,21 +235,28 @@ class SummerAoC(commands.Cog):
 
     async def save_event_state(self) -> None:
         """Save the current state in redis."""
-        await self.cache.update({
+        state = {
             "is_running": self.is_running,
             "year": self.year,
             "current_day": self.current_day,
             "day_interval": self.day_interval,
             "post_time": self.post_time,
-        })
+        }
+        if self.first_post_date is not None:
+            state["first_post_date"] = self.first_post_date.isoformat()
+        await self.cache.update(state)
 
     async def start_event(self) -> None:
         """Start event by recording state and creating async tasks to post puzzles."""
         log.info(f"Starting Summer AoC event with {self.year=} {self.current_day=} {self.day_interval=}")
-        sleep_for = time_until(hour=self.post_time)
+
+        sleep_for = self.next_post_time() - arrow.get()
         self.wait_task = asyncio.create_task(asyncio.sleep(sleep_for.total_seconds()))
         log.debug(f"Waiting until {self.post_time}:00 UTC to start Summer AoC loop")
         await self.wait_task
+
+        if self.first_post_date is None:
+            self.first_post_date = arrow.get()
 
         self.loop_task = tasks.Loop(
             self.post_puzzle,
@@ -287,7 +318,8 @@ class SummerAoC(commands.Cog):
             year=self.year,
             current_day=self.current_day,
             day_interval=self.day_interval,
-            next_post=f"<t:{int(next_time_occurence(hour=self.post_time).timestamp())}>" if self.is_running else "N/A"
+            first_post=f"<t:{int(self.first_post_date.timestamp())}>" if self.first_post_date else "N/A",
+            next_post=f"<t:{int(self.next_post_time().timestamp())}>" if self.is_running else "N/A",
         )
         return discord.Embed(
             title="Summer AoC event state",
@@ -300,7 +332,7 @@ class SummerAoC(commands.Cog):
             next_puzzle_text = LAST_PUZZLE_TEXT.format(timestamp=int(arrow.get(REAL_AOC_START).timestamp()))
         else:
             next_puzzle_text = NEXT_PUZZLE_TEXT.format(
-                timestamp=int(next_time_occurence(hour=self.post_time).timestamp()),
+                timestamp=int(self.next_post_time().timestamp()),
                 bot_commands=Channels.bot_commands,
             )
         post_text = POST_TEXT.format(
