@@ -5,6 +5,7 @@ from discord.ext.commands import (BadArgument, Cog, CommandError,
 
 from bot.bot import SirRobin
 from bot.log import get_logger
+from bot.utils.exceptions import CodeJamCategoryCheckFailure
 
 log = get_logger(__name__)
 
@@ -56,6 +57,10 @@ class ErrorHandler(Cog):
         elif isinstance(error, MissingAnyRole):
             embed = self._get_error_embed("Permission error", "You are not allowed to use this command!")
             await ctx.send(embed=embed)
+            return
+        elif isinstance(error, CodeJamCategoryCheckFailure):
+            # Silently fail, as SirRobin should not respond
+            # to any of the CJ related commands outside of the CJ categories.
             return
 
         # If we haven't handled it by this point, it is considered an unexpected/handled error.

@@ -14,6 +14,7 @@ class BlurpleFormatter(commands.Cog):
 
     def __init__(self, bot: SirRobin):
         self.bot = bot
+        self.lock = asyncio.Lock()
 
     @staticmethod
     def _format_code(code: str) -> str:
@@ -27,7 +28,8 @@ class BlurpleFormatter(commands.Cog):
         if match := FORMATTED_CODE_REGEX.match(code):
             code = match.group("code")
         try:
-            blurpified = await asyncio.to_thread(self._format_code, code)
+            async with self.lock:
+                blurpified = await asyncio.to_thread(self._format_code, code)
         except SyntaxError as e:
             err_info = "".join(traceback.format_exception_only(type(e), e)).replace("`", "`\u200d")
             embed = discord.Embed(
