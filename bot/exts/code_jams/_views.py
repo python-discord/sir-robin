@@ -45,7 +45,7 @@ class JamTeamInfoConfirmation(discord.ui.View):
         self.original_author = original_author
 
     @discord.ui.button(label='Cancel', style=discord.ButtonStyle.grey)
-    async def cancel(self, button: discord.ui.Button, interaction: discord.Interaction) -> None:
+    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         """A button to cancel the announcement."""
         button.label = "Cancelled"
         button.disabled = True
@@ -54,7 +54,7 @@ class JamTeamInfoConfirmation(discord.ui.View):
         self.stop()
 
     @discord.ui.button(label='Announce teams', style=discord.ButtonStyle.green)
-    async def announce(self, button: discord.ui.Button, interaction: discord.Interaction) -> None:
+    async def announce(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         """A button to send the announcement."""
         button.label = "Teams have been announced!"
         button.disabled = True
@@ -87,7 +87,7 @@ class JamTeamInfoView(discord.ui.View):
         self.bot = bot
 
     @discord.ui.button(label="Show me my team!", style=discord.ButtonStyle.blurple, custom_id="CJ:PERS:SHOW_TEAM")
-    async def show_team(self, button: discord.ui.Button, interaction: discord.Interaction) -> None:
+    async def show_team(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         """A button that sends an ephemeral embed with the team's description."""
         try:
             team = await self.bot.code_jam_mgmt_api.get(
@@ -139,7 +139,7 @@ class JamConfirmation(discord.ui.View):
         self.callback = callback
 
     @discord.ui.button(label='Cancel', style=discord.ButtonStyle.grey)
-    async def cancel(self, button: discord.ui.Button, interaction: discord.Interaction) -> None:
+    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         """A button to cancel an action."""
         button.label = "Cancelled"
         button.disabled = True
@@ -148,7 +148,7 @@ class JamConfirmation(discord.ui.View):
         self.stop()
 
     @discord.ui.button(label='Confirm', style=discord.ButtonStyle.green)
-    async def confirm(self, button: discord.ui.Button, interaction: discord.Interaction) -> None:
+    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         """A button to confirm an action."""
         button.label = "Confirmed"
         button.disabled = True
@@ -251,12 +251,12 @@ class JamInfoView(discord.ui.View):
         self.author = author
 
     @discord.ui.button(label='Add Note', style=discord.ButtonStyle.green)
-    async def add_note(self, button: discord.ui.Button, interaction: discord.Interaction) -> None:
+    async def add_note(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         """A button to add a note."""
         await interaction.response.send_modal(AddNoteModal(self.member, self.mgmt_client))
 
     @discord.ui.button(label='View notes', style=discord.ButtonStyle.green)
-    async def view_notes(self, button: discord.ui.Button, interaction: discord.Interaction) -> None:
+    async def view_notes(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         """A button to view the notes of a participant."""
         if not (user := await interaction_fetch_user_data(f"users/{self.member.id}", self.mgmt_client, interaction)):
             return

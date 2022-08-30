@@ -5,13 +5,11 @@ description = ""
 authors = ["Python Discord <info@pythondiscord.com>"]
 
 [tool.poetry.dependencies]
-python = "3.9.*"
-"discord.py" = {url = "https://github.com/Rapptz/discord.py/archive/beafaa8a8b8006357c2a1ca6802ed80e000f4cda.zip"}
-bot-core = {url = "https://github.com/python-discord/bot-core/archive/refs/tags/v4.0.0.zip"}
+python = "3.10.*"
+bot-core = {url = "https://github.com/python-discord/bot-core/archive/refs/tags/v8.2.0.zip", extras = ["async-rediscache"]}
 aiodns = "^3.0.0"
 arrow = "~1.2.2"
-aioredis = "~=1.3.1"
-async-rediscache = "~=0.2.0"
+aioredis = "2.0.1"
 fakeredis = "=1.7.4"
 
 [tool.poetry.dev-dependencies]
