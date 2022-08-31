@@ -60,7 +60,6 @@ if not constants.Client.in_ci:
                 intents=_intents,
             )
             async with bot.instance:
-                bot.instance._guild_available = asyncio.Event()
                 await bot.instance.start(constants.Client.token)
 
     asyncio.run(main())

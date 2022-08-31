@@ -13,6 +13,11 @@ log = get_logger(__name__)
 class SirRobin(BotBase):
     """Sir-Robin core."""
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.code_jam_mgmt_api: APIClient = None
+
     async def close(self) -> None:
         """On close, cleanly close the aiohttp client session."""
         await super().close()
@@ -20,8 +25,11 @@ class SirRobin(BotBase):
 
     async def setup_hook(self) -> None:
         """Default Async initialisation method for Discord.py."""
+        self.code_jam_mgmt_api = APIClient(
+            site_api_url=constants.Client.code_jam_api,
+            site_api_token=constants.Client.code_jam_token
+        )
         await super().setup_hook()
-
         create_task(self.load_extensions(exts))
         create_task(self.check_channels())
         create_task(self.send_log(constants.Client.name, "Connected!"))
@@ -62,43 +70,3 @@ class SirRobin(BotBase):
         embed.set_author(name=title, icon_url=icon)
 
         await devlog.send(embed=embed)
-
-    async def on_guild_available(self, guild: discord.Guild) -> None:
-        """
-        Set the internal `_guild_available` event when PyDis guild becomes available.
-
-        If the cache appears to still be empty (no members, no channels, or no roles), the event
-        will not be set.
-        """
-        if guild.id != constants.Client.guild:
-            return
-
-        if not guild.roles or not guild.members or not guild.channels:
-            log.warning("Guild available event was dispatched but the cache appears to still be empty!")
-            return
-
-        self._guild_available.set()
-
-    async def on_guild_unavailable(self, guild: discord.Guild) -> None:
-        """Clear the internal `_guild_available` event when PyDis guild becomes unavailable."""
-        if guild.id != constants.Client.guild:
-            return
-
-        self._guild_available.clear()
-
-    async def wait_until_guild_available(self) -> None:
-        """
-        Wait until the PyDis guild becomes available (and the cache is ready).
-
-        The on_ready event is inadequate because it only waits 2 seconds for a GUILD_CREATE
-        gateway event before giving up and thus not populating the cache for unavailable guilds.
-        """
-        await self._guild_available.wait()
-
-    async def login(self, *args, **kwargs) -> None:
-        """Setup a Code Jam Management APIClient."""
-        self.code_jam_mgmt_api = APIClient(
-            site_api_url=constants.Client.code_jam_api,
-            site_api_token=constants.Client.code_jam_token
-        )
-        await super().login(*args, **kwargs)
