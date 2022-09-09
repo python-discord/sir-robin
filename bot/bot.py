@@ -16,7 +16,7 @@ class SirRobin(BotBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.code_jam_mgmt_api: APIClient = None
+        self.code_jam_mgmt_api: APIClient | None = None
 
     async def close(self) -> None:
         """On close, cleanly close the aiohttp client session."""
