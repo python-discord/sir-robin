@@ -1,14 +1,37 @@
 import asyncio
 
+import aiohttp
 import discord
 from async_rediscache import RedisSession
+from botcore import StartupError
+from botcore.utils.logging import get_logger
+from redis import RedisError
 
 import bot
 from bot import constants
 from bot.bot import SirRobin
-from bot.constants import Client
 
-if not Client.in_ci:
+log = get_logger(__name__)
+
+
+async def _create_redis_session() -> RedisSession:
+    """Create and connect to a redis session."""
+    redis_session = RedisSession(
+        host=constants.RedisConfig.host,
+        port=constants.RedisConfig.port,
+        password=constants.RedisConfig.password,
+        max_connections=20,
+        use_fakeredis=constants.RedisConfig.use_fakeredis,
+        global_namespace="bot",
+        decode_responses=True,
+    )
+    try:
+        return await redis_session.connect()
+    except RedisError as e:
+        raise StartupError(e)
+
+
+if not constants.Client.in_ci:
     async def main() -> None:
         """Entry Async method for starting the bot."""
         # Default is all intents except for privileged ones (Members, Presences, ...)
@@ -21,25 +44,22 @@ if not Client.in_ci:
         _intents.message_content = True
         _intents.members = True
 
-        redis_session = RedisSession(
-            address=(constants.RedisConfig.host, constants.RedisConfig.port),
-            password=constants.RedisConfig.password,
-            minsize=1,
-            maxsize=20,
-            use_fakeredis=constants.RedisConfig.use_fakeredis,
-            global_namespace="sir-robin"
+        allowed_roles = (
+            constants.Roles.events_lead,
+            constants.Roles.code_jam_event_team,
+            constants.Roles.code_jam_participants
         )
-
-        await redis_session.connect()
-
-        bot.instance = SirRobin(
-            redis_session=redis_session,
-            command_prefix=constants.Client.prefix,
-            activity=discord.Game("The Not-Quite-So-Bot-as-Sir-Lancebot"),
-            intents=_intents,
-        )
-        async with bot.instance:
-            bot.instance._guild_available = asyncio.Event()
-            await bot.instance.start(Client.token)
+        async with aiohttp.ClientSession() as session:
+            bot.instance = SirRobin(
+                redis_session=await _create_redis_session(),
+                http_session=session,
+                guild_id=constants.Client.guild,
+                allowed_roles=allowed_roles,
+                command_prefix=constants.Client.prefix,
+                activity=discord.Game("The Not-Quite-So-Bot-as-Sir-Lancebot"),
+                intents=_intents,
+            )
+            async with bot.instance:
+                await bot.instance.start(constants.Client.token)
 
     asyncio.run(main())
