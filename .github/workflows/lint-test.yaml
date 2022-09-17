@@ -16,10 +16,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install Python Dependencies
-        uses: HassanAbouelela/actions/setup-python@setup-python_v1.2.1
+        uses: HassanAbouelela/actions/setup-python@setup-python_v1.3.1
         with:
           dev: true
           python_version: '3.10'
+
       # Attempt to run the bot. Setting `IN_CI` to true, so bot.run() is never called.
       # This is to catch import and cog setup errors that may appear in PRs, to avoid crash loops if merged.
       - name: Attempt bot setup
@@ -32,10 +33,9 @@ jobs:
         run: pytest --disable-warnings -q
 
       # We will not run `flake8` here, as we will use a separate flake8
-      # action. As pre-commit does not support user installs, we set
-      # PIP_USER=0 to not do a user install.
+      # action.
       - name: Run pre-commit hooks
-        run: export PIP_USER=0; SKIP=flake8 pre-commit run --all-files
+        run: SKIP=flake8 pre-commit run --all-files
 
       # Run flake8 and have it format the linting errors in the format of
       # the GitHub Workflow command to register error annotations. This
