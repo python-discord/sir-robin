@@ -1,11 +1,8 @@
 from collections.abc import Container
-from typing import Callable, NoReturn, Union, Optional
+from typing import Callable, NoReturn, Optional, Union
 
 from discord.ext import commands
-
-from discord.ext.commands import (
-    CheckFailure, Context
-)
+from discord.ext.commands import CheckFailure, Context
 
 from bot import constants
 from bot.log import get_logger

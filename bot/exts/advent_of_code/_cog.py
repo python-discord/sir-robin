@@ -10,13 +10,14 @@ from async_rediscache import RedisCache
 from discord.ext import commands, tasks
 
 from bot.bot import SirRobin
-from bot.constants import (
-    AdventOfCode as AocConfig, Channels, Client, Colours, Emojis, Month, Roles, WHITELISTED_CHANNELS
-)
+from bot.constants import WHITELISTED_CHANNELS
+from bot.constants import AdventOfCode as AocConfig
+from bot.constants import Channels, Client, Colours, Emojis, Month, Roles
 from bot.exts.advent_of_code import _helpers
 from bot.exts.advent_of_code.views.dayandstarview import AoCDropdownView
 from bot.utils import members
-from bot.utils.decorators import InChannelCheckFailure, in_month, whitelist_override, with_role
+from bot.utils.decorators import (InChannelCheckFailure, in_month,
+                                  whitelist_override, with_role)
 from bot.utils.exceptions import MovedCommandError
 
 log = logging.getLogger(__name__)

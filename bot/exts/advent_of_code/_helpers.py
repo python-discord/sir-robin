@@ -13,7 +13,6 @@ import discord
 from discord.ext import commands
 
 import bot
-
 from bot.bot import SirRobin
 from bot.constants import AdventOfCode, Channels, Colours
 from bot.exts.advent_of_code import _caches

@@ -1,7 +1,7 @@
 import dataclasses
-from datetime import datetime
 import enum
 import logging
+from datetime import datetime
 from os import environ
 from typing import NamedTuple
 
