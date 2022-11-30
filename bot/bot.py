@@ -3,6 +3,7 @@ from botcore import BotBase
 from botcore.site_api import APIClient
 from botcore.utils.logging import get_logger
 from botcore.utils.scheduling import create_task
+from discord.ext import commands
 
 from bot import constants, exts
 from bot.exts.code_jams._views import JamTeamInfoView
@@ -70,3 +71,11 @@ class SirRobin(BotBase):
         embed.set_author(name=title, icon_url=icon)
 
         await devlog.send(embed=embed)
+
+    async def invoke_help_command(self, ctx: commands.Context) -> None:
+        """Invoke the help command or default help command if help extensions is not loaded."""
+        if "bot.exts.core.help" in ctx.bot.extensions:
+            help_command = ctx.bot.get_command("help")
+            await ctx.invoke(help_command, ctx.command.qualified_name)
+            return
+        await ctx.send_help(ctx.command)
