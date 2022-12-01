@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from botcore.utils.logging import get_logger
+from pydis_core.utils.logging import get_logger
 
 
 def setup_logging() -> None:

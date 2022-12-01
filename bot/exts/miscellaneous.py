@@ -1,10 +1,10 @@
 import difflib
 from typing import Union
 
-from botcore.utils.logging import get_logger
 from discord import Colour, Embed
 from discord.ext import commands
 from discord.ext.commands import BadArgument
+from pydis_core.utils.logging import get_logger
 
 from bot.bot import SirRobin
 

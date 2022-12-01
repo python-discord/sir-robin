@@ -2,8 +2,8 @@ import asyncio
 import traceback
 
 import discord
-from botcore.utils.regex import FORMATTED_CODE_REGEX
 from discord.ext import commands
+from pydis_core.utils.regex import FORMATTED_CODE_REGEX
 
 from bot.bot import SirRobin
 from bot.utils import blurple_formatter, services

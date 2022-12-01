@@ -3,10 +3,10 @@ from email.parser import HeaderParser
 from io import StringIO
 from typing import Dict, Optional, Tuple
 
-from botcore.utils import scheduling
-from botcore.utils.caching import AsyncCache
 from discord import Colour, Embed
 from discord.ext.commands import Cog, Context, command
+from pydis_core.utils import scheduling
+from pydis_core.utils.caching import AsyncCache
 
 from bot.bot import SirRobin
 from bot.log import get_logger

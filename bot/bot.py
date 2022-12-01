@@ -1,9 +1,9 @@
 import discord
-from botcore import BotBase
-from botcore.site_api import APIClient
-from botcore.utils.logging import get_logger
-from botcore.utils.scheduling import create_task
 from discord.ext import commands
+from pydis_core import BotBase
+from pydis_core.site_api import APIClient
+from pydis_core.utils.logging import get_logger
+from pydis_core.utils.scheduling import create_task
 
 from bot import constants, exts
 from bot.exts.code_jams._views import JamTeamInfoView

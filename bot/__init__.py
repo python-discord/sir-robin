@@ -1,7 +1,7 @@
 import asyncio
 import os
 
-from botcore.utils import apply_monkey_patches
+from pydis_core.utils import apply_monkey_patches
 
 from bot.bot import SirRobin
 from bot.log import setup_logging
