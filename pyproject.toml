@@ -10,7 +10,17 @@ python = "3.10.*"
 pydis-core = { version = "9.1.1", extras = ["async-rediscache"]}
 arrow = "1.2.3"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
+python-dotenv = "0.21.0"
+taskipy = "1.10.3"
+
+
+[tool.poetry.group.test.dependencies]
+pytest = "7.2.0"
+pytest-asyncio = "0.20.2"
+hypothesis = "6.58.2"
+
+[tool.poetry.group.lint.dependencies]
 flake8 = "6.0.0"
 flake8-annotations = "2.9.1"
 flake8-bugbear = "^22.10.27"
@@ -21,11 +31,6 @@ flake8-tidy-imports = "4.8.0"
 flake8-todo = "0.7"
 pep8-naming = "0.13.2"
 pre-commit = "2.20.0"
-pytest = "7.2.0"
-pytest-asyncio = "0.20.2"
-hypothesis = "6.58.2"
-python-dotenv = "0.21.0"
-taskipy = "1.10.3"
 
 [tool.taskipy.tasks]
 start = "python -m bot"
