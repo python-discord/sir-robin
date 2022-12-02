@@ -53,20 +53,22 @@ class AoCDropdownView(discord.ui.View):
     @discord.ui.select(
         placeholder="Day",
         options=[discord.SelectOption(label=str(i)) for i in range(1, 26)],
-        custom_id="day_select"
+        custom_id="day_select",
     )
-    async def day_select(self, _: discord.Interaction, select: discord.ui.Select) -> None:
+    async def day_select(self, interaction: discord.Interaction, select: discord.ui.Select) -> None:
         """Dropdown to choose a Day of the AoC."""
         self.day = select.values[0]
+        await interaction.response.defer()
 
     @discord.ui.select(
         placeholder="Star",
         options=[discord.SelectOption(label=str(i)) for i in range(1, 3)],
-        custom_id="star_select"
+        custom_id="star_select",
     )
-    async def star_select(self, _: discord.Interaction, select: discord.ui.Select) -> None:
+    async def star_select(self, interaction: discord.Interaction, select: discord.ui.Select) -> None:
         """Dropdown to choose either the first or the second star."""
         self.star = select.values[0]
+        await interaction.response.defer()
 
     @discord.ui.button(label="Fetch", style=discord.ButtonStyle.blurple)
     async def fetch(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
