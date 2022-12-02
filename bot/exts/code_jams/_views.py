@@ -1,8 +1,8 @@
 from typing import TYPE_CHECKING, Any, Callable, Optional
 
 import discord
-from botcore.site_api import APIClient, ResponseCodeError
-from botcore.utils.logging import get_logger
+from pydis_core.site_api import APIClient, ResponseCodeError
+from pydis_core.utils.logging import get_logger
 
 if TYPE_CHECKING:
     from bot.bot import SirRobin

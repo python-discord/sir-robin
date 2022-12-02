@@ -1,7 +1,7 @@
 from typing import Optional
 
 from aiohttp import ClientConnectorError
-from botcore.utils.logging import get_logger
+from pydis_core.utils.logging import get_logger
 
 import bot
 

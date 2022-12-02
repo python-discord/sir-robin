@@ -3,8 +3,8 @@ import asyncio
 import aiohttp
 import discord
 from async_rediscache import RedisSession
-from botcore import StartupError
-from botcore.utils.logging import get_logger
+from pydis_core import StartupError
+from pydis_core.utils.logging import get_logger
 from redis import RedisError
 
 import bot

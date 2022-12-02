@@ -1,8 +1,8 @@
 import typing as t
 
 import discord
-from botcore.utils.logging import get_logger
 from discord.ext import commands
+from pydis_core.utils.logging import get_logger
 
 from bot.constants import Channels, Roles
 from bot.utils.exceptions import JamCategoryNameConflictError

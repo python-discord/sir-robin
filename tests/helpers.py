@@ -9,8 +9,8 @@ from typing import Iterable, Optional
 
 import discord
 from aiohttp import ClientSession
-from botcore.site_api import APIClient
 from discord.ext.commands import Context
+from pydis_core.site_api import APIClient
 
 from bot.bot import SirRobin as Bot
 from tests._autospec import \

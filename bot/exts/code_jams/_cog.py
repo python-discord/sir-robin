@@ -5,11 +5,11 @@ from functools import partial
 from typing import Optional
 
 import discord
-from botcore.site_api import APIClient, ResponseCodeError
-from botcore.utils.logging import get_logger
-from botcore.utils.members import get_or_fetch_member
 from discord import Colour, Embed, Guild, Member
 from discord.ext import commands
+from pydis_core.site_api import APIClient, ResponseCodeError
+from pydis_core.utils.logging import get_logger
+from pydis_core.utils.members import get_or_fetch_member
 
 from bot.bot import SirRobin
 from bot.constants import Roles
