@@ -7,6 +7,7 @@ from typing import Optional
 import arrow
 import discord
 from async_rediscache import RedisCache
+from discord import app_commands
 from discord.ext import commands, tasks
 
 from bot.bot import SirRobin
@@ -41,6 +42,12 @@ class AdventOfCode(commands.Cog):
     # A dict with keys of member_ids to block from getting the role
     # RedisCache[member_id: None]
     completionist_block_list = RedisCache()
+
+    aoc_slash_group = app_commands.Group(
+        name="aoc",
+        description="All of the Advent of Code commands.",
+        guild_ids=[Client.guild]
+    )
 
     def __init__(self, bot: SirRobin):
         self.bot = bot
@@ -183,11 +190,11 @@ class AdventOfCode(commands.Cog):
         """Respond with an explanation of all things Advent of Code."""
         await ctx.send(embed=self.cached_about_aoc)
 
-    @commands.guild_only()
-    @adventofcode_group.command(name="join", aliases=("j",), brief="Learn how to join the leaderboard (via DM)")
+    @aoc_slash_group.command(name="join")
     @whitelist_override(channels=AOC_WHITELIST)
-    async def join_leaderboard(self, ctx: commands.Context) -> None:
-        """DM the user the information for joining the Python Discord leaderboard."""
+    @app_commands.guild_only()
+    async def join_leaderboard(self, interaction: discord.Interaction) -> None:
+        """Send the user an ephemeral message with the information for joining the Python Discord leaderboard."""
         current_date = datetime.now()
         allowed_months = (Month.NOVEMBER.value, Month.DECEMBER.value)
         if not (
@@ -195,10 +202,13 @@ class AdventOfCode(commands.Cog):
             or current_date.month == Month.JANUARY.value and current_date.year == AocConfig.year + 1
         ):
             # Only allow joining the leaderboard in the run up to AOC and the January following.
-            await ctx.send(f"The Python Discord leaderboard for {current_date.year} is not yet available!")
+            await interaction.response.send_message(
+                f"The Python Discord leaderboard for {current_date.year} is not yet available!",
+                ephemeral=True
+            )
             return
 
-        author = ctx.author
+        author = interaction.user
         log.info(f"{author.name} ({author.id}) has requested a PyDis AoC leaderboard code")
 
         if AocConfig.staff_leaderboard_id and any(r.id == Roles.helpers for r in author.roles):
@@ -207,7 +217,10 @@ class AdventOfCode(commands.Cog):
             try:
                 join_code = await _helpers.get_public_join_code(author)
             except _helpers.FetchingLeaderboardFailedError:
-                await ctx.send(":x: Failed to get join code! Notified maintainers.")
+                await interaction.response.send_message(
+                    ":x: Failed to get join code! Notified maintainers.",
+                    ephemeral=True
+                )
                 return
 
         if not join_code:
@@ -217,7 +230,7 @@ class AdventOfCode(commands.Cog):
                 description="Failed to get a join code to one of our boards. Please notify staff.",
                 colour=discord.Colour.red(),
             )
-            await ctx.send(embed=error_embed)
+            await interaction.response.send_message(embed=error_embed, ephemeral=True)
             return
 
         info_str = [
@@ -226,13 +239,7 @@ class AdventOfCode(commands.Cog):
             "• Head over to https://adventofcode.com/leaderboard/private",
             f"• Use this code `{join_code}` to join the Python Discord leaderboard!",
         ]
-        try:
-            await author.send("\n".join(info_str))
-        except discord.errors.Forbidden:
-            log.debug(f"{author.name} ({author.id}) has disabled DMs from server members")
-            await ctx.send(f":x: {author.mention}, please (temporarily) enable DMs to receive the join code")
-        else:
-            await ctx.message.add_reaction(Emojis.envelope)
+        await interaction.response.send_message("\n".join(info_str), ephemeral=True)
 
     @in_month(Month.NOVEMBER, Month.DECEMBER, Month.JANUARY)
     @adventofcode_group.command(
