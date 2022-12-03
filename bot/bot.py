@@ -1,7 +1,10 @@
+import asyncio
+
 import discord
 from discord.ext import commands
 from pydis_core import BotBase
 from pydis_core.site_api import APIClient
+from pydis_core.utils import scheduling
 from pydis_core.utils.logging import get_logger
 from pydis_core.utils.scheduling import create_task
 
@@ -17,6 +20,7 @@ class SirRobin(BotBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.cog_load_task: asyncio.Task = None
         self.code_jam_mgmt_api: APIClient | None = None
 
     async def close(self) -> None:
@@ -31,10 +35,16 @@ class SirRobin(BotBase):
             site_api_token=constants.Client.code_jam_token
         )
         await super().setup_hook()
-        create_task(self.load_extensions(exts))
+        self.cog_load_task = scheduling.create_task(self.load_extensions(exts))
+        scheduling.create_task(self.reload_commands())
         create_task(self.check_channels())
         create_task(self.send_log(constants.Client.name, "Connected!"))
         self.add_view(JamTeamInfoView(self))
+
+    async def reload_commands(self) -> None:
+        """Sync all application commands after loading cogs."""
+        await self.cog_load_task
+        await self.tree.sync(guild=discord.Object(self.guild_id))
 
     async def check_channels(self) -> None:
         """Verifies that all channel constants refer to channels which exist."""
