@@ -190,7 +190,7 @@ class AdventOfCode(commands.Cog):
         """Respond with an explanation of all things Advent of Code."""
         await ctx.send(embed=self.cached_about_aoc)
 
-    @aoc_slash_group.command(name="join")
+    @aoc_slash_group.command(name="join", description="Get the join code for our community Advent of Code leaderboard")
     @whitelist_override(channels=AOC_WHITELIST)
     @app_commands.guild_only()
     async def join_leaderboard(self, interaction: discord.Interaction) -> None:
