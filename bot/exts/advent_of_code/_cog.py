@@ -290,7 +290,7 @@ class AdventOfCode(commands.Cog):
     @adventofcode_group.command(
         name="unlink",
         aliases=("disconnect",),
-        brief="Tie your Discord account with your Advent of Code name."
+        brief="Untie your Discord account from your Advent of Code name."
     )
     @whitelist_override(channels=AOC_WHITELIST)
     async def aoc_unlink_account(self, ctx: commands.Context) -> None:
