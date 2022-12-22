@@ -20,7 +20,7 @@ class SirRobin(BotBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.cog_load_task: asyncio.Task = None
+        self.cog_load_task: asyncio.Task | None = None
         self.code_jam_mgmt_api: APIClient | None = None
 
     async def close(self) -> None:

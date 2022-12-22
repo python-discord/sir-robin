@@ -46,7 +46,7 @@ class AdventOfCode(commands.Cog):
     aoc_slash_group = app_commands.Group(
         name="aoc",
         description="All of the Advent of Code commands.",
-        guild_ids=[Client.guild]
+        guild_ids=[Client.guild],
     )
 
     def __init__(self, bot: SirRobin):
@@ -204,7 +204,7 @@ class AdventOfCode(commands.Cog):
             # Only allow joining the leaderboard in the run up to AOC and the January following.
             await interaction.response.send_message(
                 f"The Python Discord leaderboard for {current_date.year} is not yet available!",
-                ephemeral=True
+                ephemeral=True,
             )
             return
 
@@ -219,7 +219,7 @@ class AdventOfCode(commands.Cog):
             except _helpers.FetchingLeaderboardFailedError:
                 await interaction.response.send_message(
                     ":x: Failed to get join code! Notified maintainers.",
-                    ephemeral=True
+                    ephemeral=True,
                 )
                 return
 
