@@ -31,7 +31,7 @@ class SirRobin(BotBase):
             site_api_token=constants.Client.code_jam_token
         )
         await super().setup_hook()
-        create_task(self.load_extensions(exts))
+        await self.load_extensions(exts)
         create_task(self.check_channels())
         create_task(self.send_log(constants.Client.name, "Connected!"))
         self.add_view(JamTeamInfoView(self))
