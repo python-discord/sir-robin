@@ -1,30 +1,19 @@
 name: Build & Deploy
 
 on:
-  workflow_run:
-    workflows: ["Lint"]
-    branches:
-      - main
-    types:
-      - completed
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  workflow_call:
+    inputs:
+      sha-tag:
+        description: "A short-form SHA tag for the commit that triggered this flow"
+        required: true
+        type: string
 
 jobs:
   build:
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
     name: Build & Push
     runs-on: ubuntu-latest
 
     steps:
-      # Create a commit SHA-based tag for the container repositories
-      - name: Create SHA Container Tag
-        id: sha_tag
-        run: |
-          tag=$(cut -c 1-7 <<< $GITHUB_SHA)
-          echo "::set-output name=tag::$tag"
 
       - name: Checkout code
         uses: actions/checkout@v3
@@ -58,7 +47,7 @@ jobs:
           cache-to: type=inline
           tags: |
             ghcr.io/python-discord/sir-robin:latest
-            ghcr.io/python-discord/sir-robin:${{ steps.sha_tag.outputs.tag }}
+            ghcr.io/python-discord/sir-robin:${{ inputs.sha-tag }}
           build-args: |
             git_sha=${{ github.sha }}
 
@@ -69,12 +58,6 @@ jobs:
     environment: production
 
     steps:
-      # Create a commit SHA-based tag for the container repositories
-      - name: Create SHA Container Tag
-        id: sha_tag
-        run: |
-          tag=$(cut -c 1-7 <<< $GITHUB_SHA)
-          echo "::set-output name=tag::$tag"
 
       # Check out the private "kubernetes" repository in the `kubernetes`
       # subdirectory using a GitHub Personal Access Token
@@ -83,6 +66,8 @@ jobs:
         with:
           repository: python-discord/kubernetes
           path: kubernetes
+
+      - uses: azure/setup-kubectl@v3
 
       - name: Authenticate with Kubernetes
         uses: azure/k8s-set-context@v3
@@ -95,5 +80,4 @@ jobs:
         with:
           manifests: |
               kubernetes/namespaces/default/sir-robin/deployment.yaml
-          images: 'ghcr.io/python-discord/sir-robin:${{ steps.sha_tag.outputs.tag }}'
-          kubectl-version: 'latest'
+          images: 'ghcr.io/python-discord/sir-robin:${{ inputs.sha-tag }}'

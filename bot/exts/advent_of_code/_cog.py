@@ -69,7 +69,7 @@ class AdventOfCode(commands.Cog):
         self.status_task.add_done_callback(_helpers.background_task_callback)
 
         # Don't start task while event isn't running
-        # self.completionist_task.start()
+        self.completionist_task.start()
 
     @tasks.loop(minutes=10.0)
     async def completionist_task(self) -> None:
@@ -297,7 +297,7 @@ class AdventOfCode(commands.Cog):
     @adventofcode_group.command(
         name="unlink",
         aliases=("disconnect",),
-        brief="Tie your Discord account with your Advent of Code name."
+        brief="Untie your Discord account from your Advent of Code name."
     )
     @whitelist_override(channels=AOC_WHITELIST)
     async def aoc_unlink_account(self, ctx: commands.Context) -> None:
