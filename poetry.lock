@@ -322,14 +322,14 @@ files = [
 
 [[package]]
 name = "discord-py"
-version = "2.1.0"
+version = "2.1.1"
 description = "A Python wrapper for the Discord API"
 category = "main"
 optional = false
 python-versions = ">=3.8.0"
 files = [
-    {file = "discord.py-2.1.0-py3-none-any.whl", hash = "sha256:a2cfa9f09e3013aaaa43600cc8dfaf67c532dd34afcb71e550f5a0dc9133a5e0"},
-    {file = "discord.py-2.1.0.tar.gz", hash = "sha256:027ccdd22b5bb66a9e19cbd8daa1bc74b49271a16a074d57e52f288fcfa208e8"},
+    {file = "discord.py-2.1.1-py3-none-any.whl", hash = "sha256:b99fbf4ad74f007c680f33f5174738858146c99a2bc4f6d0e08ddbf93bc12c4d"},
+    {file = "discord.py-2.1.1.tar.gz", hash = "sha256:8258b7af641c532e9e33e186c7b867d9ff5575fe63a460b17ed55bd4fe082200"},
 ]
 
 [package.dependencies]
@@ -370,14 +370,14 @@ test = ["pytest (>=6)"]
 
 [[package]]
 name = "fakeredis"
-version = "2.6.0"
+version = "2.7.1"
 description = "Fake implementation of redis API for testing purposes."
 category = "main"
 optional = false
 python-versions = ">=3.8.1,<4.0"
 files = [
-    {file = "fakeredis-2.6.0-py3-none-any.whl", hash = "sha256:94c7867edc259b81c55b93902e81a727cc1986ba09de3fcf9df51a3ad8e29b03"},
-    {file = "fakeredis-2.6.0.tar.gz", hash = "sha256:3f8f72c5b990a70ae69444dd1cfe0c9805811a53752d3d21fdcda29255b00e51"},
+    {file = "fakeredis-2.7.1-py3-none-any.whl", hash = "sha256:e2f7a88dad23be1191ad6212008e170d75c2d63dde979c2694be8cbfd917428e"},
+    {file = "fakeredis-2.7.1.tar.gz", hash = "sha256:854d758794dab9953be16b9a0f7fbd4bbd6b6964db7a9684e163291c1342ece6"},
 ]
 
 [package.dependencies]
@@ -947,19 +947,19 @@ flake8 = ">=3.9.1"
 
 [[package]]
 name = "platformdirs"
-version = "2.6.2"
+version = "3.0.0"
 description = "A small Python package for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "platformdirs-2.6.2-py3-none-any.whl", hash = "sha256:83c8f6d04389165de7c9b6f0c682439697887bca0aa2f1c87ef1826be3584490"},
-    {file = "platformdirs-2.6.2.tar.gz", hash = "sha256:e1fea1fe471b9ff8332e229df3cb7de4f53eeea4998d3b6bfff542115e998bd2"},
+    {file = "platformdirs-3.0.0-py3-none-any.whl", hash = "sha256:b1d5eb14f221506f50d6604a561f4c5786d9e80355219694a1b244bcd96f4567"},
+    {file = "platformdirs-3.0.0.tar.gz", hash = "sha256:8a1228abb1ef82d788f74139988b137e78692984ec7b08eaa6c65f1723af28f9"},
 ]
 
 [package.extras]
-docs = ["furo (>=2022.12.7)", "proselint (>=0.13)", "sphinx (>=5.3)", "sphinx-autodoc-typehints (>=1.19.5)"]
-test = ["appdirs (==1.4.4)", "covdefaults (>=2.2.2)", "pytest (>=7.2)", "pytest-cov (>=4)", "pytest-mock (>=3.10)"]
+docs = ["furo (>=2022.12.7)", "proselint (>=0.13)", "sphinx (>=6.1.3)", "sphinx-autodoc-typehints (>=1.22,!=1.23.4)"]
+test = ["appdirs (==1.4.4)", "covdefaults (>=2.2.2)", "pytest (>=7.2.1)", "pytest-cov (>=4)", "pytest-mock (>=3.10)"]
 
 [[package]]
 name = "pluggy"
@@ -1118,20 +1118,20 @@ files = [
 
 [[package]]
 name = "pydis-core"
-version = "9.4.0"
+version = "9.4.1"
 description = "PyDis core provides core functionality and utility to the bots of the Python Discord community."
 category = "main"
 optional = false
 python-versions = ">=3.10.0,<3.12.0"
 files = [
-    {file = "pydis_core-9.4.0-py3-none-any.whl", hash = "sha256:6f81c76b1b0d8ca638609258ee1483ca0d970ef29988f160f9ef528d6ffe6703"},
-    {file = "pydis_core-9.4.0.tar.gz", hash = "sha256:d007fa5061a3505576485ed9980d8b00ebe74e9c2be4fdfdbf39678824e3b563"},
+    {file = "pydis_core-9.4.1-py3-none-any.whl", hash = "sha256:29f1f69ae2bc5c9560ac3d43149ca9e7f13d567064555b76b79be5c8fa9ba6ba"},
+    {file = "pydis_core-9.4.1.tar.gz", hash = "sha256:b52c7ea052196aae72298ef59f59514376178e713cd133e0ca6fcb1d7312024c"},
 ]
 
 [package.dependencies]
 aiodns = "3.0.0"
 async-rediscache = {version = "1.0.0rc2", extras = ["fakeredis"], optional = true, markers = "extra == \"async-rediscache\""}
-"discord.py" = "2.1.0"
+"discord.py" = "2.1.1"
 statsd = "4.0.1"
 
 [package.extras]
@@ -1310,14 +1310,14 @@ ocsp = ["cryptography (>=36.0.1)", "pyopenssl (==20.0.1)", "requests (>=2.26.0)"
 
 [[package]]
 name = "setuptools"
-version = "67.0.0"
+version = "67.2.0"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "setuptools-67.0.0-py3-none-any.whl", hash = "sha256:9d790961ba6219e9ff7d9557622d2fe136816a264dd01d5997cfc057d804853d"},
-    {file = "setuptools-67.0.0.tar.gz", hash = "sha256:883131c5b6efa70b9101c7ef30b2b7b780a4283d5fc1616383cdf22c83cbefe6"},
+    {file = "setuptools-67.2.0-py3-none-any.whl", hash = "sha256:16ccf598aab3b506593c17378473978908a2734d7336755a8769b480906bec1c"},
+    {file = "setuptools-67.2.0.tar.gz", hash = "sha256:b440ee5f7e607bb8c9de15259dba2583dd41a38879a7abc1d43a71c59524da48"},
 ]
 
 [package.extras]
@@ -1417,24 +1417,24 @@ files = [
 
 [[package]]
 name = "virtualenv"
-version = "20.17.1"
+version = "20.19.0"
 description = "Virtual Python Environment builder"
 category = "dev"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 files = [
-    {file = "virtualenv-20.17.1-py3-none-any.whl", hash = "sha256:ce3b1684d6e1a20a3e5ed36795a97dfc6af29bc3970ca8dab93e11ac6094b3c4"},
-    {file = "virtualenv-20.17.1.tar.gz", hash = "sha256:f8b927684efc6f1cc206c9db297a570ab9ad0e51c16fa9e45487d36d1905c058"},
+    {file = "virtualenv-20.19.0-py3-none-any.whl", hash = "sha256:54eb59e7352b573aa04d53f80fc9736ed0ad5143af445a1e539aada6eb947dd1"},
+    {file = "virtualenv-20.19.0.tar.gz", hash = "sha256:37a640ba82ed40b226599c522d411e4be5edb339a0c0de030c0dc7b646d61590"},
 ]
 
 [package.dependencies]
 distlib = ">=0.3.6,<1"
 filelock = ">=3.4.1,<4"
-platformdirs = ">=2.4,<3"
+platformdirs = ">=2.4,<4"
 
 [package.extras]
-docs = ["proselint (>=0.13)", "sphinx (>=5.3)", "sphinx-argparse (>=0.3.2)", "sphinx-rtd-theme (>=1)", "towncrier (>=22.8)"]
-testing = ["coverage (>=6.2)", "coverage-enable-subprocess (>=1)", "flaky (>=3.7)", "packaging (>=21.3)", "pytest (>=7.0.1)", "pytest-env (>=0.6.2)", "pytest-freezegun (>=0.4.2)", "pytest-mock (>=3.6.1)", "pytest-randomly (>=3.10.3)", "pytest-timeout (>=2.1)"]
+docs = ["furo (>=2022.12.7)", "proselint (>=0.13)", "sphinx (>=6.1.3)", "sphinx-argparse (>=0.4)", "sphinxcontrib-towncrier (>=0.2.1a0)", "towncrier (>=22.12)"]
+test = ["covdefaults (>=2.2.2)", "coverage (>=7.1)", "coverage-enable-subprocess (>=1)", "flaky (>=3.7)", "packaging (>=23)", "pytest (>=7.2.1)", "pytest-env (>=0.8.1)", "pytest-freezegun (>=0.4.2)", "pytest-mock (>=3.10)", "pytest-randomly (>=3.12)", "pytest-timeout (>=2.1)"]
 
 [[package]]
 name = "yarl"
@@ -1527,4 +1527,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "3.10.*"
-content-hash = "ac1930bad35e4e0cc882874634ac7845154b880a6e05dcaf4309c456e00a0a3c"
+content-hash = "b3962cdf9d27bfa904398a7c78a989a551f694d6ea8bb4dbf0349d114382debd"
