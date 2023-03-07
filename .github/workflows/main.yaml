@@ -13,7 +13,6 @@ jobs:
 
   lint-test:
     uses: ./.github/workflows/lint-test.yaml
-    secrets: inherit
 
   generate-inputs:
     if: github.ref == 'refs/heads/main'
