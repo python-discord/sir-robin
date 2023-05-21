@@ -5,7 +5,7 @@ description = ""
 authors = ["Python Discord <info@pythondiscord.com>"]
 
 [tool.poetry.dependencies]
-python = "3.10.*"
+python = "3.11.*"
 
 pydis-core = { version = "9.4.1", extras = ["async-rediscache"]}
 arrow = "1.2.3"
