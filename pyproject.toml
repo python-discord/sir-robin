@@ -36,6 +36,7 @@ pre-commit = "2.20.0"
 start = "python -m bot"
 lint = "pre-commit run --all-files"
 precommit = "pre-commit install"
+test = "python -m unittest discover"
 
 [build-system]
 requires = ["poetry-core>=1.2.0"]
