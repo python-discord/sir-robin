@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from email.parser import HeaderParser
 from io import StringIO
-from typing import Dict, Optional, Tuple
+from typing import Dict, Tuple
 
 from discord import Colour, Embed
 from discord.ext.commands import Cog, Context, command
@@ -70,7 +70,7 @@ class PythonEnhancementProposals(Cog):
 
         return pep_embed
 
-    async def validate_pep_number(self, pep_nr: int) -> Optional[Embed]:
+    async def validate_pep_number(self, pep_nr: int) -> Embed | None:
         """Validate is PEP number valid. When it isn't, return error embed, otherwise None."""
         if (
             pep_nr not in self.peps

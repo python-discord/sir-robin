@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from datetime import timedelta
-from typing import Literal, Optional
+from typing import Literal
 
 import arrow
 import discord
@@ -60,15 +60,15 @@ class SummerAoC(commands.Cog):
 
     def __init__(self, bot: SirRobin):
         self.bot = bot
-        self.wait_task: Optional[asyncio.Task] = None
-        self.loop_task: Optional[tasks.Loop] = None
+        self.wait_task: asyncio.Task | None = None
+        self.loop_task: tasks.Loop | None = None
 
         self.is_running = False
-        self.year: Optional[int] = None
-        self.current_day: Optional[int] = None
-        self.day_interval: Optional[int] = None
+        self.year: int | None = None
+        self.current_day: int | None = None
+        self.day_interval: int | None = None
         self.post_time = 0
-        self.first_post_date: Optional[arrow.Arrow] = None
+        self.first_post_date: arrow.Arrow | None = None
 
         self.bot.loop.create_task(self.load_event_state())
 
@@ -76,7 +76,7 @@ class SummerAoC(commands.Cog):
         """Check whether all the necessary settings are configured to run the event."""
         return None not in (self.year, self.current_day, self.day_interval, self.post_time)
 
-    def next_post_time(self) -> Optional[arrow.Arrow]:
+    def next_post_time(self) -> arrow.Arrow | None:
         """Calculate the datetime of the next scheduled post or None if there isn't one."""
         if not self.is_running:
             return None
@@ -160,7 +160,7 @@ class SummerAoC(commands.Cog):
         await self.start_event()
 
     @summer_aoc_group.command(name="force")
-    async def force_day(self, ctx: commands.Context, day: int, now: Optional[Literal["now"]] = None) -> None:
+    async def force_day(self, ctx: commands.Context, day: int, now: Literal["now"] | None = None) -> None:
         """
         Force-set the current day of the event. Use `now` to post the puzzle immediately.
         Can be used without starting the event first as long as the necessary settings are already stored.

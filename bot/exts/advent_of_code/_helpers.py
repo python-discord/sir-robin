@@ -5,7 +5,7 @@ import json
 import logging
 import math
 import operator
-from typing import Any, Optional
+from typing import Any
 
 import aiohttp
 import arrow
@@ -395,7 +395,7 @@ def get_summary_embed(leaderboard: dict) -> discord.Embed:
     return aoc_embed
 
 
-async def get_public_join_code(author: discord.Member) -> Optional[str]:
+async def get_public_join_code(author: discord.Member) -> str | None:
     """
     Get the join code for one of the non-staff leaderboards.
 

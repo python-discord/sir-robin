@@ -1,8 +1,6 @@
 import csv
-import typing as t
 from collections import defaultdict
 from functools import partial
-from typing import Optional
 
 import discord
 from discord import Colour, Embed, Guild, Member
@@ -39,7 +37,7 @@ class CodeJams(commands.Cog):
 
     @codejam.command()
     @commands.has_any_role(Roles.admins, Roles.events_lead)
-    async def create(self, ctx: commands.Context, csv_file: t.Optional[str] = None) -> None:
+    async def create(self, ctx: commands.Context, csv_file: str | None = None) -> None:
         """
         Create code-jam teams from a CSV file or a link to one, specifying the team names, leaders and members.
 
@@ -182,7 +180,7 @@ class CodeJams(commands.Cog):
             self,
             ctx: commands.Context,
             member: Member,
-            is_leader: Optional[bool] = False,
+            is_leader: bool = False,
             *,
             team_name: str
     ) -> None:
@@ -206,14 +204,14 @@ class CodeJams(commands.Cog):
     @codejam.command()
     @commands.has_any_role(Roles.admins, Roles.events_lead, Roles.code_jam_event_team, Roles.code_jam_participants)
     @in_code_jam_category(_creation_utils.CATEGORY_NAME)
-    async def pin(self, ctx: commands.Context, message: Optional[discord.Message] = None) -> None:
+    async def pin(self, ctx: commands.Context, message: discord.Message | None = None) -> None:
         """Lets Code Jam Participants to pin messages in their team channels."""
         await pin_flow(ctx, PIN_ALLOWED_ROLES, self.bot.code_jam_mgmt_api, message)
 
     @codejam.command()
     @commands.has_any_role(Roles.admins, Roles.events_lead, Roles.code_jam_event_team, Roles.code_jam_participants)
     @in_code_jam_category(_creation_utils.CATEGORY_NAME)
-    async def unpin(self, ctx: commands.Context, message: Optional[discord.Message] = None) -> None:
+    async def unpin(self, ctx: commands.Context, message: discord.Message | None = None) -> None:
         """Lets Code Jam Participants to unpin messages in their team channels."""
         await pin_flow(ctx, PIN_ALLOWED_ROLES, self.bot.code_jam_mgmt_api, message, True)
 
@@ -223,7 +221,7 @@ class CodeJams(commands.Cog):
         return [category for category in guild.categories if category.name == _creation_utils.CATEGORY_NAME]
 
     @staticmethod
-    async def jam_roles(guild: Guild, mgmt_client: APIClient) -> Optional[list[discord.Role]]:
+    async def jam_roles(guild: Guild, mgmt_client: APIClient) -> list[discord.Role] | None:
         """Get all the code jam team roles."""
         try:
             roles_raw = await mgmt_client.get("teams", raise_for_status=True, params={"current_jam": "true"})
@@ -238,7 +236,7 @@ class CodeJams(commands.Cog):
             return roles
 
     @staticmethod
-    def team_channel(guild: Guild, criterion: t.Union[str, Member]) -> t.Optional[discord.TextChannel]:
+    def team_channel(guild: Guild, criterion: str | Member) -> discord.TextChannel | None:
         """Get a team channel through either a participant or the team name."""
         for category in CodeJams.jam_categories(guild):
             for channel in category.channels:

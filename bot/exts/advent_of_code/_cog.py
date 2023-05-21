@@ -2,7 +2,6 @@ import json
 import logging
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional
 
 import arrow
 import discord
@@ -324,7 +323,7 @@ class AdventOfCode(commands.Cog):
     async def aoc_day_and_star_leaderboard(
             self,
             ctx: commands.Context,
-            maximum_scorers_day_and_star: Optional[int] = 10
+            maximum_scorers_day_and_star: int = 10
     ) -> None:
         """Have the bot send a View that will let you filter the leaderboard by day and star."""
         if maximum_scorers_day_and_star > AocConfig.max_day_and_star_results or maximum_scorers_day_and_star <= 0:
@@ -359,7 +358,7 @@ class AdventOfCode(commands.Cog):
         brief="Get a snapshot of the PyDis private AoC leaderboard",
     )
     @whitelist_override(channels=AOC_WHITELIST_RESTRICTED)
-    async def aoc_leaderboard(self, ctx: commands.Context, *, aoc_name: Optional[str] = None) -> None:
+    async def aoc_leaderboard(self, ctx: commands.Context, *, aoc_name: str | None = None) -> None:
         """
         Get the current top scorers of the Python Discord Leaderboard.
 

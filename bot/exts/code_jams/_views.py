@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Callable, Optional
+from typing import TYPE_CHECKING, Any, Callable
 
 import discord
 from pydis_core.site_api import APIClient, ResponseCodeError
@@ -17,7 +17,7 @@ async def interaction_fetch_user_data(
         endpoint: str,
         mgmt_client: APIClient,
         interaction: discord.Interaction
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """A helper function for fetching and handling user related data in an interaction."""
     try:
         user = await mgmt_client.get(endpoint, raise_for_status=True)

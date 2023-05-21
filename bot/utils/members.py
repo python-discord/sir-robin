@@ -6,7 +6,7 @@ import discord
 log = logging.getLogger(__name__)
 
 
-async def get_or_fetch_member(guild: discord.Guild, member_id: int) -> t.Optional[discord.Member]:
+async def get_or_fetch_member(guild: discord.Guild, member_id: int) -> discord.Member | None:
     """
     Attempt to get a member from cache; on failure fetch from the API.
 

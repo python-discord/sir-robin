@@ -11,7 +11,7 @@ jobs:
       - name: Install Python Dependencies
         uses: HassanAbouelela/actions/setup-python@setup-python_v1.4.0
         with:
-          python_version: '3.10'
+          python_version: '3.11'
           install_args: "--only main --only lint --only test"
 
       # Attempt to run the bot. Setting `IN_CI` to true, so bot.run() is never called.

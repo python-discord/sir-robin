@@ -4,7 +4,6 @@ import re
 import string
 from collections.abc import Iterable
 from datetime import datetime
-from typing import Optional
 
 import discord
 from discord.ext.commands import BadArgument, Context
@@ -38,7 +37,7 @@ async def disambiguate(
     timeout: float = 30,
     entries_per_page: int = 20,
     empty: bool = False,
-    embed: Optional[discord.Embed] = None
+    embed: discord.Embed | None = None
 ) -> str:
     """
     Has the user choose between multiple entries in case one could not be chosen automatically.

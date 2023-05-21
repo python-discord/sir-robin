@@ -5,7 +5,7 @@ import random
 from asyncio import Lock
 from collections.abc import Container
 from functools import wraps
-from typing import Callable, Optional, Union
+from typing import Callable
 from weakref import WeakValueDictionary
 
 from discord import Colour, Embed
@@ -33,7 +33,7 @@ class InMonthCheckFailure(CheckFailure):
     pass
 
 
-def seasonal_task(*allowed_months: Month, sleep_time: Union[float, int] = ONE_DAY) -> Callable:
+def seasonal_task(*allowed_months: Month, sleep_time: float | int = ONE_DAY) -> Callable:
     """
     Perform the decorated method periodically in `allowed_months`.
 
@@ -201,7 +201,7 @@ def whitelist_check(**default_kwargs: Container[int]) -> Callable[[Context], boo
 
         # Determine which command's overrides we will use. Group commands will
         # inherit from their parents if they don't define their own overrides
-        overridden_command: Optional[commands.Command] = None
+        overridden_command: commands.Command | None = None
         for command in [ctx.command, *ctx.command.parents]:
             if hasattr(command.callback, "override"):
                 overridden_command = command
@@ -319,7 +319,7 @@ def whitelist_override(bypass_defaults: bool = False, allow_dm: bool = False, **
     return inner
 
 
-def locked() -> Optional[Callable]:
+def locked() -> Callable | None:
     """
     Allows the user to only run one instance of the decorated command at a time.
 
@@ -327,11 +327,11 @@ def locked() -> Optional[Callable]:
 
     This decorator has to go before (below) the `command` decorator.
     """
-    def wrap(func: Callable) -> Optional[Callable]:
+    def wrap(func: Callable) -> Callable | None:
         func.__locks = WeakValueDictionary()
 
         @wraps(func)
-        async def inner(self: Callable, ctx: Context, *args, **kwargs) -> Optional[Callable]:
+        async def inner(self: Callable, ctx: Context, *args, **kwargs) -> Callable | None:
             lock = func.__locks.setdefault(ctx.author.id, Lock())
             if lock.locked():
                 embed = Embed()
