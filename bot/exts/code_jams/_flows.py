@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 from urllib.parse import quote as quote_url
 
 import discord
@@ -295,7 +294,7 @@ async def pin_flow(
         ctx: commands.Context,
         roles: tuple[int, ...],
         mgmt_api: APIClient,
-        message: Optional[discord.Message] = None,
+        message: discord.Message | None = None,
         unpin: bool = False
 ) -> None:
     """

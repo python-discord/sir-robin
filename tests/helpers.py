@@ -5,7 +5,7 @@ import itertools
 import logging
 import unittest.mock
 from asyncio import AbstractEventLoop
-from typing import Iterable, Optional
+from typing import Iterable
 
 import discord
 from aiohttp import ClientSession
@@ -170,7 +170,7 @@ class MockGuild(CustomMockMixin, unittest.mock.Mock, HashableMixin):
     """
     spec_set = guild_instance
 
-    def __init__(self, roles: Optional[Iterable[MockRole]] = None, **kwargs) -> None:
+    def __init__(self, roles: Iterable[MockRole] | None = None, **kwargs) -> None:
         default_kwargs = {'id': next(self.discord_id), 'members': [], "chunked": True}
         super().__init__(**collections.ChainMap(kwargs, default_kwargs))
 
@@ -236,7 +236,7 @@ class MockMember(CustomMockMixin, unittest.mock.Mock, ColourMixin, HashableMixin
     """
     spec_set = member_instance
 
-    def __init__(self, roles: Optional[Iterable[MockRole]] = None, **kwargs) -> None:
+    def __init__(self, roles: Iterable[MockRole] | None = None, **kwargs) -> None:
         default_kwargs = {'name': 'member', 'id': next(self.discord_id), 'bot': False, "pending": False}
         super().__init__(**collections.ChainMap(kwargs, default_kwargs))
 

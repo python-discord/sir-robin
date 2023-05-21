@@ -1,5 +1,5 @@
 from collections.abc import Container
-from typing import Callable, NoReturn, Optional
+from typing import Callable, NoReturn
 
 from discord.ext import commands
 from discord.ext.commands import CheckFailure, Context
@@ -29,7 +29,7 @@ def in_code_jam_category(code_jam_category_name: str) -> Callable:
 class InWhitelistCheckFailure(CheckFailure):
     """Raised when the `in_whitelist` check fails."""
 
-    def __init__(self, redirect_channel: Optional[int]):
+    def __init__(self, redirect_channel: int | None):
         self.redirect_channel = redirect_channel
 
         if redirect_channel:
@@ -47,7 +47,7 @@ def in_whitelist_check(
     channels: Container[int] = (),
     categories: Container[int] = (),
     roles: Container[int] = (),
-    redirect: Optional[int] = constants.Channels.sir_lancebot_playground,
+    redirect: int | None = constants.Channels.sir_lancebot_playground,
     fail_silently: bool = False,
 ) -> bool:
     """

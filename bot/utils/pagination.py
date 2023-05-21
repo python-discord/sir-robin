@@ -1,7 +1,6 @@
 import asyncio
 import logging
 from collections.abc import Iterable
-from typing import Optional
 
 from discord import Embed, Member, Reaction
 from discord.abc import User
@@ -32,7 +31,7 @@ class LinePaginator(Paginator):
             prefix: str = '```',
             suffix: str = '```',
             max_size: int = 2000,
-            max_lines: Optional[int] = None,
+            max_lines: int | None = None,
             linesep: str = "\n"
     ):
         """
@@ -88,7 +87,7 @@ class LinePaginator(Paginator):
 
     @classmethod
     async def paginate(cls, lines: Iterable[str], ctx: Context, embed: Embed,
-                       prefix: str = "", suffix: str = "", max_lines: Optional[int] = None,
+                       prefix: str = "", suffix: str = "", max_lines: int | None = None,
                        max_size: int = 500, empty: bool = True, restrict_to_user: User = None,
                        timeout: int = 300, footer_text: str = None, url: str = None,
                        exception_on_empty_embed: bool = False) -> None:
