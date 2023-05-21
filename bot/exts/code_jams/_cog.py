@@ -1,5 +1,4 @@
 import csv
-import typing as t
 from collections import defaultdict
 from functools import partial
 from typing import Optional
@@ -39,7 +38,7 @@ class CodeJams(commands.Cog):
 
     @codejam.command()
     @commands.has_any_role(Roles.admins, Roles.events_lead)
-    async def create(self, ctx: commands.Context, csv_file: t.Optional[str] = None) -> None:
+    async def create(self, ctx: commands.Context, csv_file: str | None = None) -> None:
         """
         Create code-jam teams from a CSV file or a link to one, specifying the team names, leaders and members.
 
@@ -238,7 +237,7 @@ class CodeJams(commands.Cog):
             return roles
 
     @staticmethod
-    def team_channel(guild: Guild, criterion: t.Union[str, Member]) -> t.Optional[discord.TextChannel]:
+    def team_channel(guild: Guild, criterion: str | Member) -> discord.TextChannel | None:
         """Get a team channel through either a participant or the team name."""
         for category in CodeJams.jam_categories(guild):
             for channel in category.channels:

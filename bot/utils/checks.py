@@ -1,5 +1,5 @@
 from collections.abc import Container
-from typing import Callable, NoReturn, Optional, Union
+from typing import Callable, NoReturn, Optional
 
 from discord.ext import commands
 from discord.ext.commands import CheckFailure, Context
@@ -12,8 +12,8 @@ log = get_logger(__name__)
 
 
 def in_code_jam_category(code_jam_category_name: str) -> Callable:
-    """Raises `CodeJamCategoryCheckFailure` when the command is invoked outside of the Code Jam categories."""
-    async def predicate(ctx: commands.Context) -> Union[bool, NoReturn]:
+    """Raises `CodeJamCategoryCheckFailure` when the command is invoked outside the Code Jam categories."""
+    async def predicate(ctx: commands.Context) -> bool | NoReturn:
         if not ctx.guild:
             return False
         if not ctx.message.channel.category:
@@ -57,7 +57,7 @@ def in_whitelist_check(
 
     - `channels`: a container with channel ids for whitelisted channels
     - `categories`: a container with category ids for whitelisted categories
-    - `roles`: a container with with role ids for whitelisted roles
+    - `roles`: a container with role ids for whitelisted roles
 
     If the command was invoked in a context that was not whitelisted, the member is either
     redirected to the `redirect` channel that was passed (default: #bot-commands) or simply

@@ -5,7 +5,7 @@ import random
 from asyncio import Lock
 from collections.abc import Container
 from functools import wraps
-from typing import Callable, Optional, Union
+from typing import Callable, Optional
 from weakref import WeakValueDictionary
 
 from discord import Colour, Embed
@@ -33,7 +33,7 @@ class InMonthCheckFailure(CheckFailure):
     pass
 
 
-def seasonal_task(*allowed_months: Month, sleep_time: Union[float, int] = ONE_DAY) -> Callable:
+def seasonal_task(*allowed_months: Month, sleep_time: float | int = ONE_DAY) -> Callable:
     """
     Perform the decorated method periodically in `allowed_months`.
 
