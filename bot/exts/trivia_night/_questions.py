@@ -1,3 +1,4 @@
+import logging
 from random import choice
 from string import ascii_uppercase
 
@@ -10,6 +11,7 @@ from bot.constants import Colours, NEGATIVE_REPLIES
 from ._game import AlreadyUpdatedError, Question, QuestionClosedError
 from ._scoreboard import Scoreboard
 
+log = logging.getLogger(__name__)
 
 class AnswerButton(Button):
     """Button subclass that's used to guess on a particular answer."""
@@ -124,6 +126,8 @@ class QuestionView(View):
             description=self.question.correct
         )
 
+        log.debug(f"Total guesses for {self.question.number}: {len(guesses)}")
+
         if len(guesses) != 0:
             answers_chosen = {
                 answer_choice: len(
@@ -131,10 +135,6 @@ class QuestionView(View):
                 )
                 for answer_choice in labels
             }
-
-            answers_chosen = dict(
-                sorted(answers_chosen.items(), key=lambda item: item[1], reverse=True)
-            )
 
             for answer, people_answered in answers_chosen.items():
                 is_correct_answer = dict(self.question.answers)[answer[0]] == self.question.correct
@@ -147,8 +147,9 @@ class QuestionView(View):
 
                 field_title = (
                     (":white_check_mark: " if is_correct_answer else "")
-                    + f"{people_answered} players ({people_answered / len(guesses) * 100:.1f}%) chose"
+                    + f"{people_answered} players ({people_answered / len(guesses) * 100:.1f}%) chose {answer}"
                 )
+
 
                 # The `ord` function is used here to change the letter to its corresponding position
                 answer_embed.add_field(
