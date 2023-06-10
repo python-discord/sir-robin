@@ -1,11 +1,12 @@
 import asyncio
 from json import JSONDecodeError, loads
+import logging
 from random import choice
 
 from discord import Embed
 from discord.ext import commands
 
-from bot.bot import Bot
+from bot.bot import SirRobin
 from bot.constants import Colours, NEGATIVE_REPLIES, POSITIVE_REPLIES, Roles
 from bot.utils.pagination import LinePaginator
 
@@ -13,14 +14,15 @@ from ._game import AllQuestionsVisitedError, TriviaNightGame
 from ._questions import QuestionView
 from ._scoreboard import Scoreboard
 
+log = logging.getLogger(__name__)
+
 # The ID you see below are the Events Lead role ID and the Event Runner Role ID
 TRIVIA_NIGHT_ROLES = (Roles.admins, 778361735739998228, 940911658799333408)
-
 
 class TriviaNightCog(commands.Cog):
     """Cog for the Python Trivia Night event."""
 
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: SirRobin):
         self.bot = bot
         self.game: TriviaNightGame | None = None
         self.scoreboard: Scoreboard | None = None
@@ -92,6 +94,8 @@ class TriviaNightCog(commands.Cog):
         except JSONDecodeError as error:
             raise commands.BadArgument(f"Looks like something went wrong:\n{error!s}")
 
+        log.info("Trivia Night questions loaded.")
+
         self.game = TriviaNightGame(serialized_json)
         self.question_closed = asyncio.Event()
 
@@ -142,8 +146,8 @@ class TriviaNightCog(commands.Cog):
             await ctx.send(embed=error_embed)
             return
 
-        await ctx.send("Next question in 3 seconds! Get ready...")
-        await asyncio.sleep(3)
+        await ctx.send("Next question in 5 seconds! Get ready...")
+        await asyncio.sleep(5)
 
         question_view = QuestionView(next_question)
         question_embed = question_view.create_embed()
@@ -153,6 +157,7 @@ class TriviaNightCog(commands.Cog):
 
         # Exponentially sleep less and less until the time limit is reached
         percentage = 1
+        first_duration = percentage * 0.5 * next_question.time
         while True:
             percentage *= 0.5
             duration = next_question.time * percentage
@@ -167,10 +172,12 @@ class TriviaNightCog(commands.Cog):
                 self.question_closed.clear()
                 return
 
-            if int(duration) > 1:
+            if int(duration) > 1 and duration == first_duration:
                 # It is quite ugly to display decimals, the delay for requests to reach Discord
                 # cause sub-second accuracy to be quite pointless.
-                await ctx.send(f"{int(duration)}s remaining...")
+                msg = await ctx.send(f"{int(duration)}s remaining...")
+            elif int(duration > 1):
+                await msg.edit(content=f"{int(duration)}s remaining...")
             else:
                 # Since each time we divide the percentage by 2 and sleep one half of the halves (then sleep a
                 # half, of that half) we must sleep both halves at the end.
@@ -321,6 +328,6 @@ class TriviaNightCog(commands.Cog):
         ))
 
 
-async def setup(bot: Bot) -> None:
+async def setup(bot: SirRobin) -> None:
     """Load the TriviaNight cog."""
     await bot.add_cog(TriviaNightCog(bot))
