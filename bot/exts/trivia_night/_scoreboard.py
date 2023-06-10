@@ -1,17 +1,19 @@
+import logging
 from random import choice
 
 import discord.ui
 from discord import ButtonStyle, Embed, Interaction, Member
 from discord.ui import Button, View
 
-from bot.bot import Bot
+from bot.bot import SirRobin
 from bot.constants import Colours, NEGATIVE_REPLIES
 
+log = logging.getLogger(__name__)
 
 class ScoreboardView(View):
     """View for the scoreboard."""
 
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: SirRobin):
         super().__init__()
         self.bot = bot
 
@@ -39,12 +41,13 @@ class ScoreboardView(View):
         """
         formatted_string = ""
 
+        log.debug(f"Total users on scoreboard: {len(self.points)}")
+
         for current_placement, (user, points) in enumerate(self.points.items()):
             if current_placement + 1 > 30:
                 break
 
-            user = await self.bot.fetch_user(int(user))
-            formatted_string += f"**{current_placement + 1}.** {user.mention} "
+            formatted_string += f"**{current_placement + 1}.** <@{int(user)}>"
             formatted_string += f"({points:.1f} pts)\n"
             if (current_placement + 1) % 10 == 0:
                 formatted_string += "⎯⎯⎯⎯⎯⎯⎯⎯\n"
@@ -71,8 +74,7 @@ class ScoreboardView(View):
             if current_placement + 1 > 30:
                 break
 
-            user = await self.bot.fetch_user(int(user))
-            formatted_string += f"**{current_placement + 1}.** {user.mention} "
+            formatted_string += f"**{current_placement + 1}.** <@{int(user)}>"
             formatted_string += f"({(time_taken[-1] / time_taken[0]):.1f}s)\n"
             if (current_placement + 1) % 10 == 0:
                 formatted_string += "⎯⎯⎯⎯⎯⎯⎯⎯\n"
@@ -150,7 +152,7 @@ class ScoreboardView(View):
 class Scoreboard:
     """Class for the scoreboard for the Trivia Night event."""
 
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: SirRobin):
         self._bot = bot
         self._points = {}
         self._speed = {}
