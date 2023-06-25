@@ -186,13 +186,19 @@ class SummerAoC(commands.Cog):
             await self.post_puzzle()
 
         embed = self.get_info_embed()
-        title = "Event is now running"
         if now:
-            title = "Puzzle posted and event is now running"
+            if self.current_day > LAST_DAY:
+                title = "Puzzle posted and event is now ending"
+            else:
+                title = "Puzzle posted and event is now running"
+        else:
+            title = "Event is now running"
+
         embed.title = title
         embed.color = discord.Color.green()
         await ctx.send(embed=embed)
-        await self.start_event()
+        if self.current_day <= LAST_DAY:
+            await self.start_event()
 
     @summer_aoc_group.command(name="stop")
     async def stop(self, ctx: commands.Context) -> None:
