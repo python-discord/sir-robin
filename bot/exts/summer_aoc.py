@@ -77,9 +77,7 @@ class SummerAoC(commands.Cog):
         return None not in (self.year, self.current_day, self.day_interval, self.post_time)
 
     def next_post_time(self) -> Optional[arrow.Arrow]:
-        """Calculate the datetime of the next scheduled post or None if there isn't one."""
-        if not self.is_running:
-            return None
+        """Calculate the datetime of the next scheduled post."""
         now = arrow.get()
         if self.first_post_date is None:
             delta = time_until(hour=self.post_time)
