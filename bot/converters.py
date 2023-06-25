@@ -1,10 +1,8 @@
-from typing import Union
-
 from discord.ext import commands
 from discord.ext.commands import BadArgument, Context, Converter
 from discord.utils import escape_markdown
 
-SourceType = Union[commands.HelpCommand, commands.Command, commands.Cog, str, commands.ExtensionNotLoaded]
+SourceType = commands.HelpCommand | commands.Command | commands.Cog | str | commands.ExtensionNotLoaded
 
 
 class SourceConverter(Converter):

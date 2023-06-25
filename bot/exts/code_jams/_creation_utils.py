@@ -1,8 +1,6 @@
-import typing as t
-
 import discord
-from botcore.utils.logging import get_logger
 from discord.ext import commands
+from pydis_core.utils.logging import get_logger
 
 from bot.constants import Channels, Roles
 from bot.utils.exceptions import JamCategoryNameConflictError
@@ -56,7 +54,7 @@ async def _get_category(guild: discord.Guild) -> discord.CategoryChannel:
 def _get_overwrites(
         guild: discord.Guild,
         team_role: discord.Role
-) -> dict[t.Union[discord.Member, discord.Role], discord.PermissionOverwrite]:
+) -> dict[discord.Member | discord.Role, discord.PermissionOverwrite]:
     """Get code jam team channels permission overwrites."""
     return {
         guild.default_role: discord.PermissionOverwrite(read_messages=False),

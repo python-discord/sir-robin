@@ -1,5 +1,3 @@
-from typing import Optional
-
 from aiohttp import ClientConnectorError
 
 import bot
@@ -11,7 +9,7 @@ FAILED_REQUEST_ATTEMPTS = 3
 PASTE_URL = "https://paste.pythondiscord.com"
 
 
-async def send_to_paste_service(contents: str, *, extension: str = "") -> Optional[str]:
+async def send_to_paste_service(contents: str, *, extension: str = "") -> str | None:
     """
     Upload `contents` to the paste service.
 

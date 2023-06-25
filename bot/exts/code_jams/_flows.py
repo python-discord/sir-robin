@@ -1,12 +1,11 @@
 from datetime import datetime
-from typing import Optional
 from urllib.parse import quote as quote_url
 
 import discord
-from botcore.site_api import APIClient, ResponseCodeError
-from botcore.utils.logging import get_logger
 from discord import Embed, Member
 from discord.ext import commands
+from pydis_core.site_api import APIClient, ResponseCodeError
+from pydis_core.utils.logging import get_logger
 
 from bot.bot import SirRobin
 from bot.constants import Roles
@@ -295,7 +294,7 @@ async def pin_flow(
         ctx: commands.Context,
         roles: tuple[int, ...],
         mgmt_api: APIClient,
-        message: Optional[discord.Message] = None,
+        message: discord.Message | None = None,
         unpin: bool = False
 ) -> None:
     """

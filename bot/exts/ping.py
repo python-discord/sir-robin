@@ -1,6 +1,6 @@
-from botcore.utils.logging import get_logger
 from discord import Embed
 from discord.ext import commands
+from pydis_core.utils.logging import get_logger
 
 from bot.bot import SirRobin
 

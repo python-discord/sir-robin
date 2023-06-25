@@ -1,15 +1,9 @@
-import asyncio
-import socket
-from typing import Optional
-
-import aiohttp
 import discord
-from async_rediscache import RedisSession
-from botcore.site_api import APIClient
-from botcore.utils.extensions import walk_extensions
-from botcore.utils.logging import get_logger
-from botcore.utils.scheduling import create_task
 from discord.ext import commands
+from pydis_core import BotBase
+from pydis_core.site_api import APIClient
+from pydis_core.utils.logging import get_logger
+from pydis_core.utils.scheduling import create_task
 
 from bot import constants, exts
 from bot.exts.code_jams._views import JamTeamInfoView
@@ -17,46 +11,29 @@ from bot.exts.code_jams._views import JamTeamInfoView
 log = get_logger(__name__)
 
 
-class SirRobin(commands.Bot):
+class SirRobin(BotBase):
     """Sir-Robin core."""
 
-    def __init__(self, redis_session: RedisSession, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-        # This session may want to be recreated on login/disconnect.
-        # Additionally, on the bot repo we use a different connector that is more "stable".
-        self.code_jam_mgmt_api: Optional[APIClient] = None
-        self.http_session: Optional[aiohttp.ClientSession] = None
-
-        self._guild_available: Optional[asyncio.Event] = None
-        self.redis_session = redis_session
+        self.code_jam_mgmt_api: APIClient | None = None
 
     async def close(self) -> None:
         """On close, cleanly close the aiohttp client session."""
-        await self.http_session.close()
-        await self.code_jam_mgmt_api.close()
         await super().close()
-
-    async def add_cog(self, cog: commands.Cog, **kwargs) -> None:
-        """
-        Delegate to super to register `cog`.
-
-        This only serves to make the info log, so that extensions don't have to.
-        """
-        await super().add_cog(cog, **kwargs)
-        log.info(f"Cog loaded: {cog.qualified_name}")
-
-    async def load_all_extensions(self) -> None:
-        """Loads all the extensions in the `exts` module."""
-        for ext in walk_extensions(exts):
-            await self.load_extension(ext)
+        await self.code_jam_mgmt_api.close()
 
     async def setup_hook(self) -> None:
         """Default Async initialisation method for Discord.py."""
+        self.code_jam_mgmt_api = APIClient(
+            site_api_url=constants.Client.code_jam_api,
+            site_api_token=constants.Client.code_jam_token
+        )
         await super().setup_hook()
-        create_task(self.load_all_extensions(), event_loop=self.loop)
-        create_task(self.check_channels(), event_loop=self.loop)
-        create_task(self.send_log(constants.Client.name, "Connected!"), event_loop=self.loop)
+        await self.load_extensions(exts)
+        create_task(self.check_channels())
+        create_task(self.send_log(constants.Client.name, "Connected!"))
         self.add_view(JamTeamInfoView(self))
 
     async def check_channels(self) -> None:
@@ -95,57 +72,10 @@ class SirRobin(commands.Bot):
 
         await devlog.send(embed=embed)
 
-    async def on_guild_available(self, guild: discord.Guild) -> None:
-        """
-        Set the internal `_guild_available` event when PyDis guild becomes available.
-
-        If the cache appears to still be empty (no members, no channels, or no roles), the event
-        will not be set.
-        """
-        if guild.id != constants.Client.guild:
+    async def invoke_help_command(self, ctx: commands.Context) -> None:
+        """Invoke the help command or default help command if help extensions is not loaded."""
+        if "bot.exts.core.help" in ctx.bot.extensions:
+            help_command = ctx.bot.get_command("help")
+            await ctx.invoke(help_command, ctx.command.qualified_name)
             return
-
-        if not guild.roles or not guild.members or not guild.channels:
-            log.warning("Guild available event was dispatched but the cache appears to still be empty!")
-            return
-
-        self._guild_available.set()
-
-    async def on_guild_unavailable(self, guild: discord.Guild) -> None:
-        """Clear the internal `_guild_available` event when PyDis guild becomes unavailable."""
-        if guild.id != constants.Client.guild:
-            return
-
-        self._guild_available.clear()
-
-    async def wait_until_guild_available(self) -> None:
-        """
-        Wait until the PyDis guild becomes available (and the cache is ready).
-
-        The on_ready event is inadequate because it only waits 2 seconds for a GUILD_CREATE
-        gateway event before giving up and thus not populating the cache for unavailable guilds.
-        """
-        await self._guild_available.wait()
-
-    async def login(self, *args, **kwargs) -> None:
-        """Re-create the connector and set up sessions before logging into Discord."""
-        # Use asyncio for DNS resolution instead of threads so threads aren't spammed.
-        self._resolver = aiohttp.AsyncResolver()
-
-        # Use AF_INET as its socket family to prevent HTTPS related problems both locally
-        # and in production.
-        self._connector = aiohttp.TCPConnector(
-            resolver=self._resolver,
-            family=socket.AF_INET,
-        )
-
-        # Client.login() will call HTTPClient.static_login() which will create a session using
-        # this connector attribute.
-        self.http.connector = self._connector
-
-        self.http_session = aiohttp.ClientSession(connector=self._connector)
-        self.code_jam_mgmt_api = APIClient(
-            site_api_url=constants.Client.code_jam_api,
-            site_api_token=constants.Client.code_jam_token
-        )
-        await super().login(*args, **kwargs)
+        await ctx.send_help(ctx.command)

@@ -1,7 +1,5 @@
-from typing import Optional
-
 from aiohttp import ClientConnectorError
-from botcore.utils.logging import get_logger
+from pydis_core.utils.logging import get_logger
 
 import bot
 
@@ -11,7 +9,7 @@ FAILED_REQUEST_ATTEMPTS = 3
 PASTE_SERVICE = "https://paste.pythondiscord.com/{key}"
 
 
-async def send_to_paste_service(contents: str, *, extension: str = "") -> Optional[str]:
+async def send_to_paste_service(contents: str, *, extension: str = "") -> str | None:
     """
     Upload `contents` to the paste service.
 

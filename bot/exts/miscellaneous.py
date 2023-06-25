@@ -1,10 +1,9 @@
 import difflib
-from typing import Union
 
-from botcore.utils.logging import get_logger
 from discord import Colour, Embed
 from discord.ext import commands
 from discord.ext.commands import BadArgument
+from pydis_core.utils.logging import get_logger
 
 from bot.bot import SirRobin
 
@@ -40,7 +39,7 @@ class Miscellaneous(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    async def zen(self, ctx: commands.Context, *, search_value: Union[int, str, None] = None) -> None:
+    async def zen(self, ctx: commands.Context, *, search_value: int | str | None = None) -> None:
         """Display the Zen of Python in an embed."""
         embed = Embed(
             colour=Colour.og_blurple(),
