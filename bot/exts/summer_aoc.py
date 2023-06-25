@@ -203,8 +203,6 @@ class SummerAoC(commands.Cog):
     @summer_aoc_group.command(name="stop")
     async def stop(self, ctx: commands.Context) -> None:
         """Stop the event."""
-        self.first_post_date = None  # Clean up; the start date should be reset when the event is started.
-        self.save_event_state()
         was_running = await self.stop_event()
         if was_running:
             await ctx.send("Summer AoC event stopped")
@@ -285,6 +283,7 @@ class SummerAoC(commands.Cog):
             log.debug("Summer AoC stopped during loop task")
 
         self.is_running = False
+        self.first_post_date = None  # Clean up; the start date should be reset when the event is started.
         await self.save_event_state()
         log.info("Summer AoC event stopped")
         return was_waiting or was_looping
