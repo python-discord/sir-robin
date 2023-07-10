@@ -16,8 +16,8 @@ from bot.exts.code_jams._flows import (add_flow, creation_flow, deletion_flow,
                                        move_flow, pin_flow, remove_flow)
 from bot.exts.code_jams._views import (JamConfirmation, JamInfoView,
                                        JamTeamInfoConfirmation)
-from bot.services import send_to_paste_service
 from bot.utils.checks import in_code_jam_category
+from bot.utils.services import send_to_paste_service
 
 log = get_logger(__name__)
 PIN_ALLOWED_ROLES: tuple[int, ...] = (Roles.admins, Roles.code_jam_event_team)

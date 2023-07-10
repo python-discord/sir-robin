@@ -1,24 +1,25 @@
 from aiohttp import ClientConnectorError
-from pydis_core.utils.logging import get_logger
 
 import bot
+from bot.log import get_logger
 
 log = get_logger(__name__)
 
 FAILED_REQUEST_ATTEMPTS = 3
-PASTE_SERVICE = "https://paste.pythondiscord.com/{key}"
+PASTE_URL = "https://paste.pythondiscord.com"
 
 
 async def send_to_paste_service(contents: str, *, extension: str = "") -> str | None:
     """
     Upload `contents` to the paste service.
 
-    `extension` is added to the output URL before being returned. When an error occurs,
-    `None` is returned, otherwise the generated URL with the suffix.
+    `extension` is added to the output URL.
+
+    When an error occurs, `None` is returned, otherwise the generated URL with the suffix.
     """
     extension = extension and f".{extension}"
     log.debug(f"Sending contents of size {len(contents.encode())} bytes to paste service.")
-    paste_url = PASTE_SERVICE.format(key="documents")
+    paste_url = f"{PASTE_URL}/documents"
     for attempt in range(1, FAILED_REQUEST_ATTEMPTS + 1):
         try:
             async with bot.instance.http_session.post(paste_url, data=contents) as response:
@@ -45,7 +46,7 @@ async def send_to_paste_service(contents: str, *, extension: str = "") -> str | 
         elif "key" in response_json:
             log.info(f"Successfully uploaded contents to paste service behind key {response_json['key']}.")
 
-            paste_link = PASTE_SERVICE.format(key=response_json['key']) + extension
+            paste_link = f"{PASTE_URL}/{response_json['key']}{extension}"
 
             if extension == '.py':
                 return paste_link
