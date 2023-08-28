@@ -1,6 +1,7 @@
 import csv
 from collections import defaultdict
 from functools import partial
+from tempfile import TemporaryFile
 
 import discord
 from discord import Colour, Embed, Guild, Member
@@ -16,7 +17,7 @@ from bot.exts.code_jams._flows import (add_flow, creation_flow, deletion_flow,
                                        move_flow, pin_flow, remove_flow)
 from bot.exts.code_jams._views import (JamConfirmation, JamInfoView,
                                        JamTeamInfoConfirmation)
-from bot.services import send_to_paste_service
+
 from bot.utils.checks import in_code_jam_category
 
 log = get_logger(__name__)
@@ -119,22 +120,34 @@ class CodeJams(commands.Cog):
         details += "Roles:\n"
         for role in roles:
             details += f"{role.name}[{role.id}]\n"
-        url = await send_to_paste_service(details)
-        if not url:
-            url = "**Unable to send deletion details to the pasting service.**"
         warning_embed = Embed(title="Are you sure?", colour=discord.Colour.orange())
         warning_embed.add_field(
-            name="For a detailed list of which roles, categories and channels will be deleted see:",
-            value=url
+            name="Roles, categories and channels will be deleted..",
+            value="For an exhaustive list see the attached file.."
         )
         callback = partial(deletion_flow, category_channels, roles)
         confirm_view = JamConfirmation(author=ctx.author, callback=callback)
-        await ctx.send(
-            embed=warning_embed,
-            view=confirm_view
-        )
-        await confirm_view.wait()
-        await ctx.send("Code Jam has officially ended! :sunrise:")
+        try:
+            with TemporaryFile(mode="w+") as f:
+                f.write(details)
+                f.seek(0)
+                await ctx.send(
+                    embed=warning_embed,
+                    view=confirm_view,
+                    file=discord.File(f, filename="list.txt")
+                )
+            await confirm_view.wait()
+
+        except discord.HTTPException:
+            await ctx.send(":x: Something went wrong with uploading the list..")
+            await ctx.send(
+                embed=warning_embed,
+                view=confirm_view,
+            )
+            await confirm_view.wait()
+        finally:
+            await ctx.send("Code Jam has officially ended! :sunrise:")
+
 
     @codejam.command()
     @commands.has_any_role(Roles.admins, Roles.code_jam_event_team)
