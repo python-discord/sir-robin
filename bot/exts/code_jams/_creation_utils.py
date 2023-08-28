@@ -8,7 +8,7 @@ from bot.utils.exceptions import JamCategoryNameConflictError
 log = get_logger(__name__)
 
 MAX_CHANNELS = 50
-CATEGORY_NAME = "Code Jam"
+CATEGORY_NAME = "CODE JAM"
 
 
 async def _create_category(guild: discord.Guild) -> discord.CategoryChannel:
