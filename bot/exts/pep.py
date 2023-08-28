@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 from email.parser import HeaderParser
 from io import StringIO
-from typing import Dict, Tuple
 
 from discord import Colour, Embed
 from discord.ext.commands import Cog, Context, command
@@ -25,7 +24,7 @@ class PythonEnhancementProposals(Cog):
 
     def __init__(self, bot: SirRobin):
         self.bot = bot
-        self.peps: Dict[int, str] = {}
+        self.peps: dict[int, str] = {}
         # To avoid situations where we don't have last datetime, set this to now.
         self.last_refreshed_peps: datetime = datetime.now()
         scheduling.create_task(self.refresh_peps_urls())
@@ -90,7 +89,7 @@ class PythonEnhancementProposals(Cog):
         return None
 
     @staticmethod
-    def generate_pep_embed(pep_header: Dict, pep_nr: int) -> Embed:
+    def generate_pep_embed(pep_header: dict, pep_nr: int) -> Embed:
         """Generate PEP embed based on PEP headers data."""
         # the parsed header can be wrapped to multiple lines, so we need to make sure that is removed
         # for an example of a pep with this issue, see pep 500
@@ -114,7 +113,7 @@ class PythonEnhancementProposals(Cog):
         return pep_embed
 
     @pep_cache(arg_offset=1)
-    async def get_pep_embed(self, pep_nr: int) -> Tuple[Embed, bool]:
+    async def get_pep_embed(self, pep_nr: int) -> tuple[Embed, bool]:
         """Fetch, generate and return PEP embed. Second item of return tuple show does getting success."""
         response = await self.bot.http_session.get(self.peps[pep_nr])
 
@@ -136,7 +135,7 @@ class PythonEnhancementProposals(Cog):
                 colour=Colour.red()
             ), False
 
-    @command(name='pep', aliases=('get_pep', 'p'))
+    @command(name="pep", aliases=("get_pep", "p"))
     async def pep_command(self, ctx: Context, pep_number: int) -> None:
         """Fetches information about a PEP and sends it to the channel."""
         # Trigger typing in chat to show users that bot is responding

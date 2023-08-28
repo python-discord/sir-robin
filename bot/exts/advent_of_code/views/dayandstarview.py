@@ -30,11 +30,11 @@ class AoCDropdownView(discord.ui.View):
         if not (day_and_star_data := self.data.get(f"{self.day}-{self.star}")):
             return ":x: The requested data for the specified day and star does not exist yet."
         for rank, scorer in enumerate(day_and_star_data[:self.maximum_scorers]):
-            time_data = datetime.fromtimestamp(scorer['completion_time']).strftime("%I:%M:%S %p")
+            time_data = datetime.fromtimestamp(scorer["completion_time"]).strftime("%I:%M:%S %p")
             lines.append(AOC_DAY_AND_STAR_TEMPLATE.format(
                 datastamp="",
                 rank=rank + 1,
-                name=scorer['member_name'],
+                name=scorer["member_name"],
                 completion_time=time_data)
             )
         joined_lines = "\n".join(lines)

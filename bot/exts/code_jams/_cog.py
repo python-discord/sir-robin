@@ -12,10 +12,8 @@ from pydis_core.utils.members import get_or_fetch_member
 from bot.bot import SirRobin
 from bot.constants import Roles
 from bot.exts.code_jams import _creation_utils
-from bot.exts.code_jams._flows import (add_flow, creation_flow, deletion_flow,
-                                       move_flow, pin_flow, remove_flow)
-from bot.exts.code_jams._views import (JamConfirmation, JamInfoView,
-                                       JamTeamInfoConfirmation)
+from bot.exts.code_jams._flows import add_flow, creation_flow, deletion_flow, move_flow, pin_flow, remove_flow
+from bot.exts.code_jams._views import JamConfirmation, JamInfoView, JamTeamInfoConfirmation
 from bot.services import send_to_paste_service
 from bot.utils.checks import in_code_jam_category
 
@@ -227,7 +225,7 @@ class CodeJams(commands.Cog):
             roles_raw = await mgmt_client.get("teams", raise_for_status=True, params={"current_jam": "true"})
         except ResponseCodeError:
             log.error("Could not fetch Roles from the Code Jam Management API")
-            return
+            return None
         else:
             roles = []
             for role in roles_raw:
@@ -248,6 +246,7 @@ class CodeJams(commands.Cog):
                             or criterion in channel.overwrites
                     ):
                         return channel
+        return None
 
     @staticmethod
     def team_name(channel: discord.TextChannel) -> str:

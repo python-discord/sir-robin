@@ -7,9 +7,17 @@ from discord.ext.commands import BadArgument
 from bot.constants import Roles
 from bot.exts import code_jams
 from bot.exts.code_jams import _cog, _creation_utils, _flows
-from tests.helpers import (MockAttachment, MockBot, MockCategoryChannel,
-                           MockContext, MockGuild, MockMember, MockRole,
-                           MockTextChannel, autospec)
+from tests.helpers import (
+    MockAttachment,
+    MockBot,
+    MockCategoryChannel,
+    MockContext,
+    MockGuild,
+    MockMember,
+    MockRole,
+    MockTextChannel,
+    autospec,
+)
 
 TEST_CSV = b"""\
 Team Name,Team Member Discord ID,Team Leader
@@ -129,7 +137,6 @@ class JamCodejamCreateTests(unittest.IsolatedAsyncioTestCase):
     @autospec(_creation_utils, "_add_team_leader_roles", pass_mocks=False)
     async def test_team_channels_creation(self, get_category, get_overwrites):
         """Should create a text channel for a team."""
-        team_leaders = MockRole()
         team_role = MockRole()
         category = MockCategoryChannel()
         category.create_text_channel = AsyncMock()

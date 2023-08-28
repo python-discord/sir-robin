@@ -51,7 +51,7 @@ class SirRobin(BotBase):
             if channel_id not in all_channels_ids:
                 log.error(f'Channel "{name}" with ID {channel_id} missing')
 
-    async def send_log(self, title: str, details: str = None, *, icon: str = None) -> None:
+    async def send_log(self, title: str, details: str | None = None, *, icon: str | None = None) -> None:
         """Send an embed message to the devlog channel."""
         await self.wait_until_guild_available()
         devlog = self.get_channel(constants.Channels.devlog)

@@ -28,7 +28,7 @@ Now is better than never.
 Although never is not real because time is fake.
 If the implementation is hard to explain, it's a bad idea.
 If the implementation is compliant with this style guide, it is a great idea
-Namespaces may contribute towards the 120 character minimum — let’s do more of those!
+Namespaces may contribute towards the 120 character minimum — let's do more of those!
 """
 
 

@@ -10,14 +10,20 @@ from discord import app_commands
 from discord.ext import commands, tasks
 
 from bot.bot import SirRobin
-from bot.constants import WHITELISTED_CHANNELS
-from bot.constants import AdventOfCode as AocConfig
-from bot.constants import Channels, Client, Colours, Emojis, Month, Roles
+from bot.constants import (
+    AdventOfCode as AocConfig,
+    Channels,
+    Client,
+    Colours,
+    Emojis,
+    Month,
+    Roles,
+    WHITELISTED_CHANNELS,
+)
 from bot.exts.advent_of_code import _helpers
 from bot.exts.advent_of_code.views.dayandstarview import AoCDropdownView
 from bot.utils import members
-from bot.utils.decorators import (InChannelCheckFailure, in_month,
-                                  whitelist_override, with_role)
+from bot.utils.decorators import InChannelCheckFailure, in_month, whitelist_override, with_role
 from bot.utils.exceptions import MovedCommandError
 
 log = logging.getLogger(__name__)
@@ -98,7 +104,7 @@ class AdventOfCode(commands.Cog):
         placement_leaderboard = json.loads(leaderboard["placement_leaderboard"])
 
         for member_aoc_info in placement_leaderboard.values():
-            if not member_aoc_info["stars"] == 50:
+            if member_aoc_info["stars"] != 50:
                 # Only give the role to people who have completed all 50 stars
                 continue
 
@@ -247,7 +253,7 @@ class AdventOfCode(commands.Cog):
         brief="Tie your Discord account with your Advent of Code name."
     )
     @whitelist_override(channels=AOC_WHITELIST)
-    async def aoc_link_account(self, ctx: commands.Context, *, aoc_name: str = None) -> None:
+    async def aoc_link_account(self, ctx: commands.Context, *, aoc_name: str | None = None) -> None:
         """
         Link your Discord Account to your Advent of Code name.
 
@@ -338,7 +344,7 @@ class AdventOfCode(commands.Cog):
                 return
         # This is a dictionary that contains solvers in respect of day, and star.
         # e.g. 1-1 means the solvers of the first star of the first day and their completion time
-        per_day_and_star = json.loads(leaderboard['leaderboard_per_day_and_star'])
+        per_day_and_star = json.loads(leaderboard["leaderboard_per_day_and_star"])
         view = AoCDropdownView(
             day_and_star_data=per_day_and_star,
             maximum_scorers=maximum_scorers_day_and_star,

@@ -115,7 +115,7 @@ _ALL_QUOTES = (*_SINGLE_QUOTES, *_MULTI_QUOTES)
 
 def get_precedence(node: ast.AST) -> int:
     """Get the precedence of the given node."""
-    if isinstance(node, (ast.BoolOp, ast.BinOp, ast.UnaryOp)):
+    if isinstance(node, ast.BoolOp | ast.BinOp | ast.UnaryOp):
         return precedences[type(node.op)]
     if isinstance(node, ast.Compare):
         return precedences[type(node.ops[0])]
@@ -667,9 +667,9 @@ def unparse(node: ast.AST, nl_able: bool = False, avoid_backslashes: bool = True
         )
     if isinstance(node, ast.Slice):
         lower, upper, step = node.lower, node.upper, node.step
-        lower = '' if lower is None else unparse(lower)
-        upper = '' if upper is None else unparse(upper)
-        step = '' if step is None else unparse(step)
+        lower = "" if lower is None else unparse(lower)
+        upper = "" if upper is None else unparse(upper)
+        step = "" if step is None else unparse(step)
         s = f"{lower}{space()}:{space()}{upper}{space()}:{space()}{step}"
         return ":" if s.replace(" ", "") == "::" else s
     if isinstance(node, ast.Starred):

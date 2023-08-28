@@ -1,5 +1,5 @@
-from collections.abc import Container
-from typing import Callable, NoReturn
+from collections.abc import Callable, Container
+from typing import NoReturn
 
 from discord.ext import commands
 from discord.ext.commands import CheckFailure, Context
@@ -21,7 +21,7 @@ def in_code_jam_category(code_jam_category_name: str) -> Callable:
         if ctx.message.channel.category.name == code_jam_category_name:
             return True
         log.trace(f"{ctx.author} tried to invoke {ctx.command.name} outside of the Code Jam categories.")
-        raise CodeJamCategoryCheckFailure()
+        raise CodeJamCategoryCheckFailure
 
     return commands.check(predicate)
 

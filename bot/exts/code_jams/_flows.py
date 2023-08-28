@@ -142,7 +142,7 @@ async def add_flow(
             if is_leader:
                 await member.add_roles(discord.utils.get(ctx.guild.roles, name=TEAM_LEADER_ROLE_NAME))
             await member.add_roles(ctx.guild.get_role(Roles.code_jam_participants))
-            await member.add_roles(ctx.guild.get_role(team_to_move_in['discord_role_id']))
+            await member.add_roles(ctx.guild.get_role(team_to_move_in["discord_role_id"]))
 
             await ctx.send(
                 f"Success! Participant {member.mention} has been added to {team_to_move_in['name']}."
@@ -242,7 +242,7 @@ async def move_flow(
             log.error(f"Something went wrong with processing the request! {err}")
         return
 
-    await member.add_roles(ctx.guild.get_role(team_to_move_in['discord_role_id']))
+    await member.add_roles(ctx.guild.get_role(team_to_move_in["discord_role_id"]))
 
     await ctx.send(
         f"Success! Participant {member.mention} has been moved "

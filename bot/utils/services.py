@@ -45,9 +45,9 @@ async def send_to_paste_service(contents: str, *, extension: str = "") -> str | 
         elif "key" in response_json:
             log.info(f"Successfully uploaded contents to paste service behind key {response_json['key']}.")
 
-            paste_link = PASTE_SERVICE.format(key=response_json['key']) + extension
+            paste_link = PASTE_SERVICE.format(key=response_json["key"]) + extension
 
-            if extension == '.py':
+            if extension == ".py":
                 return paste_link
 
             return paste_link + "?noredirect"
@@ -56,3 +56,4 @@ async def send_to_paste_service(contents: str, *, extension: str = "") -> str | 
             f"Got unexpected JSON response from paste service: {response_json}\n"
             f"trying again ({attempt}/{FAILED_REQUEST_ATTEMPTS})."
         )
+    return None

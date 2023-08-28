@@ -3,16 +3,15 @@ import functools
 import logging
 import random
 from asyncio import Lock
-from collections.abc import Container
+from collections.abc import Callable, Container
 from functools import wraps
-from typing import Callable
 from weakref import WeakValueDictionary
 
 from discord import Colour, Embed
 from discord.ext import commands
 from discord.ext.commands import CheckFailure, Command, Context
 
-from bot.constants import ERROR_REPLIES, WHITELISTED_CHANNELS, Channels, Month
+from bot.constants import Channels, ERROR_REPLIES, Month, WHITELISTED_CHANNELS
 from bot.utils import human_months, resolve_current_month
 from bot.utils.checks import in_whitelist_check
 
@@ -24,13 +23,11 @@ log = logging.getLogger(__name__)
 class InChannelCheckFailure(CheckFailure):
     """Check failure when the user runs a command in a non-whitelisted channel."""
 
-    pass
 
 
 class InMonthCheckFailure(CheckFailure):
     """Check failure for when a command is invoked outside of its allowed month."""
 
-    pass
 
 
 def seasonal_task(*allowed_months: Month, sleep_time: float | int = ONE_DAY) -> Callable:
@@ -81,6 +78,7 @@ def in_month_listener(*allowed_months: Month) -> Callable:
                 return await listener(*args, **kwargs)
             else:
                 log.debug(f"Guarded {listener.__qualname__} from invoking in {current_month!s}")
+                return None
         return guarded_listener
     return decorator
 
@@ -207,7 +205,7 @@ def whitelist_check(**default_kwargs: Container[int]) -> Callable[[Context], boo
                 overridden_command = command
                 break
         if overridden_command is not None:
-            log.debug(f'Command {overridden_command} has overrides')
+            log.debug(f"Command {overridden_command} has overrides")
             if overridden_command is not ctx.command:
                 log.debug(
                     f"Command '{ctx.command.qualified_name}' inherited overrides "
@@ -344,7 +342,7 @@ def locked() -> Callable | None:
                 )
                 embed.title = random.choice(ERROR_REPLIES)
                 await ctx.send(embed=embed)
-                return
+                return None
 
             async with func.__locks.setdefault(ctx.author.id, Lock()):
                 return await func(self, ctx, *args, **kwargs)

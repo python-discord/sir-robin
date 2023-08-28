@@ -93,8 +93,8 @@ def _format_leaderboard_line(rank: int, data: dict[str, Any], *, is_author: bool
     """
     return AOC_TABLE_TEMPLATE.format(
         rank=rank,
-        name=data['name'] if not is_author else f"(You) {data['name']}",
-        score=str(data['score']),
+        name=data["name"] if not is_author else f"(You) {data['name']}",
+        score=str(data["score"]),
         stars=f"({data['star_1']}, {data['star_2']})"
     )
 
@@ -153,10 +153,10 @@ def _parse_raw_leaderboard_data(raw_leaderboard_data: dict) -> dict:
                     StarResult(member_id=member_id, completion_time=completion_time)
                 )
                 per_day_star_stats[f"{day}-{star}"].append(
-                    {'completion_time': int(data["get_star_ts"]), 'member_name': name}
+                    {"completion_time": int(data["get_star_ts"]), "member_name": name}
                 )
     for key in per_day_star_stats:
-        per_day_star_stats[key] = sorted(per_day_star_stats[key], key=operator.itemgetter('completion_time'))
+        per_day_star_stats[key] = sorted(per_day_star_stats[key], key=operator.itemgetter("completion_time"))
 
     # Now that we have a transposed dataset that holds the completion time of all
     # participants per star, we can compute the rank-based scores each participant
@@ -186,10 +186,10 @@ def _parse_raw_leaderboard_data(raw_leaderboard_data: dict) -> dict:
         # this data to JSON in order to cache it in Redis.
         daily_stats[day] = {"star_one": star_one, "star_two": star_two}
 
-    return {"daily_stats": daily_stats, "leaderboard": sorted_leaderboard, 'per_day_and_star': per_day_star_stats}
+    return {"daily_stats": daily_stats, "leaderboard": sorted_leaderboard, "per_day_and_star": per_day_star_stats}
 
 
-def _format_leaderboard(leaderboard: dict[str, dict], self_placement_name: str = None) -> str:
+def _format_leaderboard(leaderboard: dict[str, dict], self_placement_name: str | None = None) -> str:
     """Format the leaderboard using the AOC_TABLE_TEMPLATE."""
     leaderboard_lines = [HEADER]
     self_placement_exists = False
@@ -234,7 +234,7 @@ async def _leaderboard_request(url: str, board: str, cookies: dict) -> dict[str,
             raise UnexpectedRedirect(f"redirected unexpectedly to {resp.url} for board `{board}`")
 
         # Every status other than `200` is unexpected, not only 400+
-        if not resp.status == 200:
+        if resp.status != 200:
             log.error(f"Unexpected response `{resp.status}` while fetching leaderboard `{board}`")
             log.error(resp)
             raise UnexpectedResponseStatus(f"status `{resp.status}`")
@@ -309,7 +309,7 @@ def _get_top_leaderboard(full_leaderboard: str) -> str:
 
 
 @_caches.leaderboard_cache.atomic_transaction
-async def fetch_leaderboard(invalidate_cache: bool = False, self_placement_name: str = None) -> dict:
+async def fetch_leaderboard(invalidate_cache: bool = False, self_placement_name: str | None = None) -> dict:
     """
     Get the current Python Discord combined leaderboard.
 
@@ -334,7 +334,7 @@ async def fetch_leaderboard(invalidate_cache: bool = False, self_placement_name:
         number_of_participants = len(leaderboard)
         formatted_leaderboard = _format_leaderboard(leaderboard)
         full_leaderboard_url = await _upload_leaderboard(formatted_leaderboard)
-        leaderboard_fetched_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        leaderboard_fetched_at = datetime.datetime.now(datetime.UTC).isoformat()
 
         cached_leaderboard = {
             "placement_leaderboard": json.dumps(raw_leaderboard_data),
@@ -440,7 +440,7 @@ async def get_public_join_code(author: discord.Member) -> str | None:
 
     if current_board_counts.get(best_board, 0) >= 200:
         log.warning(f"User {author} `{author.id}` requested a join code, but all boards are full!")
-        return
+        return None
 
     log.info(f"Assigning user {author} ({author.id}) to board `{best_board}`")
     await _caches.assigned_leaderboard.set(author.id, best_board)

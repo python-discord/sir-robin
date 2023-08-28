@@ -1,7 +1,13 @@
 from discord import Colour, Embed
-from discord.ext.commands import (BadArgument, Cog, CommandError,
-                                  CommandNotFound, Context, MissingAnyRole,
-                                  MissingRequiredArgument)
+from discord.ext.commands import (
+    BadArgument,
+    Cog,
+    CommandError,
+    CommandNotFound,
+    Context,
+    MissingAnyRole,
+    MissingRequiredArgument,
+)
 
 from bot.bot import SirRobin
 from bot.log import get_logger

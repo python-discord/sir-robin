@@ -45,7 +45,7 @@ async def _get_category(guild: discord.Guild) -> discord.CategoryChannel:
     """
     main_cj_category = guild.get_channel(Channels.summer_code_jam).name
     if main_cj_category == CATEGORY_NAME:
-        raise JamCategoryNameConflictError()
+        raise JamCategoryNameConflictError
 
     for category in guild.categories:
         if category.name == CATEGORY_NAME and len(category.channels) < MAX_CHANNELS:

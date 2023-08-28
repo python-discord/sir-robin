@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Any, Callable
+from collections.abc import Callable
+from typing import Any, TYPE_CHECKING
 
 import discord
 from pydis_core.site_api import APIClient, ResponseCodeError
@@ -30,7 +31,7 @@ async def interaction_fetch_user_data(
                 ephemeral=True
             )
             log.error(f"Something went wrong: {err}")
-        return
+        return None
     else:
         return user
 
@@ -38,13 +39,13 @@ async def interaction_fetch_user_data(
 class JamTeamInfoConfirmation(discord.ui.View):
     """A basic view to confirm Team announcement."""
 
-    def __init__(self, bot: 'SirRobin', guild: discord.Guild, original_author: discord.Member):
+    def __init__(self, bot: "SirRobin", guild: discord.Guild, original_author: discord.Member):
         super().__init__()
         self.bot = bot
         self.guild = guild
         self.original_author = original_author
 
-    @discord.ui.button(label='Cancel', style=discord.ButtonStyle.grey)
+    @discord.ui.button(label="Cancel", style=discord.ButtonStyle.grey)
     async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         """A button to cancel the announcement."""
         button.label = "Cancelled"
@@ -53,7 +54,7 @@ class JamTeamInfoConfirmation(discord.ui.View):
         await interaction.response.edit_message(view=self)
         self.stop()
 
-    @discord.ui.button(label='Announce teams', style=discord.ButtonStyle.green)
+    @discord.ui.button(label="Announce teams", style=discord.ButtonStyle.green)
     async def announce(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         """A button to send the announcement."""
         button.label = "Teams have been announced!"
@@ -103,7 +104,7 @@ class JamTeamInfoConfirmation(discord.ui.View):
 class JamTeamInfoView(discord.ui.View):
     """A persistent view to show Team related data to users."""
 
-    def __init__(self, bot: 'SirRobin'):
+    def __init__(self, bot: "SirRobin"):
         super().__init__(timeout=None)
         self.bot = bot
 
@@ -159,7 +160,7 @@ class JamConfirmation(discord.ui.View):
         self.original_author = author
         self.callback = callback
 
-    @discord.ui.button(label='Cancel', style=discord.ButtonStyle.grey)
+    @discord.ui.button(label="Cancel", style=discord.ButtonStyle.grey)
     async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         """A button to cancel an action."""
         button.label = "Cancelled"
@@ -168,7 +169,7 @@ class JamConfirmation(discord.ui.View):
         await interaction.response.edit_message(view=self)
         self.stop()
 
-    @discord.ui.button(label='Confirm', style=discord.ButtonStyle.green)
+    @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
     async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         """A button to confirm an action."""
         button.label = "Confirmed"
@@ -251,7 +252,7 @@ class AddNoteModal(discord.ui.Modal, title="Add a Note for a Code Jam Participan
                     log.error(f"Something went wrong: {err}")
                 return
             else:
-                await interaction.response.send_message('Your note has been saved!', ephemeral=True)
+                await interaction.response.send_message("Your note has been saved!", ephemeral=True)
 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         """Discord.py default to handle modal error."""
@@ -271,12 +272,12 @@ class JamInfoView(discord.ui.View):
         self.member = member
         self.author = author
 
-    @discord.ui.button(label='Add Note', style=discord.ButtonStyle.green)
+    @discord.ui.button(label="Add Note", style=discord.ButtonStyle.green)
     async def add_note(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         """A button to add a note."""
         await interaction.response.send_modal(AddNoteModal(self.member, self.mgmt_client))
 
-    @discord.ui.button(label='View notes', style=discord.ButtonStyle.green)
+    @discord.ui.button(label="View notes", style=discord.ButtonStyle.green)
     async def view_notes(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         """A button to view the notes of a participant."""
         if not (user := await interaction_fetch_user_data(f"users/{self.member.id}", self.mgmt_client, interaction)):
