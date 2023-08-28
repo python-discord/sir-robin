@@ -61,6 +61,7 @@ class ErrorHandler(Cog):
         elif isinstance(error, CodeJamCategoryCheckFailure):
             # Silently fail, as SirRobin should not respond
             # to any of the CJ related commands outside of the CJ categories.
+            log.error(exc_info=error)
             return
 
         # If we haven't handled it by this point, it is considered an unexpected/handled error.
