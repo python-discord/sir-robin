@@ -17,7 +17,6 @@ from bot.exts.code_jams._flows import (add_flow, creation_flow, deletion_flow,
                                        move_flow, pin_flow, remove_flow)
 from bot.exts.code_jams._views import (JamConfirmation, JamInfoView,
                                        JamTeamInfoConfirmation)
-
 from bot.utils.checks import in_code_jam_category
 
 log = get_logger(__name__)
@@ -147,7 +146,6 @@ class CodeJams(commands.Cog):
             await confirm_view.wait()
         finally:
             await ctx.send("Code Jam has officially ended! :sunrise:")
-
 
     @codejam.command()
     @commands.has_any_role(Roles.admins, Roles.code_jam_event_team)
