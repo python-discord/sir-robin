@@ -199,7 +199,7 @@ class JamConfirmation(discord.ui.View):
             await interaction.channel.send(
                 ":x: Something went wrong when confirming the view. Full details have been logged."
             )
-            log.error(f"Something went wrong: {error}")
+            log.exception("Something went wrong", exc_info=error)
 
 
 class AddNoteModal(discord.ui.Modal, title="Add a Note for a Code Jam Participant"):
