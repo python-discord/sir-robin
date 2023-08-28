@@ -1,7 +1,7 @@
 import dataclasses
 import enum
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 from os import environ
 from typing import NamedTuple
 
@@ -69,7 +69,7 @@ class AdventOfCode:
     leaderboard_displayed_members = 10
     leaderboard_cache_expiry_seconds = 1800
     max_day_and_star_results = 15
-    year = int(environ.get("AOC_YEAR", datetime.utcnow().year))
+    year = int(environ.get("AOC_YEAR", datetime.now(tz=UTC).year))
     role_id = int(environ.get("AOC_ROLE_ID", 518565788744024082))
 
 

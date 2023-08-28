@@ -226,33 +226,33 @@ class AddNoteModal(discord.ui.Modal, title="Add a Note for a Code Jam Participan
                 )
         ):
             return
-        else:
-            jam_id = user["team"]["jam_id"]
-            try:
-                await self.mgmt_client.post(
-                    "infractions",
-                    json={
-                        "user_id": self.member.id,
-                        "jam_id": jam_id, "reason": self.note.value,
-                        "infraction_type": "note"
-                    },
-                    raise_for_status=True
+
+        jam_id = user["team"]["jam_id"]
+        try:
+            await self.mgmt_client.post(
+                "infractions",
+                json={
+                    "user_id": self.member.id,
+                    "jam_id": jam_id, "reason": self.note.value,
+                    "infraction_type": "note"
+                },
+                raise_for_status=True
+            )
+        except ResponseCodeError as err:
+            if err.response.status == 404:
+                await interaction.response.send_message(
+                    ":x: The user could not be found!",
+                    ephemeral=True
                 )
-            except ResponseCodeError as err:
-                if err.response.status == 404:
-                    await interaction.response.send_message(
-                        ":x: The user could not be found!",
-                        ephemeral=True
-                    )
-                else:
-                    await interaction.response.send_message(
-                        ":x: Something went wrong! Full details have been logged.",
-                        ephemeral=True
-                    )
-                    log.error(f"Something went wrong: {err}")
-                return
             else:
-                await interaction.response.send_message("Your note has been saved!", ephemeral=True)
+                await interaction.response.send_message(
+                    ":x: Something went wrong! Full details have been logged.",
+                    ephemeral=True
+                )
+                log.error(f"Something went wrong: {err}")
+            return
+        else:
+            await interaction.response.send_message("Your note has been saved!", ephemeral=True)
 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         """Discord.py default to handle modal error."""
@@ -282,24 +282,24 @@ class JamInfoView(discord.ui.View):
         """A button to view the notes of a participant."""
         if not (user := await interaction_fetch_user_data(f"users/{self.member.id}", self.mgmt_client, interaction)):
             return
+
+        part_history = user["participation_history"]
+        notes = []
+        for entry in part_history:
+            for infraction in entry["infractions"]:
+                notes.append(infraction)
+        if not notes:
+            await interaction.response.send_message(
+                f":x: {self.member.mention} doesn't have any notes yet.",
+                ephemeral=True
+            )
         else:
-            part_history = user["participation_history"]
-            notes = []
-            for entry in part_history:
-                for infraction in entry["infractions"]:
-                    notes.append(infraction)
-            if not notes:
-                await interaction.response.send_message(
-                    f":x: {self.member.mention} doesn't have any notes yet.",
-                    ephemeral=True
-                )
-            else:
-                if len(notes) > 25:
-                    notes = notes[:25]
-                notes_embed = discord.Embed(title=f"Notes on {self.member.name}", colour=discord.Colour.orange())
-                for note in notes:
-                    notes_embed.add_field(name=f"Jam - (ID: {note['jam_id']})", value=note["reason"])
-                await interaction.response.send_message(embed=notes_embed, ephemeral=True)
+            if len(notes) > 25:
+                notes = notes[:25]
+            notes_embed = discord.Embed(title=f"Notes on {self.member.name}", colour=discord.Colour.orange())
+            for note in notes:
+                notes_embed.add_field(name=f"Jam - (ID: {note['jam_id']})", value=note["reason"])
+            await interaction.response.send_message(embed=notes_embed, ephemeral=True)
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         """Global check to ensure the interacting user is an admin."""

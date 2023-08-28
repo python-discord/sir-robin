@@ -3,7 +3,7 @@ import contextlib
 import re
 import string
 from collections.abc import Iterable
-from datetime import datetime
+from datetime import UTC, datetime
 
 import discord
 from discord.ext.commands import BadArgument, Context
@@ -26,8 +26,7 @@ def resolve_current_month() -> Month:
     """
     if Client.month_override is not None:
         return Month(Client.month_override)
-    else:
-        return Month(datetime.utcnow().month)
+    return Month(datetime.now(tz=UTC).month)
 
 
 async def disambiguate(
@@ -151,10 +150,9 @@ def replace_many(
         cleaned_word = word.translate(str.maketrans("", "", string.punctuation))
         if cleaned_word.isupper():
             return replacement.upper()
-        elif cleaned_word[0].isupper():
+        if cleaned_word[0].isupper():
             return replacement.capitalize()
-        else:
-            return replacement.lower()
+        return replacement.lower()
 
     return regex.sub(_repl, sentence)
 

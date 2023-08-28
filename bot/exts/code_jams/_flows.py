@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from urllib.parse import quote as quote_url
 
 import discord
@@ -33,7 +33,7 @@ async def creation_flow(
     """
     team_leaders = await ctx.guild.create_role(name=TEAM_LEADER_ROLE_NAME, colour=TEAM_LEADERS_COLOUR)
     await _creation_utils.create_team_leader_channel(ctx.guild, team_leaders)
-    jam_api_format = {"name": f"Summer Code Jam {datetime.now().year}", "ongoing": True, "teams": []}
+    jam_api_format = {"name": f"Summer Code Jam {datetime.now(tz=UTC).year}", "ongoing": True, "teams": []}
     for team_name, team_members in teams.items():
         team_role = await _creation_utils.create_team_role(
             ctx.guild,
@@ -320,7 +320,7 @@ async def pin_flow(
     if referenced_message.pinned and not unpin:
         await ctx.reply(":x: The message has already been pinned!")
         return
-    elif not referenced_message.pinned and unpin:
+    if not referenced_message.pinned and unpin:
         await ctx.reply(":x: The message has already been unpinned!")
         return
 

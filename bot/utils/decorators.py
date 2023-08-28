@@ -76,9 +76,9 @@ def in_month_listener(*allowed_months: Month) -> Callable:
             if current_month in allowed_months:
                 # Propagate return value although it should always be None
                 return await listener(*args, **kwargs)
-            else:
-                log.debug(f"Guarded {listener.__qualname__} from invoking in {current_month!s}")
-                return None
+
+            log.debug(f"Guarded {listener.__qualname__} from invoking in {current_month!s}")
+            return None
         return guarded_listener
     return decorator
 
@@ -99,8 +99,7 @@ def in_month_command(*allowed_months: Month) -> Callable:
         )
         if can_run:
             return True
-        else:
-            raise InMonthCheckFailure(f"Command can only be used in {human_months(allowed_months)}")
+        raise InMonthCheckFailure(f"Command can only be used in {human_months(allowed_months)}")
 
     return commands.check(predicate)
 

@@ -148,7 +148,7 @@ def _parse_raw_leaderboard_data(raw_leaderboard_data: dict) -> dict:
                 leaderboard[member_id][f"star_{star}"] += 1
 
                 # Record completion datetime for this participant for this day/star
-                completion_time = datetime.datetime.fromtimestamp(int(data["get_star_ts"]))
+                completion_time = datetime.datetime.fromtimestamp(int(data["get_star_ts"]), tz=datetime.UTC)
                 star_results[(day, star)].append(
                     StarResult(member_id=member_id, completion_time=completion_time)
                 )
@@ -492,7 +492,7 @@ async def wait_for_advent_of_code(*, hours_before: int = 1) -> None:
     if we're already past the Advent of Code edition the bot is currently
     configured for.
     """
-    start = arrow.get(datetime.datetime(AdventOfCode.year, 12, 1), EST)
+    start = arrow.get(datetime.datetime(AdventOfCode.year, 12, 1, tzinfo=datetime.UTC), EST)
     target = start - datetime.timedelta(hours=hours_before)
     now = arrow.now(EST)
 
@@ -529,7 +529,7 @@ async def countdown_status(bot: SirRobin) -> None:
     # sleeping for the entire year, it will only wait in the currently
     # configured year. This means that the task will only start hibernating once
     # we start preparing the next event by changing environment variables.
-    last_challenge = arrow.get(datetime.datetime(AdventOfCode.year, 12, 25), EST)
+    last_challenge = arrow.get(datetime.datetime(AdventOfCode.year, 12, 25, tzinfo=datetime.UTC), EST)
     end = last_challenge + datetime.timedelta(hours=1)
 
     while arrow.now(EST) < end:
@@ -586,7 +586,7 @@ async def new_puzzle_notification(bot: SirRobin) -> None:
 
     # The last event day is 25 December, so we only have to schedule
     # a reminder if the current day is before 25 December.
-    end = arrow.get(datetime.datetime(AdventOfCode.year, 12, 25), EST)
+    end = arrow.get(datetime.datetime(AdventOfCode.year, 12, 25, tzinfo=datetime.UTC), EST)
     while arrow.now(EST) < end:
         log.trace("Started puzzle notification loop.")
         tomorrow, time_left = time_left_to_est_midnight()

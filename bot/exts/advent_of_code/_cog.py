@@ -1,6 +1,6 @@
 import json
 import logging
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import arrow
@@ -177,8 +177,8 @@ class AdventOfCode(commands.Cog):
 
         datetime_now = arrow.now(_helpers.EST)
         # Calculate the delta to this & next year's December 1st to see which one is closest and not in the past
-        this_year = arrow.get(datetime(datetime_now.year, 12, 1), _helpers.EST)
-        next_year = arrow.get(datetime(datetime_now.year + 1, 12, 1), _helpers.EST)
+        this_year = arrow.get(datetime(datetime_now.year, 12, 1, tzinfo=UTC), _helpers.EST)
+        next_year = arrow.get(datetime(datetime_now.year + 1, 12, 1, tzinfo=UTC), _helpers.EST)
         deltas = (dec_first - datetime_now for dec_first in (this_year, next_year))
         delta = min(delta for delta in deltas if delta >= timedelta())  # timedelta() gives 0 duration delta
 
@@ -200,7 +200,7 @@ class AdventOfCode(commands.Cog):
     @app_commands.guild_only()
     async def join_leaderboard(self, interaction: discord.Interaction) -> None:
         """Send the user an ephemeral message with the information for joining the Python Discord leaderboard."""
-        current_date = datetime.now()
+        current_date = datetime.now(tz=UTC)
         allowed_months = (Month.NOVEMBER.value, Month.DECEMBER.value)
         if not (
             current_date.month in allowed_months and current_date.year == AocConfig.year
@@ -267,7 +267,7 @@ class AdventOfCode(commands.Cog):
             if aoc_name == await self.account_links.get(ctx.author.id):
                 await ctx.reply(f"{aoc_name} is already tied to your account.")
                 return
-            elif aoc_name in cache_aoc_names:
+            if aoc_name in cache_aoc_names:
                 log.info(
                     f"{ctx.author} ({ctx.author.id}) tried to connect their account to {aoc_name},"
                     " but it's already connected to another user."
@@ -394,9 +394,11 @@ class AdventOfCode(commands.Cog):
         top_count = min(AocConfig.leaderboard_displayed_members, number_of_participants)
         self_placement_header = " (and your personal stats compared to the top 10)" if aoc_name else ""
         header = f"Here's our current top {top_count}{self_placement_header}! {Emojis.christmas_tree * 3}"
-        table = "```\n" \
-                f"{leaderboard['placement_leaderboard'] if aoc_name else leaderboard['top_leaderboard']}" \
-                "\n```"
+        table = (
+            "```\n"
+            f"{leaderboard['placement_leaderboard'] if aoc_name else leaderboard['top_leaderboard']}"
+             "\n```"
+        )
         info_embed = _helpers.get_summary_embed(leaderboard)
 
         await ctx.send(content=f"{header}\n\n{table}", embed=info_embed)
@@ -485,7 +487,7 @@ class AdventOfCode(commands.Cog):
             title=self._base_url,
             colour=Colours.soft_green,
             url=self._base_url,
-            timestamp=datetime.utcnow()
+            timestamp=datetime.now(tz=UTC)
         )
         about_embed.set_author(name="Advent of Code", url=self._base_url)
         for field in embed_fields:

@@ -42,7 +42,7 @@ async def send_to_paste_service(contents: str, *, extension: str = "") -> str | 
                 f"trying again ({attempt}/{FAILED_REQUEST_ATTEMPTS})."
             )
             continue
-        elif "key" in response_json:
+        if "key" in response_json:
             log.info(f"Successfully uploaded contents to paste service behind key {response_json['key']}.")
 
             paste_link = PASTE_SERVICE.format(key=response_json["key"]) + extension

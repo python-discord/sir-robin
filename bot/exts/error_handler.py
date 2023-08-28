@@ -52,19 +52,19 @@ class ErrorHandler(Cog):
             embed = self._get_error_embed("Bad argument", str(error))
             await ctx.send(embed=embed)
             return
-        elif isinstance(error, CommandNotFound):
+        if isinstance(error, CommandNotFound):
             embed = self._get_error_embed("Command not found", str(error))
             await ctx.send(embed=embed)
             return
-        elif isinstance(error, MissingRequiredArgument):
+        if isinstance(error, MissingRequiredArgument):
             embed = self._get_error_embed("Missing required argument", str(error))
             await ctx.send(embed=embed)
             return
-        elif isinstance(error, MissingAnyRole):
+        if isinstance(error, MissingAnyRole):
             embed = self._get_error_embed("Permission error", "You are not allowed to use this command!")
             await ctx.send(embed=embed)
             return
-        elif isinstance(error, CodeJamCategoryCheckFailure):
+        if isinstance(error, CodeJamCategoryCheckFailure):
             # Silently fail, as SirRobin should not respond
             # to any of the CJ related commands outside of the CJ categories.
             log.error(exc_info=error)

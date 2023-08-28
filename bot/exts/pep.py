@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from email.parser import HeaderParser
 from io import StringIO
 
@@ -26,7 +26,7 @@ class PythonEnhancementProposals(Cog):
         self.bot = bot
         self.peps: dict[int, str] = {}
         # To avoid situations where we don't have last datetime, set this to now.
-        self.last_refreshed_peps: datetime = datetime.now()
+        self.last_refreshed_peps: datetime = datetime.now(tz=UTC)
         scheduling.create_task(self.refresh_peps_urls())
 
     async def refresh_peps_urls(self) -> None:
@@ -34,7 +34,7 @@ class PythonEnhancementProposals(Cog):
         # Wait until HTTP client is available
         await self.bot.wait_until_ready()
         log.trace("Started refreshing PEP URLs.")
-        self.last_refreshed_peps = datetime.now()
+        self.last_refreshed_peps = datetime.now(tz=UTC)
 
         async with self.bot.http_session.get(
             PEPS_LISTING_API_URL
@@ -73,7 +73,7 @@ class PythonEnhancementProposals(Cog):
         """Validate is PEP number valid. When it isn't, return error embed, otherwise None."""
         if (
             pep_nr not in self.peps
-            and (self.last_refreshed_peps + timedelta(minutes=30)) <= datetime.now()
+            and (self.last_refreshed_peps + timedelta(minutes=30)) <= datetime.now(tz=UTC)
             and len(str(pep_nr)) < 5
         ):
             await self.refresh_peps_urls()
@@ -125,15 +125,15 @@ class PythonEnhancementProposals(Cog):
             pep_header = HeaderParser().parse(StringIO(pep_content))
 
             return self.generate_pep_embed(pep_header, pep_nr), True
-        else:
-            log.trace(
-                f"The user requested PEP {pep_nr}, but the response had an unexpected status code: {response.status}."
-            )
-            return Embed(
-                title="Unexpected error",
-                description="Unexpected HTTP error during PEP search. Please let us know.",
-                colour=Colour.red()
-            ), False
+
+        log.trace(
+            f"The user requested PEP {pep_nr}, but the response had an unexpected status code: {response.status}."
+        )
+        return Embed(
+            title="Unexpected error",
+            description="Unexpected HTTP error during PEP search. Please let us know.",
+            colour=Colour.red()
+        ), False
 
     @command(name="pep", aliases=("get_pep", "p"))
     async def pep_command(self, ctx: Context, pep_number: int) -> None:
