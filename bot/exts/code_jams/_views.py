@@ -68,6 +68,27 @@ class JamTeamInfoConfirmation(discord.ui.View):
             view=JamTeamInfoView(self.bot)
         )
 
+        teams = await self.bot.code_jam_mgmt_api.get(
+            "teams/",
+            raise_for_status=True
+        )
+
+        for team in teams:
+            team_channel = self.guild.get_channel(team["discord_channel_id"])
+            team_message = []
+            for member in team["users"]:
+                message = f"- <@{member['user_id']}>"
+                if member["is_leader"]:
+                    message += " (Team Leader)"
+                team_message.append(message)
+            message = "\n".join(team_message)
+
+            await team_channel.send(
+                f"Your team is {team['name']}\n"
+                "Team Members:\n"
+                f"{message}"
+            )
+
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         """Global check to ensure that the interacting user is the user who invoked the command originally."""
         if interaction.user != self.original_author:
@@ -167,7 +188,7 @@ class JamConfirmation(discord.ui.View):
             return False
         return True
 
-    async def on_error(self, error: Exception, item: discord.ui.Item[Any], interaction: discord.Interaction) -> None:
+    async def on_error(self, interaction: discord.Interaction, error: Exception, item: discord.ui.Item[Any]) -> None:
         """Discord.py default to handle a view error."""
         if isinstance(error, JamCategoryNameConflictError):
             await interaction.channel.send(
@@ -232,7 +253,7 @@ class AddNoteModal(discord.ui.Modal, title="Add a Note for a Code Jam Participan
             else:
                 await interaction.response.send_message('Your note has been saved!', ephemeral=True)
 
-    async def on_error(self, error: Exception, interaction: discord.Interaction) -> None:
+    async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         """Discord.py default to handle modal error."""
         await interaction.response.send_message(":x: Something went wrong while processing your form.", ephemeral=True)
 

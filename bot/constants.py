@@ -141,6 +141,9 @@ class Roles(NamedTuple):
     code_jam_participants = int(environ.get("CODE_JAM_PARTICIPANTS", 991678713093705781))
     helpers = int(environ.get("ROLE_HELPERS", 267630620367257601))
     aoc_completionist = int(environ.get("AOC_COMPLETIONIST_ROLE_ID", 916691790181056532))
+    bot_sir_robin = int(environ.get("BOT_SIR_ROBIN", 945317561472544838))
+    bot_sir_lancebot = int(environ.get("BOT_SIR_LANCEBOT", 807437823262982144))
+    bot_python = int(environ.get("BOT_PYTHON", 270988689419665409))
 
 
 class RedisConfig(NamedTuple):
