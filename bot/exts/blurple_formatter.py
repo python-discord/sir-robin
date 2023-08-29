@@ -3,10 +3,14 @@ import traceback
 
 import discord
 from discord.ext import commands
+from pydis_core.utils.logging import get_logger
+from pydis_core.utils.paste_service import PasteFile, PasteTooLongError, PasteUploadError, send_to_paste_service
 from pydis_core.utils.regex import FORMATTED_CODE_REGEX
 
 from bot.bot import SirRobin
-from bot.utils import blurple_formatter, services
+from bot.utils import blurple_formatter
+
+logger = get_logger()
 
 
 class BlurpleFormatter(commands.Cog):
@@ -41,12 +45,21 @@ class BlurpleFormatter(commands.Cog):
             return
 
         if len(blurpified) > 2000:
-            paste = await services.send_to_paste_service(blurpified)
-            if not paste:
+            paste_file = PasteFile(content=blurpified)
+            try:
+                paste = await send_to_paste_service(
+                    files=[paste_file],
+                    http_session=self.bot.http_session,
+                )
+            except PasteUploadError:
+                logger.exception("Generic upload error from paste service:")
                 await ctx.send(":warning: Failed to upload full output")
-            else:
-                await ctx.send(f":white_check_mark: Formatted code too big, full output: {paste}")
+                return
+            except PasteTooLongError:
+                await ctx.send(":warning: Failed to upload full output, too long for paste service.")
+                return
 
+            await ctx.send(f":white_check_mark: Formatted code too big, full output: {paste.link}")
             return
 
         await ctx.send(f"```py\n{blurpified}\n```", allowed_mentions=discord.AllowedMentions.none())

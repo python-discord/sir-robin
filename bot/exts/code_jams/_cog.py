@@ -8,13 +8,13 @@ from discord.ext import commands
 from pydis_core.site_api import APIClient, ResponseCodeError
 from pydis_core.utils.logging import get_logger
 from pydis_core.utils.members import get_or_fetch_member
+from pydis_core.utils.paste_service import PasteFile, PasteTooLongError, PasteUploadError, send_to_paste_service
 
 from bot.bot import SirRobin
 from bot.constants import Roles
 from bot.exts.code_jams import _creation_utils
 from bot.exts.code_jams._flows import add_flow, creation_flow, deletion_flow, move_flow, pin_flow, remove_flow
 from bot.exts.code_jams._views import JamConfirmation, JamInfoView, JamTeamInfoConfirmation
-from bot.services import send_to_paste_service
 from bot.utils.checks import in_code_jam_category
 
 log = get_logger(__name__)
@@ -117,9 +117,18 @@ class CodeJams(commands.Cog):
         details += "Roles:\n"
         for role in roles:
             details += f"{role.name}[{role.id}]\n"
-        url = await send_to_paste_service(details)
-        if not url:
+        paste_file = PasteFile(content=details)
+        try:
+            paste_response = await send_to_paste_service(
+                files=[paste_file],
+                http_session=self.bot.http_session,
+            )
+            url = paste_response.link
+        except PasteUploadError:
+            log.exception("Generic upload error from paste service:")
             url = "**Unable to send deletion details to the pasting service.**"
+        except PasteTooLongError:
+            url = "**Unable to send deletion details to the pasting service, content too long**"
         warning_embed = Embed(title="Are you sure?", colour=discord.Colour.orange())
         warning_embed.add_field(
             name="For a detailed list of which roles, categories and channels will be deleted see:",
