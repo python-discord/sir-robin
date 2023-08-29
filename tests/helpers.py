@@ -6,13 +6,16 @@ import logging
 import unittest.mock
 from asyncio import AbstractEventLoop
 from collections.abc import Iterable
+from contextlib import contextmanager
+from functools import cached_property
 
 import discord
 from aiohttp import ClientSession
 from discord.ext.commands import Context
+from pydis_core.async_stats import AsyncStatsClient
 from pydis_core.site_api import APIClient
 
-from bot.bot import SirRobin as Bot
+from bot.bot import SirRobin
 from tests._autospec import autospec  # noqa: F401 other modules import it via this module
 
 for logger in logging.Logger.manager.loggerDict.values():
@@ -173,9 +176,16 @@ class MockGuild(CustomMockMixin, unittest.mock.Mock, HashableMixin):
         default_kwargs = {"id": next(self.discord_id), "members": [], "chunked": True}
         super().__init__(**collections.ChainMap(kwargs, default_kwargs))
 
-        self.roles = [MockRole(name="@everyone", position=1, id=0)]
         if roles:
-            self.roles.extend(roles)
+            self.roles = [
+                MockRole(name="@everyone", position=1, id=0),
+                *roles
+            ]
+
+    @cached_property
+    def roles(self) -> list[MockRole]:
+        """Cached roles property."""
+        return [MockRole(name="@everyone", position=1, id=0)]
 
 
 # Create a Role instance to get a realistic Mock of `discord.Role`
@@ -221,7 +231,7 @@ class MockRole(CustomMockMixin, unittest.mock.Mock, ColourMixin, HashableMixin):
 
 
 # Create a Member instance to get a realistic Mock of `discord.Member`
-member_data = {"user": "lemon", "roles": [1]}
+member_data = {"user": "lemon", "roles": [1], "flags": 2}
 state_mock = unittest.mock.MagicMock()
 member_instance = discord.Member(data=member_data, guild=guild_instance, state=state_mock)
 
@@ -246,6 +256,9 @@ class MockMember(CustomMockMixin, unittest.mock.Mock, ColourMixin, HashableMixin
 
         if "mention" not in kwargs:
             self.mention = f"@{self.name}"
+
+    def get_role(self, role_id: int) -> MockRole | None:
+        return discord.utils.get(self.roles, id=role_id)
 
 
 # Create a User instance to get a realistic Mock of `discord.User`
@@ -307,7 +320,7 @@ class MockBot(CustomMockMixin, unittest.mock.MagicMock):
     Instances of this class will follow the specifications of `discord.ext.commands.Bot` instances.
     For more information, see the `MockGuild` docstring.
     """
-    spec_set = Bot(
+    spec_set = SirRobin(
         command_prefix=unittest.mock.MagicMock(),
         loop=_get_mock_loop(),
         redis_session=unittest.mock.MagicMock(),
@@ -316,14 +329,32 @@ class MockBot(CustomMockMixin, unittest.mock.MagicMock):
         guild_id=1,
         intents=discord.Intents.all(),
     )
-    additional_spec_asyncs = ("wait_for", "redis_ready")
+    additional_spec_asyncs = ("wait_for",)
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
-        self.loop = _get_mock_loop()
-        self.http_session = unittest.mock.create_autospec(spec=ClientSession, spec_set=True)
         self.add_cog = unittest.mock.AsyncMock()
+
+    @cached_property
+    def loop(self) -> unittest.mock.Mock:
+        """Cached loop property."""
+        return _get_mock_loop()
+
+    @cached_property
+    def api_client(self) -> MockAPIClient:
+        """Cached api_client property."""
+        return MockAPIClient()
+
+    @cached_property
+    def http_session(self) -> unittest.mock.Mock:
+        """Cached http_session property."""
+        return unittest.mock.create_autospec(spec=ClientSession, spec_set=True)
+
+    @cached_property
+    def stats(self) -> unittest.mock.Mock:
+        """Cached stats property."""
+        return unittest.mock.create_autospec(spec=AsyncStatsClient, spec_set=True)
 
 
 # Create a TextChannel instance to get a realistic MagicMock of `discord.TextChannel`
@@ -390,15 +421,15 @@ dm_channel_instance = discord.DMChannel(me=me, state=state, data=dm_channel_data
 
 class MockDMChannel(CustomMockMixin, unittest.mock.Mock, HashableMixin):
     """
-    A MagicMock subclass to mock TextChannel objects.
+    A MagicMock subclass to mock DMChannel objects.
 
-    Instances of this class will follow the specifications of `discord.TextChannel` instances. For
+    Instances of this class will follow the specifications of `discord.DMChannel` instances. For
     more information, see the `MockGuild` docstring.
     """
     spec_set = dm_channel_instance
 
     def __init__(self, **kwargs) -> None:
-        default_kwargs = {"id": next(self.discord_id), "recipient": MockUser(), "me": MockUser()}
+        default_kwargs = {"id": next(self.discord_id), "recipient": MockUser(), "me": MockUser(), "guild": None}
         super().__init__(**collections.ChainMap(kwargs, default_kwargs))
 
 
@@ -420,7 +451,7 @@ category_channel_instance = discord.CategoryChannel(
 class MockCategoryChannel(CustomMockMixin, unittest.mock.Mock, HashableMixin):
     def __init__(self, **kwargs) -> None:
         default_kwargs = {"id": next(self.discord_id)}
-        super().__init__(**collections.ChainMap(default_kwargs, kwargs))
+        super().__init__(**collections.ChainMap(kwargs, default_kwargs))
 
 
 # Create a Message instance to get a realistic MagicMock of `discord.Message`
@@ -476,7 +507,37 @@ class MockContext(CustomMockMixin, unittest.mock.MagicMock):
         self.invoked_from_error_handler = kwargs.get("invoked_from_error_handler", False)
 
 
-attachment_instance = discord.Attachment(data=unittest.mock.MagicMock(id=1), state=unittest.mock.MagicMock())
+class MockInteraction(CustomMockMixin, unittest.mock.MagicMock):
+    """
+    A MagicMock subclass to mock Interaction objects.
+
+    Instances of this class will follow the specifications of `discord.Interaction`
+    instances. For more information, see the `MockGuild` docstring.
+    """
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.me = kwargs.get("me", MockMember())
+        self.client = kwargs.get("client", MockBot())
+        self.guild = kwargs.get("guild", MockGuild())
+        self.user = kwargs.get("user", MockMember())
+        self.channel = kwargs.get("channel", MockTextChannel())
+        self.message = kwargs.get("message", MockMessage())
+        self.invoked_from_error_handler = kwargs.get("invoked_from_error_handler", False)
+
+
+attachment_data = {
+    "id": 1,
+    "size": 14,
+    "filename": "jchrist.png",
+    "url": "https://google.com",
+    "proxy_url": "https://google.com",
+    "waveform": None,
+}
+attachment_instance = discord.Attachment(
+    data=attachment_data,
+    state=unittest.mock.MagicMock(),
+)
 
 
 class MockAttachment(CustomMockMixin, unittest.mock.MagicMock):
@@ -487,6 +548,28 @@ class MockAttachment(CustomMockMixin, unittest.mock.MagicMock):
     more information, see the `MockGuild` docstring.
     """
     spec_set = attachment_instance
+
+
+message_reference_instance = discord.MessageReference(
+    message_id=unittest.mock.MagicMock(id=1),
+    channel_id=unittest.mock.MagicMock(id=2),
+    guild_id=unittest.mock.MagicMock(id=3)
+)
+
+
+class MockMessageReference(CustomMockMixin, unittest.mock.MagicMock):
+    """
+    A MagicMock subclass to mock MessageReference objects.
+
+    Instances of this class will follow the specification of `discord.MessageReference` instances.
+    For more information, see the `MockGuild` docstring.
+    """
+    spec_set = message_reference_instance
+
+    def __init__(self, *, reference_author_is_bot: bool = False, **kwargs):
+        super().__init__(**kwargs)
+        referenced_msg_author = MockMember(name="bob", bot=reference_author_is_bot)
+        self.resolved = MockMessage(author=referenced_msg_author)
 
 
 class MockMessage(CustomMockMixin, unittest.mock.MagicMock):
@@ -503,6 +586,15 @@ class MockMessage(CustomMockMixin, unittest.mock.MagicMock):
         super().__init__(**collections.ChainMap(kwargs, default_kwargs))
         self.author = kwargs.get("author", MockMember())
         self.channel = kwargs.get("channel", MockTextChannel())
+
+
+class MockInteractionMessage(MockMessage):
+    """
+    A MagicMock subclass to mock InteractionMessage objects.
+
+    Instances of this class will follow the specifications of `discord.InteractionMessage` instances. For more
+    information, see the `MockGuild` docstring.
+    """
 
 
 emoji_data = {"require_colons": True, "managed": True, "id": 1, "name": "hyperlemon"}
@@ -573,3 +665,12 @@ class MockAsyncWebhook(CustomMockMixin, unittest.mock.MagicMock):
     """
     spec_set = webhook_instance
     additional_spec_asyncs = ("send", "edit", "delete", "execute")
+
+@contextmanager
+def no_create_task():
+    def side_effect(coro, *_, **__):
+        coro.close()
+
+    with unittest.mock.patch("pydis_core.utils.scheduling.create_task") as create_task:
+        create_task.side_effect = side_effect
+        yield
