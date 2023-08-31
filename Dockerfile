@@ -1,6 +1,6 @@
 FROM --platform=linux/amd64 ghcr.io/owl-corp/python-poetry-base:3.11-slim
 
-# Install depenencies
+# Install dependencies
 WORKDIR /bot
 COPY pyproject.toml poetry.lock ./
 RUN poetry install --without dev
