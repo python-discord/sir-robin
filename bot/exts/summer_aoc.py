@@ -76,10 +76,8 @@ class SummerAoC(commands.Cog):
         """Check whether all the necessary settings are configured to run the event."""
         return None not in (self.year, self.current_day, self.day_interval, self.post_time)
 
-    def next_post_time(self) -> arrow.Arrow | None:
-        """Calculate the datetime of the next scheduled post or None if there isn't one."""
-        if not self.is_running:
-            return None
+    def next_post_time(self) -> arrow.Arrow:
+        """Calculate the datetime of the next scheduled post."""
         now = arrow.get()
         if self.first_post_date is None:
             delta = time_until(hour=self.post_time)
@@ -188,19 +186,23 @@ class SummerAoC(commands.Cog):
             await self.post_puzzle()
 
         embed = self.get_info_embed()
-        title = "Event is now running"
         if now:
-            title = "Puzzle posted and event is now running"
+            if self.current_day > LAST_DAY:
+                title = "Puzzle posted and event is now ending"
+            else:
+                title = "Puzzle posted and event is now running"
+        else:
+            title = "Event is now running"
+
         embed.title = title
         embed.color = discord.Color.green()
         await ctx.send(embed=embed)
-        await self.start_event()
+        if self.current_day <= LAST_DAY:
+            await self.start_event()
 
     @summer_aoc_group.command(name="stop")
     async def stop(self, ctx: commands.Context) -> None:
         """Stop the event."""
-        self.first_post_date = None  # Clean up; the start date should be reset when the event is started.
-        self.save_event_state()
         was_running = await self.stop_event()
         if was_running:
             await ctx.send("Summer AoC event stopped")
@@ -281,6 +283,7 @@ class SummerAoC(commands.Cog):
             log.debug("Summer AoC stopped during loop task")
 
         self.is_running = False
+        self.first_post_date = None  # Clean up; the start date should be reset when the event is started.
         await self.save_event_state()
         log.info("Summer AoC event stopped")
         return was_waiting or was_looping
