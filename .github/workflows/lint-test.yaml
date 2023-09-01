@@ -19,7 +19,7 @@ jobs:
       - name: Attempt bot setup
         run: "python -m bot"
         env:
-          USE_FAKEREDIS: true
+          REDIS_USE_FAKEREDIS: true
           BOT_IN_CI: true
           BOT_TOKEN: hunter2
 

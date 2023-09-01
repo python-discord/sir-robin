@@ -3,7 +3,6 @@ import enum
 import logging
 from datetime import UTC, datetime
 from os import environ
-from typing import NamedTuple
 
 from pydantic_settings import BaseSettings
 
@@ -175,11 +174,14 @@ class _Roles(EnvConfig, env_prefix="ROLE_"):
 Roles = _Roles()
 
 
-class RedisConfig(NamedTuple):
-    host = environ.get("REDIS_HOST", "redis.default.svc.cluster.local")
-    port = environ.get("REDIS_PORT", 6379)
-    password = environ.get("REDIS_PASSWORD")
-    use_fakeredis = environ.get("USE_FAKEREDIS", "false").lower() == "true"
+class _RedisConfig(EnvConfig, env_prefix="REDIS_"):
+    host: str = "redis.default.svc.cluster.local"
+    port: int = 6379
+    password: str | None = None
+    use_fakeredis: bool = False
+
+
+RedisConfig = _RedisConfig()
 
 
 class Colours:
