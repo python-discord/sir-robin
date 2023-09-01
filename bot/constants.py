@@ -159,19 +159,20 @@ class _Emojis(EnvConfig, env_prefix="EMOJI_"):
 Emojis = _Emojis()
 
 
-class Roles(NamedTuple):
-    admins = int(environ.get("ROLE_ADMINS", 267628507062992896))
+class _Roles(EnvConfig, env_prefix="ROLE_"):
+    admins: int = 267628507062992896
     advent_of_code: int = 518565788744024082
-    code_jam_event_team = int(environ.get("ROLE_CODE_JAM_EVENT_TEAM", 787816728474288181))
-    events_lead = int(environ.get("ROLE_EVENTS_LEAD", 778361735739998228))
-    event_runner = int(environ.get("EVENT_RUNNER", 940911658799333408))
-    summer_aoc = int(environ.get("ROLE_SUMMER_AOC", 988801794668908655))
-    code_jam_participants = int(environ.get("CODE_JAM_PARTICIPANTS", 991678713093705781))
-    helpers = int(environ.get("ROLE_HELPERS", 267630620367257601))
-    aoc_completionist = int(environ.get("AOC_COMPLETIONIST_ROLE_ID", 916691790181056532))
-    bot_sir_robin = int(environ.get("BOT_SIR_ROBIN", 945317561472544838))
-    bot_sir_lancebot = int(environ.get("BOT_SIR_LANCEBOT", 807437823262982144))
-    bot_python = int(environ.get("BOT_PYTHON", 270988689419665409))
+    code_jam_event_team: int = 787816728474288181
+    events_lead: int = 778361735739998228
+    event_runner: int = 940911658799333408
+    summer_aoc: int = 988801794668908655
+    code_jam_participants: int =  991678713093705781
+    helpers: int = 267630620367257601
+    aoc_completionist: int = 916691790181056532
+    bots: int = 277546923144249364
+
+
+Roles = _Roles()
 
 
 class RedisConfig(NamedTuple):

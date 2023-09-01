@@ -18,8 +18,7 @@ async def _create_category(guild: discord.Guild) -> discord.CategoryChannel:
     category_overwrites = {
         guild.default_role: discord.PermissionOverwrite(read_messages=False),
         guild.me: discord.PermissionOverwrite(read_messages=True),
-        guild.get_role(Roles.bot_sir_lancebot): discord.PermissionOverwrite(read_messages=True),
-        guild.get_role(Roles.bot_python): discord.PermissionOverwrite(read_messages=True),
+        guild.get_role(Roles.bots): discord.PermissionOverwrite(read_messages=True),
         guild.get_role(Roles.events_lead): discord.PermissionOverwrite(manage_channels=True),
     }
     category = await guild.create_category_channel(
@@ -64,9 +63,7 @@ def _get_overwrites(
         guild.get_role(Roles.events_lead): discord.PermissionOverwrite(manage_channels=True),
         guild.get_role(Roles.code_jam_event_team): discord.PermissionOverwrite(read_messages=True),
         team_role: discord.PermissionOverwrite(read_messages=True),
-        guild.get_role(Roles.bot_sir_robin): discord.PermissionOverwrite(read_messages=True, send_messages=True),
-        guild.get_role(Roles.bot_sir_lancebot): discord.PermissionOverwrite(read_messages=True, send_messages=True),
-        guild.get_role(Roles.bot_python): discord.PermissionOverwrite(read_messages=True, send_messages=True),
+        guild.get_role(Roles.bots): discord.PermissionOverwrite(read_messages=True, send_messages=True),
     }
 
 
