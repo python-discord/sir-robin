@@ -1,8 +1,6 @@
-x-restart-policy: &restart_policy
-  restart: unless-stopped
-
 services:
   postgres:
+    restart: unless-stopped
     image: postgres:13-alpine
     ports:
       - "127.0.0.1:7777:5432"
@@ -17,6 +15,7 @@ services:
       retries: 5
 
   code_jam_management:
+    restart: unless-stopped
     image: ghcr.io/python-discord/code-jam-management:latest
     depends_on:
       postgres:
@@ -27,13 +26,13 @@ services:
       - 8000:8000
 
   redis:
-    << : *restart_policy
+    restart: unless-stopped
     image: redis:latest
     ports:
       - "127.0.0.1:6379:6379"
 
   sir-robin:
-    << : *restart_policy
+    restart: unless-stopped
     build:
       context: .
       dockerfile: Dockerfile
