@@ -148,30 +148,15 @@ class _Codejam(EnvConfig, env_prefix="CODE_JAM_"):
 Codejam = _Codejam()
 
 
-class Colours:
-    blue = 0x0279FD
-    twitter_blue = 0x1DA1F2
-    bright_green = 0x01D277
-    dark_green = 0x1F8B4C
-    orange = 0xE67E22
-    pink = 0xCF84E0
-    purple = 0xB734EB
-    soft_green = 0x68C290
-    soft_orange = 0xF9CB54
-    soft_red = 0xCD6D6D
-    yellow = 0xF9F586
-    python_blue = 0x4B8BBE
-    python_yellow = 0xFFD43B
-    grass_green = 0x66FF00
-    gold = 0xE6C200
+class _Emojis(EnvConfig, env_prefix="EMOJI_"):
+    check_mark: str = "\u2705"
+    envelope: str = "\U0001F4E8"
+    trashcan: str = "<:trashcan:637136429717389331>"
+    star: str = "\u2B50"
+    christmas_tree: str = "\U0001F384"
 
 
-class Emojis(NamedTuple):
-    check_mark = "\u2705"
-    envelope = "\U0001F4E8"
-    trashcan = environ.get("TRASHCAN_EMOJI", "<:trashcan:637136429717389331>")
-    star = "\u2B50"
-    christmas_tree = "\U0001F384"
+Emojis = _Emojis()
 
 
 class Roles(NamedTuple):
@@ -194,6 +179,24 @@ class RedisConfig(NamedTuple):
     port = environ.get("REDIS_PORT", 6379)
     password = environ.get("REDIS_PASSWORD")
     use_fakeredis = environ.get("USE_FAKEREDIS", "false").lower() == "true"
+
+
+class Colours:
+    blue = 0x0279FD
+    twitter_blue = 0x1DA1F2
+    bright_green = 0x01D277
+    dark_green = 0x1F8B4C
+    orange = 0xE67E22
+    pink = 0xCF84E0
+    purple = 0xB734EB
+    soft_green = 0x68C290
+    soft_orange = 0xF9CB54
+    soft_red = 0xCD6D6D
+    yellow = 0xF9F586
+    python_blue = 0x4B8BBE
+    python_yellow = 0xFFD43B
+    grass_green = 0x66FF00
+    gold = 0xE6C200
 
 
 # Whitelisted channels
