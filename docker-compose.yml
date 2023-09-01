@@ -23,10 +23,14 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql+asyncpg://codejam_management:codejam_management@postgres:5432/codejam_management
-      CODE_JAM_API_KEY: suitable-for-development-only
-      CODE_JAM_API: http://code_jam_management:8000
     ports:
       - 8000:8000
+
+  redis:
+    << : *restart_policy
+    image: redis:latest
+    ports:
+      - "127.0.0.1:6379:6379"
 
   sir-robin:
     << : *restart_policy
@@ -36,20 +40,13 @@ services:
     container_name: sir-robin
     init: true
     tty: true
-
     depends_on:
       - redis
-
     environment:
-      - REDIS_HOST=redis
+      REDIS_HOST: redis
+      REDIS_USE_FAKEREDIS: false
+      CODE_JAM_API: http://code_jam_management:8000
     env_file:
       - .env
-
     volumes:
       - .:/bot
-
-  redis:
-    << : *restart_policy
-    image: redis:latest
-    ports:
-      - "127.0.0.1:6379:6379"
