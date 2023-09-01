@@ -1094,6 +1094,21 @@ files = [
 typing-extensions = ">=4.6.0,<4.7.0 || >4.7.0"
 
 [[package]]
+name = "pydantic-settings"
+version = "2.0.3"
+description = "Settings management using Pydantic"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "pydantic_settings-2.0.3-py3-none-any.whl", hash = "sha256:ddd907b066622bd67603b75e2ff791875540dc485b7307c4fffc015719da8625"},
+    {file = "pydantic_settings-2.0.3.tar.gz", hash = "sha256:962dc3672495aad6ae96a4390fac7e593591e144625e5112d359f8f67fb75945"},
+]
+
+[package.dependencies]
+pydantic = ">=2.0.1"
+python-dotenv = ">=0.21.0"
+
+[[package]]
 name = "pydis-core"
 version = "10.2.0"
 description = "PyDis core provides core functionality and utility to the bots of the Python Discord community."
@@ -1471,4 +1486,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "3.11.*"
-content-hash = "2de5ba80457011424fde5d49a790d74e3a242b619b1f03b3e3bb3d2fc153b040"
+content-hash = "4ea02386631fa04980079253cc6501936e20bb1408d580f580fdd829a363867a"
