@@ -12,8 +12,8 @@ from discord.ext import commands, tasks
 from bot.bot import SirRobin
 from bot.constants import (
     AdventOfCode as AocConfig,
+    Bot,
     Channels,
-    Client,
     Colours,
     Emojis,
     Month,
@@ -51,7 +51,7 @@ class AdventOfCode(commands.Cog):
     aoc_slash_group = app_commands.Group(
         name="aoc",
         description="All of the Advent of Code commands.",
-        guild_ids=[Client.guild],
+        guild_ids=[Bot.guild],
     )
 
     def __init__(self, bot: SirRobin):
@@ -83,7 +83,7 @@ class AdventOfCode(commands.Cog):
 
         Runs on a schedule, as defined in the task.loop decorator.
         """
-        guild = self.bot.get_guild(Client.guild)
+        guild = self.bot.get_guild(Bot.guild)
         completionist_role = guild.get_role(Roles.aoc_completionist)
         if completionist_role is None:
             log.warning("Could not find the AoC completionist role; cancelling completionist task.")
@@ -153,7 +153,7 @@ class AdventOfCode(commands.Cog):
     @adventofcode_group.command(
         name="subscribe",
         aliases=("sub", "notifications", "notify", "notifs", "unsubscribe", "unsub"),
-        help=f"NOTE: This command has been moved to {Client.prefix}subscribe",
+        help=f"NOTE: This command has been moved to {Bot.prefix}subscribe",
     )
     @whitelist_override(channels=AOC_WHITELIST)
     async def aoc_subscribe(self, ctx: commands.Context) -> None:
@@ -162,7 +162,7 @@ class AdventOfCode(commands.Cog):
 
         This command has been moved to bot, and will be removed in the future.
         """
-        raise MovedCommandError(f"{Client.prefix}subscribe")
+        raise MovedCommandError(f"{Bot.prefix}subscribe")
 
     @adventofcode_group.command(name="countdown", aliases=("count", "c"), brief="Return time left until next day")
     @whitelist_override(channels=AOC_WHITELIST)

@@ -10,7 +10,7 @@ from discord.ext import commands, tasks
 from discord.utils import MISSING
 
 from bot.bot import SirRobin
-from bot.constants import Channels, Client, Roles
+from bot.constants import Bot, Channels, Roles
 from bot.utils.time import time_until
 
 log = logging.getLogger(__name__)
@@ -98,7 +98,7 @@ class SummerAoC(commands.Cog):
     async def cog_command_error(self, ctx: commands.Context, error: commands.CommandError) -> None:
         """Send help text on user input error."""
         if isinstance(error, commands.UserInputError):
-            desc = f"```{Client.prefix}summeraoc {ctx.command.name} {ctx.command.signature}```"
+            desc = f"```{Bot.prefix}summeraoc {ctx.command.name} {ctx.command.signature}```"
             embed = discord.Embed(
                 description=desc,
             )
@@ -108,7 +108,7 @@ class SummerAoC(commands.Cog):
     async def summer_aoc_group(self, ctx: commands.Context) -> None:
         """Commands for managing the Summer AoC event."""
         desc = "\n".join(
-            f"*{command.help}*\n```{Client.prefix}summeraoc {command.name} {command.signature}```"
+            f"*{command.help}*\n```{Bot.prefix}summeraoc {command.name} {command.signature}```"
             for command in sorted(self.summer_aoc_group.walk_commands(), key=hash)
         )
         embed = discord.Embed(description=desc)

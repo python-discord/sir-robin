@@ -31,7 +31,7 @@ async def _create_redis_session() -> RedisSession:
         raise StartupError(e)
 
 
-if not constants.Client.in_ci:
+if not constants.Bot.in_ci:
     async def main() -> None:
         """Entry Async method for starting the bot."""
         # Default is all intents except for privileged ones (Members, Presences, ...)
@@ -53,13 +53,13 @@ if not constants.Client.in_ci:
             bot.instance = SirRobin(
                 redis_session=await _create_redis_session(),
                 http_session=session,
-                guild_id=constants.Client.guild,
+                guild_id=constants.Bot.guild,
                 allowed_roles=allowed_roles,
-                command_prefix=constants.Client.prefix,
+                command_prefix=constants.Bot.prefix,
                 activity=discord.Game("The Not-Quite-So-Bot-as-Sir-Lancebot"),
                 intents=_intents,
             )
             async with bot.instance:
-                await bot.instance.start(constants.Client.token)
+                await bot.instance.start(constants.Bot.token)
 
     asyncio.run(main())

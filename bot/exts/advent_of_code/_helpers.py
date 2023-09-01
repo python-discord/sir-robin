@@ -14,7 +14,7 @@ from discord.ext import commands
 
 import bot
 from bot.bot import SirRobin
-from bot.constants import AdventOfCode, Channels, Client, Colours, Roles
+from bot.constants import AdventOfCode, Bot, Channels, Colours, Roles
 from bot.exts.advent_of_code import _caches
 
 log = logging.getLogger(__name__)
@@ -218,7 +218,7 @@ def _format_leaderboard(leaderboard: dict[str, dict], self_placement_name: str |
         raise commands.BadArgument(
             "Sorry, your profile does not exist in this leaderboard."
             "\n\n"
-            f"To join our leaderboard, run the command `{Client.prefix}aoc join`."
+            f"To join our leaderboard, run the command `{Bot.prefix}aoc join`."
             " If you've joined recently, please wait up to 30 minutes for our leaderboard to refresh."
         )
     return "\n".join(leaderboard_lines)

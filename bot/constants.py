@@ -107,19 +107,45 @@ class _Categories(EnvConfig, env_prefix="CATEGORY_"):
 Categories = _Categories()
 
 
-class Client(NamedTuple):
-    name = "Sir Robin"
-    guild = int(environ.get("BOT_GUILD", 267624335836053506))
-    prefix = environ.get("PREFIX", "&")
-    token = environ.get("BOT_TOKEN")
-    debug = environ.get("BOT_DEBUG", "true").lower() == "true"
-    in_ci = environ.get("IN_CI", "false").lower() == "true"
-    use_fake_redis = environ.get("USE_FAKEREDIS", "false").lower() == "true"
-    code_jam_api = environ.get("CODE_JAM_API", "http://code-jam-management.default.svc.cluster.local:8000")
-    code_jam_token = environ.get("CODE_JAM_API_KEY", "badbot13m0n8f570f942013fc818f234916ca531")
-    github_bot_repo = "https://github.com/python-discord/sir-robin"
+class Month(enum.IntEnum):
+    JANUARY = 1
+    FEBRUARY = 2
+    MARCH = 3
+    APRIL = 4
+    MAY = 5
+    JUNE = 6
+    JULY = 7
+    AUGUST = 8
+    SEPTEMBER = 9
+    OCTOBER = 10
+    NOVEMBER = 11
+    DECEMBER = 12
+
+    def __str__(self) -> str:
+        return self.name.title()
+
+
+class _Bot(EnvConfig, env_prefix="BOT_"):
+    name: str = "Sir Robin"
+    guild: int = 267624335836053506
+    prefix: str = "&"
+    token: str
+    debug: bool = True
+    in_ci: bool = False
+    github_bot_repo: str = "https://github.com/python-discord/sir-robin"
     # Override seasonal locks: 1 (January) to 12 (December)
-    month_override = int(environ["MONTH_OVERRIDE"]) if "MONTH_OVERRIDE" in environ else None
+    month_override: Month | None = None
+
+
+Bot = _Bot()
+
+
+class _Codejam(EnvConfig, env_prefix="CODE_JAM_"):
+    api: str = "http://code-jam-management.default.svc.cluster.local:8000"
+    api_key: str = "badbot13m0n8f570f942013fc818f234916ca531"
+
+
+Codejam = _Codejam()
 
 
 class Colours:
@@ -168,30 +194,6 @@ class RedisConfig(NamedTuple):
     port = environ.get("REDIS_PORT", 6379)
     password = environ.get("REDIS_PASSWORD")
     use_fakeredis = environ.get("USE_FAKEREDIS", "false").lower() == "true"
-
-
-class Month(enum.IntEnum):
-    JANUARY = 1
-    FEBRUARY = 2
-    MARCH = 3
-    APRIL = 4
-    MAY = 5
-    JUNE = 6
-    JULY = 7
-    AUGUST = 8
-    SEPTEMBER = 9
-    OCTOBER = 10
-    NOVEMBER = 11
-    DECEMBER = 12
-
-    def __str__(self) -> str:
-        return self.name.title()
-
-
-# If a month override was configured, check that it's a valid Month
-# Prevents delaying an exception after the bot starts
-if Client.month_override is not None:
-    Month(Client.month_override)
 
 
 # Whitelisted channels
