@@ -222,6 +222,22 @@ class CodeJams(commands.Cog):
         """Lets Code Jam Participants to unpin messages in their team channels."""
         await pin_flow(ctx, PIN_ALLOWED_ROLES, self.bot.code_jam_mgmt_api, message, True)
 
+    @codejam.command("ping")
+    @commands.has_any_role(Roles.admins, Roles.events_lead, Roles.code_jam_event_team, Roles.code_jam_participants)
+    @in_code_jam_category(_creation_utils.CATEGORY_NAME)
+    async def ping_codejam_team(self, ctx: commands.Context) -> None:
+        """Ping the team role for the channel this command is ran in."""
+        team_resp = await self.bot.code_jam_mgmt_api.get(
+            "teams/find",
+            params={"name": ctx.channel.name.replace("-", " ")}  # Discord channels have hyphens, CJMS has spaces.
+        )
+        role_id = team_resp.get("discord_role_id")
+        if not role_id:
+            log.error("Failed to find '%s' in CJMS.", ctx.channel.name)
+            await ctx.send("Failed to find team role id in database.")
+            return
+        await ctx.send(f"<@&{role_id}>")
+
     @staticmethod
     def jam_categories(guild: Guild) -> list[discord.CategoryChannel]:
         """Get all the code jam team categories."""
