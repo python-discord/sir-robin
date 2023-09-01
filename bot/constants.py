@@ -214,7 +214,7 @@ WHITELISTED_CHANNELS = (
 )
 
 # Bot replies
-ERROR_REPLIES = [
+ERROR_REPLIES = (
     "Please don't do that.",
     "You have to stop.",
     "Do you mind?",
@@ -225,9 +225,9 @@ ERROR_REPLIES = [
     "Are you trying to kill me?",
     "Noooooo!!",
     "I can't believe you've done this",
-]
+)
 
-NEGATIVE_REPLIES = [
+NEGATIVE_REPLIES = (
     "Noooooo!!",
     "Nope.",
     "I'm sorry Dave, I'm afraid I can't do that.",
@@ -245,9 +245,9 @@ NEGATIVE_REPLIES = [
     "NEGATORY.",
     "Nuh-uh.",
     "Not in my house!",
-]
+)
 
-POSITIVE_REPLIES = [
+POSITIVE_REPLIES = (
     "Yep.",
     "Absolutely!",
     "Can do!",
@@ -265,4 +265,4 @@ POSITIVE_REPLIES = [
     "Of course!",
     "Aye aye, cap'n!",
     "I'll allow it.",
-]
+)
