@@ -42,41 +42,42 @@ class AdventOfCodeLeaderboard:
         return self._session
 
 
-def _parse_aoc_leaderboard_env() -> dict[str, AdventOfCodeLeaderboard]:
-    """
-    Parse the environment variable containing leaderboard information.
+class _AdventOfCode(EnvConfig, env_prefix="AOC_"):
+    @staticmethod
+    def _parse_aoc_leaderboard_env() -> dict[str, AdventOfCodeLeaderboard]:
+        """
+        Parse the environment variable containing leaderboard information.
 
-    A leaderboard should be specified in the format `id,session,join_code`,
-    without the backticks. If more than one leaderboard needs to be added to
-    the constant, separate the individual leaderboards with `::`.
+        A leaderboard should be specified in the format `id,session,join_code`,
+        without the backticks. If more than one leaderboard needs to be added to
+        the constant, separate the individual leaderboards with `::`.
 
-    Example ENV: `id1,session1,join_code1::id2,session2,join_code2`
-    """
-    raw_leaderboards = environ.get("AOC_LEADERBOARDS", "")
-    if not raw_leaderboards:
-        return {}
+        Example ENV: `id1,session1,join_code1::id2,session2,join_code2`
+        """
+        raw_leaderboards = environ.get("AOC_RAW_LEADERBOARDS", "")
+        if not raw_leaderboards:
+            return {}
 
-    leaderboards = {}
-    for leaderboard in raw_leaderboards.split("::"):
-        leaderboard_id, session, join_code = leaderboard.split(",")
-        leaderboards[leaderboard_id] = AdventOfCodeLeaderboard(leaderboard_id, session, join_code)
+        leaderboards = {}
+        for leaderboard in raw_leaderboards.split("::"):
+            leaderboard_id, session, join_code = leaderboard.split(",")
+            leaderboards[leaderboard_id] = AdventOfCodeLeaderboard(leaderboard_id, session, join_code)
 
-    return leaderboards
-
-
-class AdventOfCode:
+        return leaderboards
     # Information for the several leaderboards we have
-    leaderboards = _parse_aoc_leaderboard_env()
-    staff_leaderboard_id = environ.get("AOC_STAFF_LEADERBOARD_ID", "")
-    fallback_session = environ.get("AOC_FALLBACK_SESSION", "")
+    leaderboards: dict[str, AdventOfCodeLeaderboard] = _parse_aoc_leaderboard_env()
 
-    # Other Advent of Code constants
-    ignored_days = environ.get("AOC_IGNORED_DAYS", "").split(",")
-    leaderboard_displayed_members = 10
-    leaderboard_cache_expiry_seconds = 1800
-    max_day_and_star_results = 15
-    year = int(environ.get("AOC_YEAR", datetime.now(tz=UTC).year))
-    role_id = int(environ.get("AOC_ROLE_ID", 518565788744024082))
+    staff_leaderboard_id: str | None = None
+    fallback_session: str | None = None
+
+    ignored_days: tuple[int, ...] | None = None
+    leaderboard_displayed_members: int = 10
+    leaderboard_cache_expiry_seconds: int = 1800
+    max_day_and_star_results: int = 15
+    year: int = datetime.now(tz=UTC).year
+
+
+AdventOfCode = _AdventOfCode()
 
 
 class Channels(NamedTuple):
@@ -140,6 +141,7 @@ class Emojis(NamedTuple):
 
 class Roles(NamedTuple):
     admins = int(environ.get("ROLE_ADMINS", 267628507062992896))
+    advent_of_code: int = 518565788744024082
     code_jam_event_team = int(environ.get("ROLE_CODE_JAM_EVENT_TEAM", 787816728474288181))
     events_lead = int(environ.get("ROLE_EVENTS_LEAD", 778361735739998228))
     event_runner = int(environ.get("EVENT_RUNNER", 940911658799333408))
