@@ -80,22 +80,31 @@ class _AdventOfCode(EnvConfig, env_prefix="AOC_"):
 AdventOfCode = _AdventOfCode()
 
 
-class Channels(NamedTuple):
-    advent_of_code = int(environ.get("AOC_CHANNEL_ID", 897932085766004786))
-    advent_of_code_commands = int(environ.get("AOC_COMMANDS_CHANNEL_ID", 897932607545823342))
-    bot_commands = 267659945086812160
-    devlog = int(environ.get("CHANNEL_DEVLOG", 622895325144940554))
-    code_jam_planning = int(environ.get("CHANNEL_CODE_JAM_PLANNING", 490217981872177157))
-    summer_aoc_main = int(environ.get("SUMMER_AOC_MAIN_CHANNEL", 988979042847957042))
-    summer_aoc_discussion = int(environ.get("SUMMER_AOC_DISCUSSION", 996438901331861554))
-    sir_lancebot_playground = int(environ.get("CHANNEL_COMMUNITY_BOT_COMMANDS", 607247579608121354))
-    summer_code_jam = int(environ.get("CATEGORY_SUMMER_CODE_JAM", 987738098525937745))
-    summer_code_jam_announcements = int(environ.get("SUMMER_CODE_JAM_ANNOUNCEMENTS", 988765608172736542))
-    off_topic_0 = 291284109232308226
-    off_topic_1 = 463035241142026251
-    off_topic_2 = 463035268514185226
-    voice_chat_0 = 412357430186344448
-    voice_chat_1 = 799647045886541885
+class _Channels(EnvConfig, env_prefix="CHANNEL_"):
+    advent_of_code: int = 897932085766004786
+    advent_of_code_commands: int = 897932607545823342
+    bot_commands: int = 267659945086812160
+    devlog: int =  622895325144940554
+    code_jam_planning: int = 490217981872177157
+    summer_aoc_main: int = 988979042847957042
+    summer_aoc_discussion: int = 996438901331861554
+    sir_lancebot_playground: int = 607247579608121354
+    summer_code_jam_announcements: int = 988765608172736542
+    off_topic_0: int = 291284109232308226
+    off_topic_1: int = 463035241142026251
+    off_topic_2: int = 463035268514185226
+    voice_chat_0: int = 412357430186344448
+    voice_chat_1: int = 799647045886541885
+
+
+Channels = _Channels()
+
+
+class _Categories(EnvConfig, env_prefix="CATEGORY_"):
+    summer_code_jam: int = 987738098525937745
+
+
+Categories = _Categories()
 
 
 class Client(NamedTuple):

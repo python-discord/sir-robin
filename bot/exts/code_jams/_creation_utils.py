@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from pydis_core.utils.logging import get_logger
 
-from bot.constants import Channels, Roles
+from bot.constants import Categories, Channels, Roles
 from bot.utils.exceptions import JamCategoryNameConflictError
 
 log = get_logger(__name__)
@@ -43,7 +43,7 @@ async def _get_category(guild: discord.Guild) -> discord.CategoryChannel:
     If the main CJ category and the CJ Team's category has the same name
     it raises a `JamCategoryNameConflictError`
     """
-    main_cj_category = guild.get_channel(Channels.summer_code_jam).name
+    main_cj_category = guild.get_channel(Categories.summer_code_jam).name
     if main_cj_category == CATEGORY_NAME:
         raise JamCategoryNameConflictError
 
@@ -105,7 +105,7 @@ async def create_team_channel(
 
 async def create_team_leader_channel(guild: discord.Guild, team_leaders: discord.Role) -> None:
     """Create the Team Leader Chat channel for the Code Jam team leaders."""
-    category: discord.CategoryChannel = guild.get_channel(Channels.summer_code_jam)
+    category: discord.CategoryChannel = guild.get_channel(Categories.summer_code_jam)
 
     team_leaders_chat = await category.create_text_channel(
         name="team-leaders-chat",
