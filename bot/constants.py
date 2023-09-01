@@ -5,13 +5,19 @@ from datetime import UTC, datetime
 from os import environ
 from typing import NamedTuple
 
-try:
-    from dotenv import load_dotenv
-    load_dotenv(override=True)
-except ModuleNotFoundError:
-    pass
+from pydantic_settings import BaseSettings
 
 log = logging.getLogger(__name__)
+
+
+class EnvConfig(
+    BaseSettings,
+    env_file=".env",
+    env_file_encoding = "utf-8",
+    env_nested_delimiter = "__",
+    extra="ignore",
+):
+    """Our default configuration for models that should load from .env files."""
 
 
 @dataclasses.dataclass
