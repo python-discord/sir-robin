@@ -54,8 +54,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          repository: python-discord/kubernetes
-          path: kubernetes
+          repository: python-discord/infra
+          path: infra
 
       - uses: azure/setup-kubectl@v3
 
@@ -69,5 +69,5 @@ jobs:
         uses: Azure/k8s-deploy@v4
         with:
           manifests: |
-              kubernetes/namespaces/default/sir-robin/deployment.yaml
+              infra/kubernetes/namespaces/default/sir-robin/deployment.yaml
           images: 'ghcr.io/python-discord/sir-robin:${{ inputs.sha-tag }}'
