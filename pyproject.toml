@@ -20,7 +20,7 @@ pytest-asyncio = "0.21.1"
 hypothesis = "6.82.7"
 
 [tool.poetry.group.lint.dependencies]
-ruff = "0.0.286"
+ruff = "0.0.291"
 pre-commit = "3.3.3"
 
 [tool.taskipy.tasks]
