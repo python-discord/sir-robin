@@ -1,9 +1,8 @@
 import json
 import logging
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from pathlib import Path
 
-import arrow
 import discord
 from async_rediscache import RedisCache
 from discord import app_commands
@@ -175,14 +174,8 @@ class AdventOfCode(commands.Cog):
             await ctx.send(f"Day {tomorrow.day} starts <t:{next_day_timestamp}:R>.")
             return
 
-        datetime_now = arrow.now(_helpers.EST)
-        # Calculate the delta to this & next year's December 1st to see which one is closest and not in the past
-        this_year = arrow.get(datetime(datetime_now.year, 12, 1, tzinfo=UTC), _helpers.EST)
-        next_year = arrow.get(datetime(datetime_now.year + 1, 12, 1, tzinfo=UTC), _helpers.EST)
-        deltas = (dec_first - datetime_now for dec_first in (this_year, next_year))
-        delta = min(delta for delta in deltas if delta >= timedelta())  # timedelta() gives 0 duration delta
-
-        next_aoc_timestamp = int((datetime_now + delta).timestamp())
+        next_aoc, _ = _helpers.time_left_to_next_aoc()
+        next_aoc_timestamp = int(next_aoc.timestamp())
 
         await ctx.send(
             "The Advent of Code event is not currently running. "
