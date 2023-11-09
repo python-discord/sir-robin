@@ -127,7 +127,7 @@ class AdventOfCode(commands.Cog):
                 log.debug(f"Giving completionist role to {member.name} ({member.mention}).")
                 await members.handle_role_change(member, member.add_roles, completionist_role)
 
-    @commands.group(name="adventofcode", aliases=("aoc",))
+    @commands.hybrid_group(name="adventofcode", aliases=("aoc",))
     @whitelist_override(channels=AOC_WHITELIST)
     async def adventofcode_group(self, ctx: commands.Context) -> None:
         """All of the Advent of Code commands."""
@@ -178,25 +178,6 @@ class AdventOfCode(commands.Cog):
         next_aoc_timestamp = int(next_aoc.timestamp())
 
         await ctx.send(
-            "The Advent of Code event is not currently running. "
-            f"The next event will start <t:{next_aoc_timestamp}:R>."
-        )
-
-    @aoc_slash_group.command(name="countdown", description="Return time left until next day")
-    @whitelist_override(channels=AOC_WHITELIST)
-    async def aoc_countdown_slash(self, interaction: discord.Interaction) -> None:
-        """Return time left until next day."""
-        if _helpers.is_in_advent():
-            tomorrow, _ = _helpers.time_left_to_est_midnight()
-            next_day_timestamp = int(tomorrow.timestamp())
-
-            await interaction.response.send_message(f"Day {tomorrow.day} starts <t:{next_day_timestamp}:R>.")
-            return
-
-        next_aoc, _ = _helpers.time_left_to_next_aoc()
-        next_aoc_timestamp = int(next_aoc.timestamp())
-
-        await interaction.response.send_message(
             "The Advent of Code event is not currently running. "
             f"The next event will start <t:{next_aoc_timestamp}:R>."
         )
