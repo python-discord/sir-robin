@@ -12,8 +12,8 @@ log = logging.getLogger(__name__)
 class EnvConfig(
     BaseSettings,
     env_file=".env",
-    env_file_encoding = "utf-8",
-    env_nested_delimiter = "__",
+    env_file_encoding="utf-8",
+    env_nested_delimiter="__",
     extra="ignore",
 ):
     """Our default configuration for models that should load from .env files."""
@@ -21,6 +21,8 @@ class EnvConfig(
 
 @dataclasses.dataclass
 class AdventOfCodeLeaderboard:
+    """Config required for a since AoC leaderboard."""
+
     id: str
     _session: str
     join_code: str
@@ -83,7 +85,7 @@ class _Channels(EnvConfig, env_prefix="CHANNEL_"):
     advent_of_code: int = 897932085766004786
     advent_of_code_commands: int = 897932607545823342
     bot_commands: int = 267659945086812160
-    devlog: int =  622895325144940554
+    devlog: int = 622895325144940554
     code_jam_planning: int = 490217981872177157
     summer_aoc_main: int = 988979042847957042
     summer_aoc_discussion: int = 996438901331861554
@@ -107,6 +109,13 @@ Categories = _Categories()
 
 
 class Month(enum.IntEnum):
+    """
+    Enum lookup between Months & month numbers.
+
+    Can bre replaced with the below when upgrading to 3.12
+    https://docs.python.org/3/library/calendar.html#calendar.Month
+    """
+
     JANUARY = 1
     FEBRUARY = 2
     MARCH = 3
@@ -165,7 +174,7 @@ class _Roles(EnvConfig, env_prefix="ROLE_"):
     events_lead: int = 778361735739998228
     event_runner: int = 940911658799333408
     summer_aoc: int = 988801794668908655
-    code_jam_participants: int =  991678713093705781
+    code_jam_participants: int = 991678713093705781
     helpers: int = 267630620367257601
     aoc_completionist: int = 916691790181056532
     bots: int = 277546923144249364
@@ -185,6 +194,8 @@ RedisConfig = _RedisConfig()
 
 
 class Colours:
+    """Colour hex values commonly used throughout the bot."""
+
     blue = 0x0279FD
     twitter_blue = 0x1DA1F2
     bright_green = 0x01D277

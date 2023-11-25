@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from collections.abc import Iterable
 
@@ -195,7 +194,7 @@ class LinePaginator(Paginator):
             try:
                 reaction, user = await ctx.bot.wait_for("reaction_add", timeout=timeout, check=event_check)
                 log.trace(f"Got reaction: {reaction}")
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 log.debug("Timed out waiting for a reaction")
                 break  # We're done, no reactions for the last 5 minutes
 
@@ -370,7 +369,7 @@ class ImagePaginator(Paginator):
             # Start waiting for reactions
             try:
                 reaction, user = await ctx.bot.wait_for("reaction_add", timeout=timeout, check=check_event)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 log.debug("Timed out waiting for a reaction")
                 break  # We're done, no reactions for the last 5 minutes
 

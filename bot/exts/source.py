@@ -60,7 +60,7 @@ class BotSource(commands.Cog):
             except OSError:
                 raise commands.BadArgument("Cannot get source for a dynamically-created object.")
 
-            lines_extension = f"#L{first_line_no}-L{first_line_no+len(lines)-1}"
+            lines_extension = f"#L{first_line_no}-L{first_line_no + len(lines) - 1}"
         else:
             first_line_no = None
             lines_extension = ""

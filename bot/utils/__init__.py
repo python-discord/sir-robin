@@ -90,7 +90,7 @@ async def disambiguate(
         # Love that duplicate code
         for coro in pending:
             coro.cancel()
-    except asyncio.TimeoutError:
+    except TimeoutError:
         raise BadArgument("Timed out.")
 
     # Guaranteed to not error because of isdecimal() in check

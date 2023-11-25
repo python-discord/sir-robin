@@ -560,7 +560,7 @@ def unparse(node: ast.AST, nl_able: bool = False, avoid_backslashes: bool = True
         module, names, level = node.module, node.names, node.level
 
         return (
-            f"from{space()}{'.'*level}{module}{space()}import{space()}"
+            f"from{space()}{'.' * level}{module}{space()}import{space()}"
             + f"{space()},{space()}".join(
                 f"{name.name}"
                 + (f"{space()}as{space()}{name.asname}" if name.asname else "")
