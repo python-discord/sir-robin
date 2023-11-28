@@ -44,7 +44,7 @@ If you have questions or suggestions about the event itself, head over to <#{dis
 
 NEXT_PUZZLE_TEXT = """
 The next puzzle will be posted <t:{timestamp}:R>.
-To receive notifications when new puzzles are released, run `!subscribe` in <#{bot_commands}> and assign yourself \
+To recieve notifications when new puzzles are released, head over to <#{roles}> and assign yourself \
 the Revival of Code role.
 """
 
@@ -330,7 +330,7 @@ class SummerAoC(commands.Cog):
         else:
             next_puzzle_text = NEXT_PUZZLE_TEXT.format(
                 timestamp=int(self.next_post_time().timestamp()),
-                bot_commands=Channels.bot_commands,
+                roles=Channels.roles
             )
         post_text = POST_TEXT.format(
             public_name=PUBLIC_NAME,

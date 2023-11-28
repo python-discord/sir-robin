@@ -96,6 +96,7 @@ class _Channels(EnvConfig, env_prefix="CHANNEL_"):
     off_topic_2: int = 463035268514185226
     voice_chat_0: int = 412357430186344448
     voice_chat_1: int = 799647045886541885
+    roles: int = 851270062434156586
 
 
 Channels = _Channels()

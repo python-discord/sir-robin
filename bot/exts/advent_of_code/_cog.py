@@ -24,7 +24,6 @@ from bot.exts.advent_of_code import _helpers
 from bot.exts.advent_of_code.views.dayandstarview import AoCDropdownView
 from bot.utils import members
 from bot.utils.decorators import InChannelCheckFailure, in_month, whitelist_override, with_role
-from bot.utils.exceptions import MovedCommandError
 
 log = logging.getLogger(__name__)
 
@@ -148,21 +147,6 @@ class AdventOfCode(commands.Cog):
 
         await self.completionist_block_list.set(member.id, "sentinel")
         await ctx.send(f":+1: Blocked {member.mention} from getting the AoC completionist role.")
-
-    @commands.guild_only()
-    @adventofcode_group.command(
-        name="subscribe",
-        aliases=("sub", "notifications", "notify", "notifs", "unsubscribe", "unsub"),
-        help=f"NOTE: This command has been moved to {Bot.prefix}subscribe",
-    )
-    @whitelist_override(channels=AOC_WHITELIST)
-    async def aoc_subscribe(self, ctx: commands.Context) -> None:
-        """
-        Deprecated role command.
-
-        This command has been moved to bot, and will be removed in the future.
-        """
-        raise MovedCommandError(f"{Bot.prefix}subscribe")
 
     @adventofcode_group.command(name="countdown", aliases=("count", "c"), brief="Return time left until next day")
     @whitelist_override(channels=AOC_WHITELIST)
