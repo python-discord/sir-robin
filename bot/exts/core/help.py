@@ -152,10 +152,7 @@ class HelpSession:
         return None
 
     def _handle_not_found(self, query: str) -> None:
-        """
-        Handles when a query does not match a valid command or cog.
-
-        """
+        """Handles when a query does not match a valid command or cog."""
         # Check if parent command is valid in case subcommand is invalid.
         if " " in query:
             parent, *_ = query.split()
@@ -421,7 +418,7 @@ class HelpSession:
 
         page_count = len(self._pages)
         if page_count > 1:
-            embed.set_footer(text=f"Page {self._current_page+1} / {page_count}")
+            embed.set_footer(text=f"Page {self._current_page + 1} / {page_count}")
 
         return embed
 
@@ -475,7 +472,7 @@ class HelpSession:
     @property
     def is_last_page(self) -> bool:
         """Check if the session is currently showing the last page."""
-        return self._current_page == (len(self._pages)-1)
+        return self._current_page == (len(self._pages) - 1)
 
     async def do_first(self) -> None:
         """Event that is called when the user requests the first page."""
@@ -485,17 +482,17 @@ class HelpSession:
     async def do_back(self) -> None:
         """Event that is called when the user requests the previous page."""
         if not self.is_first_page:
-            await self.update_page(self._current_page-1)
+            await self.update_page(self._current_page - 1)
 
     async def do_next(self) -> None:
         """Event that is called when the user requests the next page."""
         if not self.is_last_page:
-            await self.update_page(self._current_page+1)
+            await self.update_page(self._current_page + 1)
 
     async def do_end(self) -> None:
         """Event that is called when the user requests the last page."""
         if not self.is_last_page:
-            await self.update_page(len(self._pages)-1)
+            await self.update_page(len(self._pages) - 1)
 
     async def do_stop(self) -> None:
         """Event that is called when the user requests to stop the help session."""
