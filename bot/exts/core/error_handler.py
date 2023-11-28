@@ -11,7 +11,11 @@ from discord.ext.commands import (
 
 from bot.bot import SirRobin
 from bot.log import get_logger
-from bot.utils.exceptions import CodeJamCategoryCheckFailure
+from bot.utils.exceptions import (
+    CodeJamCategoryCheckFailure,
+    InMonthCheckFailure,
+    InWhitelistCheckFailure,
+)
 
 log = get_logger(__name__)
 
@@ -64,6 +68,14 @@ class ErrorHandler(Cog):
             embed = self._get_error_embed("Permission error", "You are not allowed to use this command!")
             await ctx.send(embed=embed)
             return
+        if isinstance(error, InMonthCheckFailure):
+            embed = self._get_error_embed("Command not available", str(error))
+            await ctx.send(embed=embed)
+            return
+        if isinstance(error, InWhitelistCheckFailure):
+            embed = self._get_error_embed("Wrong Channel", error)
+            await ctx.send(embed=embed)
+            return
         if isinstance(error, CodeJamCategoryCheckFailure):
             # Silently fail, as SirRobin should not respond
             # to any of the CJ related commands outside of the CJ categories.
@@ -71,10 +83,12 @@ class ErrorHandler(Cog):
             return
 
         # If we haven't handled it by this point, it is considered an unexpected/handled error.
-        await ctx.send(
-            f"Sorry, an unexpected error occurred. Please let us know!\n\n"
+        embed = self._get_error_embed(
+            "Unexpected error",
+            "Sorry, an unexpected error occurred. Please let us know!\n\n"
             f"```{error.__class__.__name__}: {error}```"
         )
+        await ctx.send(embed=embed)
         log.error(f"Error executing command invoked by {ctx.message.author}: {ctx.message.content}", exc_info=error)
 
 
