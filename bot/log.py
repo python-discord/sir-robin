@@ -3,11 +3,13 @@ import sys
 
 from pydis_core.utils.logging import get_logger
 
+from bot.constants import Bot
+
 
 def setup_logging() -> None:
     """Configure logging for the bot."""
     root_log = get_logger()
-    root_log.setLevel(logging.DEBUG)
+    root_log.setLevel(logging.DEBUG if Bot.debug else logging.INFO)
 
     ch = logging.StreamHandler(stream=sys.stdout)
     ch.setLevel(logging.DEBUG)
