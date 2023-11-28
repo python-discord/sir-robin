@@ -23,7 +23,7 @@ from bot.constants import (
 from bot.exts.advent_of_code import _helpers
 from bot.exts.advent_of_code.views.dayandstarview import AoCDropdownView
 from bot.utils import members
-from bot.utils.decorators import InChannelCheckFailure, in_month, whitelist_override, with_role
+from bot.utils.decorators import in_month, with_role, in_whitelist
 
 log = logging.getLogger(__name__)
 
@@ -34,6 +34,8 @@ AOC_WHITELIST_RESTRICTED = WHITELISTED_CHANNELS + (Channels.advent_of_code_comma
 # Some commands can be run in the regular advent of code channel
 # They aren't spammy and foster discussion
 AOC_WHITELIST = AOC_WHITELIST_RESTRICTED + (Channels.advent_of_code,)
+
+AOC_REDIRECT = (Channels.advent_of_code_commands, Channels.sir_lancebot_playground, Channels.bot_commands)
 
 
 class AdventOfCode(commands.Cog):
@@ -128,7 +130,7 @@ class AdventOfCode(commands.Cog):
                 await members.handle_role_change(member, member.add_roles, completionist_role)
 
     @commands.group(name="adventofcode", aliases=("aoc",))
-    @whitelist_override(channels=AOC_WHITELIST)
+    @in_whitelist(channels=AOC_WHITELIST, redirect=AOC_REDIRECT)
     async def adventofcode_group(self, ctx: commands.Context) -> None:
         """All of the Advent of Code commands."""
         if not ctx.invoked_subcommand:
@@ -149,7 +151,7 @@ class AdventOfCode(commands.Cog):
         await ctx.send(f":+1: Blocked {member.mention} from getting the AoC completionist role.")
 
     @adventofcode_group.command(name="countdown", aliases=("count", "c"), brief="Return time left until next day")
-    @whitelist_override(channels=AOC_WHITELIST)
+    @in_whitelist(channels=AOC_WHITELIST, redirect=AOC_REDIRECT)
     async def aoc_countdown(self, ctx: commands.Context) -> None:
         """Return time left until next day."""
         if _helpers.is_in_advent():
@@ -174,13 +176,13 @@ class AdventOfCode(commands.Cog):
         )
 
     @adventofcode_group.command(name="about", aliases=("ab", "info"), brief="Learn about Advent of Code")
-    @whitelist_override(channels=AOC_WHITELIST)
+    @in_whitelist(channels=AOC_WHITELIST, redirect=AOC_REDIRECT)
     async def about_aoc(self, ctx: commands.Context) -> None:
         """Respond with an explanation of all things Advent of Code."""
         await ctx.send(embed=self.cached_about_aoc)
 
     @aoc_slash_group.command(name="join", description="Get the join code for our community Advent of Code leaderboard")
-    @whitelist_override(channels=AOC_WHITELIST)
+    @in_whitelist(channels=AOC_WHITELIST, redirect=AOC_REDIRECT)
     @app_commands.guild_only()
     async def join_leaderboard(self, interaction: discord.Interaction) -> None:
         """Send the user an ephemeral message with the information for joining the Python Discord leaderboard."""
@@ -236,7 +238,7 @@ class AdventOfCode(commands.Cog):
         aliases=("connect",),
         brief="Tie your Discord account with your Advent of Code name."
     )
-    @whitelist_override(channels=AOC_WHITELIST)
+    @in_whitelist(channels=AOC_WHITELIST, redirect=AOC_REDIRECT)
     async def aoc_link_account(self, ctx: commands.Context, *, aoc_name: str | None = None) -> None:
         """
         Link your Discord Account to your Advent of Code name.
@@ -288,7 +290,7 @@ class AdventOfCode(commands.Cog):
         aliases=("disconnect",),
         brief="Untie your Discord account from your Advent of Code name."
     )
-    @whitelist_override(channels=AOC_WHITELIST)
+    @in_whitelist(channels=AOC_WHITELIST, redirect=AOC_REDIRECT)
     async def aoc_unlink_account(self, ctx: commands.Context) -> None:
         """
         Unlink your Discord ID with your Advent of Code leaderboard name.
@@ -309,7 +311,7 @@ class AdventOfCode(commands.Cog):
         aliases=("daynstar", "daystar"),
         brief="Get a view that lets you filter the leaderboard by day and star",
     )
-    @whitelist_override(channels=AOC_WHITELIST_RESTRICTED)
+    @in_whitelist(channels=AOC_WHITELIST_RESTRICTED, redirect=AOC_REDIRECT)
     async def aoc_day_and_star_leaderboard(
             self,
             ctx: commands.Context,
@@ -347,7 +349,7 @@ class AdventOfCode(commands.Cog):
         aliases=("board", "lb"),
         brief="Get a snapshot of the PyDis private AoC leaderboard",
     )
-    @whitelist_override(channels=AOC_WHITELIST_RESTRICTED)
+    @in_whitelist(channels=AOC_WHITELIST_RESTRICTED, redirect=AOC_REDIRECT)
     async def aoc_leaderboard(self, ctx: commands.Context, *, aoc_name: str | None = None) -> None:
         """
         Get the current top scorers of the Python Discord Leaderboard.
@@ -381,7 +383,7 @@ class AdventOfCode(commands.Cog):
         table = (
             "```\n"
             f"{leaderboard['placement_leaderboard'] if aoc_name else leaderboard['top_leaderboard']}"
-             "\n```"
+            "\n```"
         )
         info_embed = _helpers.get_summary_embed(leaderboard)
 
@@ -394,7 +396,7 @@ class AdventOfCode(commands.Cog):
         aliases=("globalboard", "gb"),
         brief="Get a link to the global leaderboard",
     )
-    @whitelist_override(channels=AOC_WHITELIST_RESTRICTED)
+    @in_whitelist(channels=AOC_WHITELIST_RESTRICTED, redirect=AOC_REDIRECT)
     async def aoc_global_leaderboard(self, ctx: commands.Context) -> None:
         """Get a link to the global Advent of Code leaderboard."""
         url = self.global_leaderboard_url
@@ -410,7 +412,7 @@ class AdventOfCode(commands.Cog):
         aliases=("dailystats", "ds"),
         brief="Get daily statistics for the Python Discord leaderboard"
     )
-    @whitelist_override(channels=AOC_WHITELIST_RESTRICTED)
+    @in_whitelist(channels=AOC_WHITELIST_RESTRICTED, redirect=AOC_REDIRECT)
     async def private_leaderboard_daily_stats(self, ctx: commands.Context) -> None:
         """Send an embed with daily completion statistics for the Python Discord leaderboard."""
         try:
@@ -479,9 +481,3 @@ class AdventOfCode(commands.Cog):
 
         about_embed.set_footer(text="Last Updated")
         return about_embed
-
-    async def cog_command_error(self, ctx: commands.Context, error: Exception) -> None:
-        """Custom error handler if an advent of code command was posted in the wrong channel."""
-        if isinstance(error, InChannelCheckFailure):
-            await ctx.send(f":x: Please use <#{Channels.advent_of_code_commands}> for aoc commands instead.")
-            error.handled = True

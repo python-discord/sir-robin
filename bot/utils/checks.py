@@ -2,11 +2,11 @@ from collections.abc import Callable, Container
 from typing import NoReturn
 
 from discord.ext import commands
-from discord.ext.commands import CheckFailure, Context
+from discord.ext.commands import Context
 
 from bot import constants
 from bot.log import get_logger
-from bot.utils.exceptions import CodeJamCategoryCheckFailure
+from bot.utils.exceptions import CodeJamCategoryCheckFailure, InWhitelistCheckFailure
 
 log = get_logger(__name__)
 
@@ -24,22 +24,6 @@ def in_code_jam_category(code_jam_category_name: str) -> Callable:
         raise CodeJamCategoryCheckFailure
 
     return commands.check(predicate)
-
-
-class InWhitelistCheckFailure(CheckFailure):
-    """Raised when the `in_whitelist` check fails."""
-
-    def __init__(self, redirect_channel: int | None):
-        self.redirect_channel = redirect_channel
-
-        if redirect_channel:
-            redirect_message = f" here. Please use the <#{redirect_channel}> channel instead"
-        else:
-            redirect_message = ""
-
-        error_message = f"You are not allowed to use that command{redirect_message}."
-
-        super().__init__(error_message)
 
 
 def in_whitelist_check(
@@ -84,7 +68,7 @@ def in_whitelist_check(
         return True
 
     category = getattr(ctx.channel, "category", None)
-    if category and category.name == constants.codejam_categories_name:
+    if category and category.name == constants.Categories.summer_code_jam:
         log.trace(f"{ctx.author} may use the `{ctx.command.name}` command as they are in a codejam team channel.")
         return True
 
