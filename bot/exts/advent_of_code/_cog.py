@@ -130,13 +130,13 @@ class AdventOfCode(commands.Cog):
                 await members.handle_role_change(member, member.add_roles, completionist_role)
 
     @commands.group(name="adventofcode", aliases=("aoc",))
-    @in_whitelist(channels=AOC_WHITELIST, redirect=AOC_REDIRECT)
     async def adventofcode_group(self, ctx: commands.Context) -> None:
         """All of the Advent of Code commands."""
         if not ctx.invoked_subcommand:
             await self.bot.invoke_help_command(ctx)
 
     @with_role(Roles.admins)
+    @in_whitelist(role_override=(Roles.admins, Roles.events_lead), fail_silently=True)
     @adventofcode_group.command(
         name="block",
         brief="Block a user from getting the completionist role.",

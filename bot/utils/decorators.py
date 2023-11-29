@@ -157,6 +157,7 @@ def in_whitelist(
     categories: Container[int] = (),
     roles: Container[int] = (),
     redirect: Container[int] | None = (Channels.sir_lancebot_playground,),
+    role_override: Container[int] | None = (),
     fail_silently: bool = False
 ) -> Callable:
     """
@@ -172,7 +173,7 @@ def in_whitelist(
     told they are not allowd to use that particular commands (if `None` was passed)
     """
     def predicate(ctx: Context) -> bool:
-        return in_whitelist_check(ctx, channels, categories, roles, redirect, fail_silently)
+        return in_whitelist_check(ctx, channels, categories, roles, redirect, role_override, fail_silently)
 
     return commands.check(predicate)
 

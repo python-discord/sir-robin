@@ -6,7 +6,7 @@ from discord.ext.commands import Context
 
 from bot import constants
 from bot.log import get_logger
-from bot.utils.exceptions import CodeJamCategoryCheckFailure, InWhitelistCheckFailure
+from bot.utils.exceptions import CodeJamCategoryCheckFailure, InWhitelistCheckFailure, SilentChannelFailure
 
 log = get_logger(__name__)
 
@@ -32,6 +32,7 @@ def in_whitelist_check(
     categories: Container[int] = (),
     roles: Container[int] = (),
     redirect: int | None = constants.Channels.sir_lancebot_playground,
+    role_override: Container[int] = (),
     fail_silently: bool = False,
 ) -> bool:
     """
@@ -47,6 +48,13 @@ def in_whitelist_check(
     redirected to the `redirect` channel that was passed (default: #bot-commands) or simply
     told that they're not allowed to use this particular command (if `None` was passed).
     """
+    # If the author has an override role, they can run this command anywhere
+    if role_override:
+        for role in ctx.author.roles:
+            if role.id in role_override:
+                log.info(f"{ctx.author} is allowed to use {ctx.command.name} anywhere")
+                return True
+
     if redirect and redirect not in channels:
         # It does not make sense for the channel whitelist to not contain the redirection
         # channel (if applicable). That's why we add the redirection channel to the `channels`
@@ -83,4 +91,4 @@ def in_whitelist_check(
     # Some commands are secret, and should produce no feedback at all.
     if not fail_silently:
         raise InWhitelistCheckFailure(redirect)
-    return False
+    raise SilentChannelFailure("Wrong channel, silently fail")

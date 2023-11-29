@@ -15,6 +15,7 @@ from bot.utils.exceptions import (
     CodeJamCategoryCheckFailure,
     InMonthCheckFailure,
     InWhitelistCheckFailure,
+    SilentChannelFailure,
 )
 
 log = get_logger(__name__)
@@ -71,6 +72,10 @@ class ErrorHandler(Cog):
         if isinstance(error, InMonthCheckFailure):
             embed = self._get_error_embed("Command not available", str(error))
             await ctx.send(embed=embed)
+            return
+        if isinstance(error, SilentChannelFailure):
+            # Silently fail, SirRobin should not respond
+            log.error(exc_info=error)
             return
         if isinstance(error, InWhitelistCheckFailure):
             embed = self._get_error_embed("Wrong Channel", error)

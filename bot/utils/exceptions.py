@@ -15,6 +15,10 @@ class InMonthCheckFailure(CheckFailure):
     """Check failure for when a command is invoked outside of its allowed month."""
 
 
+class SilentChannelFailure(CheckFailure):
+    """Raised when someone should not use a command in a context and should silently fail."""
+
+
 class InWhitelistCheckFailure(CheckFailure):
     """Raised when the `in_whitelist` check fails."""
 
