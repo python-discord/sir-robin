@@ -136,7 +136,7 @@ class AdventOfCode(commands.Cog):
             await self.bot.invoke_help_command(ctx)
 
     @with_role(Roles.admins)
-    @in_whitelist(role_override=(Roles.admins, Roles.events_lead), fail_silently=True)
+    @in_whitelist(role_override=(Roles.admins,), fail_silently=True)
     @adventofcode_group.command(
         name="block",
         brief="Block a user from getting the completionist role.",
