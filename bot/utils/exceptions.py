@@ -7,7 +7,11 @@ class JamCategoryNameConflictError(Exception):
     """Raised when upon creating a CodeJam the main jam category and the teams' category conflict."""
 
 
-class CodeJamCategoryCheckFailure(CheckFailure):
+class SilentCheckFailure(CheckFailure):
+    """Raised when a check fails, but the bot should not give feedback."""
+
+
+class CodeJamCategoryCheckFailure(SilentCheckFailure):
     """Raised when the specified command was run outside the Code Jam categories."""
 
 
@@ -15,7 +19,7 @@ class InMonthCheckFailure(CheckFailure):
     """Check failure for when a command is invoked outside of its allowed month."""
 
 
-class SilentChannelFailure(CheckFailure):
+class SilentChannelFailure(SilentCheckFailure):
     """Raised when someone should not use a command in a context and should silently fail."""
 
 
