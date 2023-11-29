@@ -9,7 +9,7 @@ from discord.ext.commands import Command, Context
 from bot.constants import Channels, Month
 from bot.utils import human_months, resolve_current_month
 from bot.utils.checks import in_whitelist_check
-from bot.utils.exceptions import InMonthCheckFailure
+from bot.utils.exceptions import InMonthCheckFailure, SilentRoleFailure
 
 ONE_DAY = 24 * 60 * 60
 
@@ -128,26 +128,15 @@ def in_month(*allowed_months: Month) -> Callable:
     return decorator
 
 
-def with_role(*role_ids: int) -> Callable:
+def with_role(*role_ids: int, fail_silently: bool = False) -> Callable:
     """Check to see whether the invoking user has any of the roles specified in role_ids."""
     async def predicate(ctx: Context) -> bool:
-        if not ctx.guild:  # Return False in a DM
-            log.debug(
-                f"{ctx.author} tried to use the '{ctx.command.name}'command from a DM. "
-                "This command is restricted by the with_role decorator. Rejecting request."
-            )
-            return False
-
-        for role in ctx.author.roles:
-            if role.id in role_ids:
-                log.debug(f"{ctx.author} has the '{role.name}' role, and passes the check.")
-                return True
-
-        log.debug(
-            f"{ctx.author} does not have the required role to use "
-            f"the '{ctx.command.name}' command, so the request is rejected."
-        )
-        return False
+        try:
+            await commands.has_any_role(*role_ids).predicate(ctx)
+        except commands.MissingAnyRole as e:
+            if fail_silently:
+                raise SilentRoleFailure from e
+            raise
     return commands.check(predicate)
 
 
