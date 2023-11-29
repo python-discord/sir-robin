@@ -27,20 +27,20 @@ class SirRobin(BotBase):
     async def setup_hook(self) -> None:
         """Default Async initialisation method for Discord.py."""
         self.code_jam_mgmt_api = APIClient(
-            site_api_url=constants.Client.code_jam_api,
-            site_api_token=constants.Client.code_jam_token
+            site_api_url=constants.Codejam.api,
+            site_api_token=constants.Codejam.api_key
         )
         await super().setup_hook()
         await self.load_extensions(exts)
         create_task(self.check_channels())
-        create_task(self.send_log(constants.Client.name, "Connected!"))
+        create_task(self.send_log(constants.Bot.name, "Connected!"))
         self.add_view(JamTeamInfoView(self))
 
     async def check_channels(self) -> None:
         """Verifies that all channel constants refer to channels which exist."""
         await self.wait_until_guild_available()
 
-        if constants.Client.debug:
+        if constants.Bot.debug:
             log.info("Skipping Channels Check.")
             return
 

@@ -19,11 +19,14 @@ jobs:
       - name: Attempt bot setup
         run: "python -m bot"
         env:
-          USE_FAKEREDIS: true
-          IN_CI: true
+          REDIS_USE_FAKEREDIS: true
+          BOT_IN_CI: true
+          BOT_TOKEN: hunter2
 
       - name: Run tests
         run: pytest --disable-warnings -q
+        env:
+          BOT_TOKEN: hunter2
 
       - name: Run pre-commit hooks
         run: SKIP=ruff pre-commit run --all-files

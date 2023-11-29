@@ -10,7 +10,7 @@ from discord.ext import commands, tasks
 from discord.utils import MISSING
 
 from bot.bot import SirRobin
-from bot.constants import Channels, Client, Roles
+from bot.constants import Bot, Channels, Roles
 from bot.utils.time import time_until
 
 log = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ If you have questions or suggestions about the event itself, head over to <#{dis
 
 NEXT_PUZZLE_TEXT = """
 The next puzzle will be posted <t:{timestamp}:R>.
-To receive notifications when new puzzles are released, run `!subscribe` in <#{bot_commands}> and assign yourself \
+To recieve notifications when new puzzles are released, head over to <#{roles}> and assign yourself \
 the Revival of Code role.
 """
 
@@ -98,7 +98,7 @@ class SummerAoC(commands.Cog):
     async def cog_command_error(self, ctx: commands.Context, error: commands.CommandError) -> None:
         """Send help text on user input error."""
         if isinstance(error, commands.UserInputError):
-            desc = f"```{Client.prefix}summeraoc {ctx.command.name} {ctx.command.signature}```"
+            desc = f"```{Bot.prefix}summeraoc {ctx.command.name} {ctx.command.signature}```"
             embed = discord.Embed(
                 description=desc,
             )
@@ -108,7 +108,7 @@ class SummerAoC(commands.Cog):
     async def summer_aoc_group(self, ctx: commands.Context) -> None:
         """Commands for managing the Summer AoC event."""
         desc = "\n".join(
-            f"*{command.help}*\n```{Client.prefix}summeraoc {command.name} {command.signature}```"
+            f"*{command.help}*\n```{Bot.prefix}summeraoc {command.name} {command.signature}```"
             for command in sorted(self.summer_aoc_group.walk_commands(), key=hash)
         )
         embed = discord.Embed(description=desc)
@@ -330,7 +330,7 @@ class SummerAoC(commands.Cog):
         else:
             next_puzzle_text = NEXT_PUZZLE_TEXT.format(
                 timestamp=int(self.next_post_time().timestamp()),
-                bot_commands=Channels.bot_commands,
+                roles=Channels.roles
             )
         post_text = POST_TEXT.format(
             public_name=PUBLIC_NAME,

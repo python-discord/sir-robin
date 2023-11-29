@@ -5,7 +5,7 @@ from discord import Embed
 from discord.ext import commands
 
 from bot.bot import SirRobin
-from bot.constants import Client
+from bot.constants import Bot
 from bot.converters import SourceConverter, SourceType
 
 
@@ -20,7 +20,7 @@ class BotSource(commands.Cog):
         """Display information and a GitHub link to the source code of a command or cog."""
         if not source_item:
             embed = Embed(title="Sir Robin's GitHub Repository")
-            embed.add_field(name="Repository", value=f"[Go to GitHub]({Client.github_bot_repo})")
+            embed.add_field(name="Repository", value=f"[Go to GitHub]({Bot.github_bot_repo})")
             embed.set_thumbnail(url="https://avatars1.githubusercontent.com/u/9919")
             await ctx.send(embed=embed)
             return
@@ -29,7 +29,7 @@ class BotSource(commands.Cog):
         # This should be removed upon implementation of a custom help command.
         if isinstance(source_item, commands.HelpCommand):
             embed = Embed(title="Help Command", description="We use Discord.py's default help command.")
-            embed.add_field(name="Repository", value=f"[Go to GitHub]({Client.github_bot_repo})")
+            embed.add_field(name="Repository", value=f"[Go to GitHub]({Bot.github_bot_repo})")
             embed.set_thumbnail(url="https://avatars1.githubusercontent.com/u/9919")
             await ctx.send(embed=embed)
             return
@@ -60,14 +60,14 @@ class BotSource(commands.Cog):
             except OSError:
                 raise commands.BadArgument("Cannot get source for a dynamically-created object.")
 
-            lines_extension = f"#L{first_line_no}-L{first_line_no+len(lines)-1}"
+            lines_extension = f"#L{first_line_no}-L{first_line_no + len(lines) - 1}"
         else:
             first_line_no = None
             lines_extension = ""
 
         file_location = Path(filename).relative_to(Path.cwd()).as_posix()
 
-        url = f"{Client.github_bot_repo}/blob/main/{file_location}{lines_extension}"
+        url = f"{Bot.github_bot_repo}/blob/main/{file_location}{lines_extension}"
 
         return url, file_location, first_line_no or None
 

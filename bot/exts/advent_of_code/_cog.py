@@ -11,8 +11,8 @@ from discord.ext import commands, tasks
 from bot.bot import SirRobin
 from bot.constants import (
     AdventOfCode as AocConfig,
+    Bot,
     Channels,
-    Client,
     Colours,
     Emojis,
     Month,
@@ -23,7 +23,6 @@ from bot.exts.advent_of_code import _helpers
 from bot.exts.advent_of_code.views.dayandstarview import AoCDropdownView
 from bot.utils import members
 from bot.utils.decorators import InChannelCheckFailure, in_month, whitelist_override, with_role
-from bot.utils.exceptions import MovedCommandError
 
 log = logging.getLogger(__name__)
 
@@ -50,7 +49,7 @@ class AdventOfCode(commands.Cog):
     aoc_slash_group = app_commands.Group(
         name="aoc",
         description="All of the Advent of Code commands.",
-        guild_ids=[Client.guild],
+        guild_ids=[Bot.guild],
     )
 
     def __init__(self, bot: SirRobin):
@@ -82,7 +81,7 @@ class AdventOfCode(commands.Cog):
 
         Runs on a schedule, as defined in the task.loop decorator.
         """
-        guild = self.bot.get_guild(Client.guild)
+        guild = self.bot.get_guild(Bot.guild)
         completionist_role = guild.get_role(Roles.aoc_completionist)
         if completionist_role is None:
             log.warning("Could not find the AoC completionist role; cancelling completionist task.")
@@ -147,21 +146,6 @@ class AdventOfCode(commands.Cog):
 
         await self.completionist_block_list.set(member.id, "sentinel")
         await ctx.send(f":+1: Blocked {member.mention} from getting the AoC completionist role.")
-
-    @commands.guild_only()
-    @adventofcode_group.command(
-        name="subscribe",
-        aliases=("sub", "notifications", "notify", "notifs", "unsubscribe", "unsub"),
-        help=f"NOTE: This command has been moved to {Client.prefix}subscribe",
-    )
-    @whitelist_override(channels=AOC_WHITELIST)
-    async def aoc_subscribe(self, ctx: commands.Context) -> None:
-        """
-        Deprecated role command.
-
-        This command has been moved to bot, and will be removed in the future.
-        """
-        raise MovedCommandError(f"{Client.prefix}subscribe")
 
     @adventofcode_group.command(name="countdown", aliases=("count", "c"), brief="Return time left until next day")
     @whitelist_override(channels=AOC_WHITELIST)

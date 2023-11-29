@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from pydis_core.utils.logging import get_logger
 
-from bot.constants import Channels, Roles
+from bot.constants import Categories, Channels, Roles
 from bot.utils.exceptions import JamCategoryNameConflictError
 
 log = get_logger(__name__)
@@ -18,8 +18,7 @@ async def _create_category(guild: discord.Guild) -> discord.CategoryChannel:
     category_overwrites = {
         guild.default_role: discord.PermissionOverwrite(read_messages=False),
         guild.me: discord.PermissionOverwrite(read_messages=True),
-        guild.get_role(Roles.bot_sir_lancebot): discord.PermissionOverwrite(read_messages=True),
-        guild.get_role(Roles.bot_python): discord.PermissionOverwrite(read_messages=True),
+        guild.get_role(Roles.bots): discord.PermissionOverwrite(read_messages=True),
         guild.get_role(Roles.events_lead): discord.PermissionOverwrite(manage_channels=True),
     }
     category = await guild.create_category_channel(
@@ -43,7 +42,7 @@ async def _get_category(guild: discord.Guild) -> discord.CategoryChannel:
     If the main CJ category and the CJ Team's category has the same name
     it raises a `JamCategoryNameConflictError`
     """
-    main_cj_category = guild.get_channel(Channels.summer_code_jam).name
+    main_cj_category = guild.get_channel(Categories.summer_code_jam).name
     if main_cj_category == CATEGORY_NAME:
         raise JamCategoryNameConflictError
 
@@ -64,9 +63,7 @@ def _get_overwrites(
         guild.get_role(Roles.events_lead): discord.PermissionOverwrite(manage_channels=True),
         guild.get_role(Roles.code_jam_event_team): discord.PermissionOverwrite(read_messages=True),
         team_role: discord.PermissionOverwrite(read_messages=True),
-        guild.get_role(Roles.bot_sir_robin): discord.PermissionOverwrite(read_messages=True, send_messages=True),
-        guild.get_role(Roles.bot_sir_lancebot): discord.PermissionOverwrite(read_messages=True, send_messages=True),
-        guild.get_role(Roles.bot_python): discord.PermissionOverwrite(read_messages=True, send_messages=True),
+        guild.get_role(Roles.bots): discord.PermissionOverwrite(read_messages=True, send_messages=True),
     }
 
 
@@ -105,7 +102,7 @@ async def create_team_channel(
 
 async def create_team_leader_channel(guild: discord.Guild, team_leaders: discord.Role) -> None:
     """Create the Team Leader Chat channel for the Code Jam team leaders."""
-    category: discord.CategoryChannel = guild.get_channel(Channels.summer_code_jam)
+    category: discord.CategoryChannel = guild.get_channel(Categories.summer_code_jam)
 
     team_leaders_chat = await category.create_text_channel(
         name="team-leaders-chat",

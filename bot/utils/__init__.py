@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 import discord
 from discord.ext.commands import BadArgument, Context
 
-from bot.constants import Client, Month
+from bot.constants import Bot, Month
 from bot.utils.pagination import LinePaginator
 
 
@@ -19,14 +19,12 @@ def human_months(months: Iterable[Month]) -> str:
 
 def resolve_current_month() -> Month:
     """
-    Determine current month w.r.t. `Client.month_override` env var.
+    Determine current month w.r.t. `Bot.month_override` env var.
 
     If the env variable was set, current month always resolves to the configured value.
     Otherwise, the current UTC month is given.
     """
-    if Client.month_override is not None:
-        return Month(Client.month_override)
-    return Month(datetime.now(tz=UTC).month)
+    return Bot.month_override or Month(datetime.now(tz=UTC).month)
 
 
 async def disambiguate(
@@ -92,7 +90,7 @@ async def disambiguate(
         # Love that duplicate code
         for coro in pending:
             coro.cancel()
-    except asyncio.TimeoutError:
+    except TimeoutError:
         raise BadArgument("Timed out.")
 
     # Guaranteed to not error because of isdecimal() in check

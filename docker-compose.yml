@@ -1,8 +1,6 @@
-x-restart-policy: &restart_policy
-  restart: unless-stopped
-
 services:
   postgres:
+    restart: unless-stopped
     image: postgres:13-alpine
     ports:
       - "127.0.0.1:7777:5432"
@@ -17,39 +15,37 @@ services:
       retries: 5
 
   code_jam_management:
+    restart: unless-stopped
     image: ghcr.io/python-discord/code-jam-management:latest
     depends_on:
       postgres:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql+asyncpg://codejam_management:codejam_management@postgres:5432/codejam_management
-      CODE_JAM_API_KEY: suitable-for-development-only
-      CODE_JAM_API: http://code_jam_management:8000
     ports:
       - 8000:8000
 
+  redis:
+    restart: unless-stopped
+    image: redis:latest
+    ports:
+      - "127.0.0.1:6379:6379"
+
   sir-robin:
-    << : *restart_policy
+    restart: unless-stopped
     build:
       context: .
       dockerfile: Dockerfile
     container_name: sir-robin
     init: true
     tty: true
-
     depends_on:
       - redis
-
     environment:
-      - REDIS_HOST=redis
+      REDIS_HOST: redis
+      REDIS_USE_FAKEREDIS: false
+      CODE_JAM_API: http://code_jam_management:8000
     env_file:
       - .env
-
     volumes:
       - .:/bot
-
-  redis:
-    << : *restart_policy
-    image: redis:latest
-    ports:
-      - "127.0.0.1:6379:6379"
