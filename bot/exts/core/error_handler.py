@@ -1,21 +1,17 @@
 from discord import Colour, Embed
 from discord.ext.commands import (
-    BadArgument,
     Cog,
     CommandError,
-    CommandNotFound,
     Context,
-    MissingAnyRole,
-    MissingRequiredArgument,
+    errors,
 )
 
 from bot.bot import SirRobin
 from bot.log import get_logger
 from bot.utils.exceptions import (
-    CodeJamCategoryCheckFailure,
     InMonthCheckFailure,
     InWhitelistCheckFailure,
-    SilentChannelFailure,
+    SilentCheckFailure,
 )
 
 log = get_logger(__name__)
@@ -50,51 +46,101 @@ class ErrorHandler(Cog):
         """
         log.trace(f"Handling a raised error {error} from {ctx.command}")
 
-        # We could handle the subclasses of UserInputError errors together, using the error
-        # name as the embed title. Before doing this we would have to verify that all messages
-        # attached to subclasses of this error are human-readable, as they are user facing.
-        if isinstance(error, BadArgument):
-            embed = self._get_error_embed("Bad argument", str(error))
-            await ctx.send(embed=embed)
-            return
-        if isinstance(error, CommandNotFound):
-            embed = self._get_error_embed("Command not found", str(error))
-            await ctx.send(embed=embed)
-            return
-        if isinstance(error, MissingRequiredArgument):
-            embed = self._get_error_embed("Missing required argument", str(error))
-            await ctx.send(embed=embed)
-            return
-        if isinstance(error, MissingAnyRole):
-            embed = self._get_error_embed("Permission error", "You are not allowed to use this command!")
-            await ctx.send(embed=embed)
-            return
-        if isinstance(error, InMonthCheckFailure):
-            embed = self._get_error_embed("Command not available", str(error))
-            await ctx.send(embed=embed)
-            return
-        if isinstance(error, SilentChannelFailure):
-            # Silently fail, SirRobin should not respond
-            log.error(exc_info=error)
-            return
-        if isinstance(error, InWhitelistCheckFailure):
-            embed = self._get_error_embed("Wrong Channel", error)
-            await ctx.send(embed=embed)
-            return
-        if isinstance(error, CodeJamCategoryCheckFailure):
-            # Silently fail, as SirRobin should not respond
-            # to any of the CJ related commands outside of the CJ categories.
-            log.error(exc_info=error)
+        if isinstance(error, errors.UserInputError):
+            await self.handle_user_input_error(ctx, error)
             return
 
-        # If we haven't handled it by this point, it is considered an unexpected/handled error.
-        embed = self._get_error_embed(
-            "Unexpected error",
-            "Sorry, an unexpected error occurred. Please let us know!\n\n"
-            f"```{error.__class__.__name__}: {error}```"
-        )
+        if isinstance(error, errors.CheckFailure):
+            await self.handle_check_failure(ctx, error)
+            return
+
+        if isinstance(error, errors.CommandNotFound):
+            embed = self._get_error_embed("Command not found", str(error))
+        else:
+            # If we haven't handled it by this point, it is considered an unexpected/handled error.
+            log.exception(f"Error executing command invoked by {ctx.message.author}: {ctx.message.content}")
+            embed = self._get_error_embed(
+                "Unexpected error",
+                "Sorry, an unexpected error occurred. Please let us know!\n\n"
+                f"```{error.__class__.__name__}: {error}```"
+            )
         await ctx.send(embed=embed)
-        log.error(f"Error executing command invoked by {ctx.message.author}: {ctx.message.content}", exc_info=error)
+
+    async def handle_user_input_error(self, ctx: Context, e: errors.UserInputError) -> None:
+        """
+        Send an error message in `ctx` for UserInputError, sometimes invoking the help command too.
+
+        * MissingRequiredArgument: send an error message with arg name and the help command
+        * TooManyArguments: send an error message and the help command
+        * BadArgument: send an error message and the help command
+        * BadUnionArgument: send an error message including the error produced by the last converter
+        * ArgumentParsingError: send an error message
+        * Other: send an error message and the help command
+        """
+        if isinstance(e, errors.MissingRequiredArgument):
+            embed = self._get_error_embed("Missing required argument", e.param.name)
+        elif isinstance(e, errors.TooManyArguments):
+            embed = self._get_error_embed("Too many arguments", str(e))
+        elif isinstance(e, errors.BadArgument):
+            embed = self._get_error_embed("Bad argument", str(e))
+        elif isinstance(e, errors.BadUnionArgument):
+            embed = self._get_error_embed("Bad argument", f"{e}\n{e.errors[-1]}")
+        elif isinstance(e, errors.ArgumentParsingError):
+            embed = self._get_error_embed("Argument parsing error", str(e))
+        else:
+            embed = self._get_error_embed(
+                "Input error",
+                "Something about your input seems off. Check the arguments and try again."
+            )
+
+        await ctx.send(embed=embed)
+
+    async def handle_check_failure(self, ctx: Context, e: errors.CheckFailure) -> None:
+        """
+        Send an error message in `ctx` for certain types of CheckFailure.
+
+        The following types are handled:
+
+        * BotMissingPermissions
+        * BotMissingRole
+        * BotMissingAnyRole
+        * MissingAnyRole
+        * InMonthCheckFailure
+        * SilentCheckFailure
+        * InWhitelistCheckFailure
+        * NoPrivateMessage
+        """
+        bot_missing_errors = (
+            errors.BotMissingPermissions,
+            errors.BotMissingRole,
+            errors.BotMissingAnyRole
+        )
+
+        if isinstance(e, SilentCheckFailure):
+            # Silently fail, SirRobin should not respond
+            log.info(
+                f"{ctx.author} ({ctx.author.id}) tried to run {ctx.command} "
+                f"but hit a silent check failure {e.__class__.__name__}",
+            )
+            return
+
+        if isinstance(e, bot_missing_errors):
+            embed = self._get_error_embed("Permission error", "I don't have the permission I need to do that!")
+        elif isinstance(e, errors.MissingAnyRole):
+            embed = self._get_error_embed("Permission error", "You are not allowed to use this command!")
+        elif isinstance(e, InMonthCheckFailure):
+            embed = self._get_error_embed("Command not available", str(e))
+        elif isinstance(e, InWhitelistCheckFailure):
+            embed = self._get_error_embed("Wrong Channel", str(e))
+        elif isinstance(e, errors.NoPrivateMessage):
+            embed = self._get_error_embed("Wrong channel", "This command can not be ran in DMs!")
+        else:
+            embed = self._get_error_embed(
+                "Unexpected check failure",
+                "Sorry, an unexpected check error occurred. Please let us know!\n\n"
+                f"```{e.__class__.__name__}: {e}```"
+            )
+        await ctx.send(embed=embed)
 
 
 async def setup(bot: SirRobin) -> None:
