@@ -135,8 +135,7 @@ class AdventOfCode(commands.Cog):
         if not ctx.invoked_subcommand:
             await self.bot.invoke_help_command(ctx)
 
-    @with_role(Roles.admins)
-    @in_whitelist(role_override=(Roles.admins,), fail_silently=True)
+    @with_role(Roles.admins, fail_silently=True)
     @adventofcode_group.command(
         name="block",
         brief="Block a user from getting the completionist role.",
@@ -437,7 +436,7 @@ class AdventOfCode(commands.Cog):
             info_embed = _helpers.get_summary_embed(leaderboard)
             await ctx.send(f"```\n{table}\n```", embed=info_embed)
 
-    @with_role(Roles.admins)
+    @with_role(Roles.admins, fail_silently=True)
     @adventofcode_group.command(
         name="refresh",
         aliases=("fetch",),
