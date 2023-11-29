@@ -23,6 +23,10 @@ class SilentChannelFailure(SilentCheckFailure):
     """Raised when someone should not use a command in a context and should silently fail."""
 
 
+class SilentRoleFailure(SilentCheckFailure):
+    """Raised when someone doesn't have the correct role to use a command and should silently fail."""
+
+
 class InWhitelistCheckFailure(CheckFailure):
     """Raised when the `in_whitelist` check fails."""
 
