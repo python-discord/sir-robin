@@ -1,33 +1,19 @@
 import asyncio
 import functools
 import logging
-import random
-from asyncio import Lock
 from collections.abc import Callable, Container
-from functools import wraps
-from weakref import WeakValueDictionary
 
-from discord import Colour, Embed
 from discord.ext import commands
-from discord.ext.commands import CheckFailure, Command, Context
+from discord.ext.commands import Command, Context
 
-from bot.constants import Channels, ERROR_REPLIES, Month, WHITELISTED_CHANNELS
+from bot.constants import Channels, Month
 from bot.utils import human_months, resolve_current_month
 from bot.utils.checks import in_whitelist_check
+from bot.utils.exceptions import InMonthCheckFailure, SilentRoleFailure
 
 ONE_DAY = 24 * 60 * 60
 
 log = logging.getLogger(__name__)
-
-
-class InChannelCheckFailure(CheckFailure):
-    """Check failure when the user runs a command in a non-whitelisted channel."""
-
-
-
-class InMonthCheckFailure(CheckFailure):
-    """Check failure for when a command is invoked outside of its allowed month."""
-
 
 
 def seasonal_task(*allowed_months: Month, sleep_time: float | int = ONE_DAY) -> Callable:
@@ -142,157 +128,43 @@ def in_month(*allowed_months: Month) -> Callable:
     return decorator
 
 
-def with_role(*role_ids: int) -> Callable:
+def with_role(*role_ids: int, fail_silently: bool = False) -> Callable:
     """Check to see whether the invoking user has any of the roles specified in role_ids."""
     async def predicate(ctx: Context) -> bool:
-        if not ctx.guild:  # Return False in a DM
-            log.debug(
-                f"{ctx.author} tried to use the '{ctx.command.name}'command from a DM. "
-                "This command is restricted by the with_role decorator. Rejecting request."
-            )
-            return False
-
-        for role in ctx.author.roles:
-            if role.id in role_ids:
-                log.debug(f"{ctx.author} has the '{role.name}' role, and passes the check.")
-                return True
-
-        log.debug(
-            f"{ctx.author} does not have the required role to use "
-            f"the '{ctx.command.name}' command, so the request is rejected."
-        )
-        return False
+        try:
+            await commands.has_any_role(*role_ids).predicate(ctx)
+        except commands.MissingAnyRole as e:
+            if fail_silently:
+                raise SilentRoleFailure from e
+            raise
     return commands.check(predicate)
 
 
-def without_role(*role_ids: int) -> Callable:
-    """Check whether the invoking user does not have all of the roles specified in role_ids."""
-    async def predicate(ctx: Context) -> bool:
-        if not ctx.guild:  # Return False in a DM
-            log.debug(
-                f"{ctx.author} tried to use the '{ctx.command.name}' command from a DM. "
-                "This command is restricted by the without_role decorator. Rejecting request."
-            )
-            return False
-
-        author_roles = [role.id for role in ctx.author.roles]
-        check = all(role not in author_roles for role in role_ids)
-        log.debug(
-            f"{ctx.author} tried to call the '{ctx.command.name}' command. "
-            f"The result of the without_role check was {check}."
-        )
-        return check
-    return commands.check(predicate)
-
-
-def whitelist_check(**default_kwargs: Container[int]) -> Callable[[Context], bool]:
+def in_whitelist(
+    *,
+    channels: Container[int] = (),
+    categories: Container[int] = (),
+    roles: Container[int] = (),
+    redirect: Container[int] | None = (Channels.sir_lancebot_playground,),
+    role_override: Container[int] | None = (),
+    fail_silently: bool = False
+) -> Callable:
     """
-    Checks if a message is sent in a whitelisted context.
+    Check if a command was issued in a whitelisted context.
 
-    All arguments from `in_whitelist_check` are supported, with the exception of "fail_silently".
-    If `whitelist_override` is present, it is added to the global whitelist.
+    The whitelists that can be provided are:
+    - `channels`: a container with channel ids for allowed channels
+    - `categories`: a container with category ids for allowed categories
+    - `roles`: a container with role ids for allowed roles
+
+    If the command was invoked in a non whitelisted manner, they are redirected
+    to the `redirect` channel(s) that is passed (default is #sir-lancebot-playground) or
+    told they are not allowd to use that particular commands (if `None` was passed)
     """
     def predicate(ctx: Context) -> bool:
-        kwargs = default_kwargs.copy()
-        allow_dms = False
+        return in_whitelist_check(ctx, channels, categories, roles, redirect, role_override, fail_silently)
 
-        # Determine which command's overrides we will use. Group commands will
-        # inherit from their parents if they don't define their own overrides
-        overridden_command: commands.Command | None = None
-        for command in [ctx.command, *ctx.command.parents]:
-            if hasattr(command.callback, "override"):
-                overridden_command = command
-                break
-        if overridden_command is not None:
-            log.debug(f"Command {overridden_command} has overrides")
-            if overridden_command is not ctx.command:
-                log.debug(
-                    f"Command '{ctx.command.qualified_name}' inherited overrides "
-                    "from parent command '{overridden_command.qualified_name}'"
-                )
-
-        # Update kwargs based on override, if one exists
-        if overridden_command:
-            # Handle DM invocations
-            allow_dms = overridden_command.callback.override_dm
-
-            # Remove default kwargs if reset is True
-            if overridden_command.callback.override_reset:
-                kwargs = {}
-                log.debug(
-                    f"{ctx.author} called the '{ctx.command.name}' command and "
-                    f"overrode default checks."
-                )
-
-            # Merge overwrites and defaults
-            for arg in overridden_command.callback.override:
-                default_value = kwargs.get(arg)
-                new_value = overridden_command.callback.override[arg]
-
-                # Skip values that don't need merging, or can't be merged
-                if default_value is None or isinstance(arg, int):
-                    kwargs[arg] = new_value
-
-                # Merge containers
-                elif isinstance(default_value, Container):
-                    if isinstance(new_value, Container):
-                        kwargs[arg] = (*default_value, *new_value)
-                    else:
-                        kwargs[arg] = new_value
-
-            log.debug(
-                f"Updated default check arguments for '{ctx.command.name}' "
-                f"invoked by {ctx.author}."
-            )
-
-        if ctx.guild is None:
-            log.debug(f"{ctx.author} tried using the '{ctx.command.name}' command from a DM.")
-            result = allow_dms
-        else:
-            log.trace(f"Calling whitelist check for {ctx.author} for command {ctx.command.name}.")
-            result = in_whitelist_check(ctx, fail_silently=True, **kwargs)
-
-        # Return if check passed
-        if result:
-            log.debug(
-                f"{ctx.author} tried to call the '{ctx.command.name}' command "
-                f"and the command was used in an overridden context."
-            )
-            return result
-
-        log.debug(
-            f"{ctx.author} tried to call the '{ctx.command.name}' command. "
-            f"The whitelist check failed."
-        )
-
-        # Raise error if the check did not pass
-        channels = set(kwargs.get("channels") or {})
-        categories = kwargs.get("categories")
-
-        # Only output override channels + sir_lancebot_playground
-        if channels:
-            default_whitelist_channels = set(WHITELISTED_CHANNELS)
-            default_whitelist_channels.discard(Channels.sir_lancebot_playground)
-            channels.difference_update(default_whitelist_channels)
-
-        # Add all whitelisted category channels, but skip if we're in DMs
-        if categories and ctx.guild is not None:
-            for category_id in categories:
-                category = ctx.guild.get_channel(category_id)
-                if category is None:
-                    continue
-
-                channels.update(channel.id for channel in category.text_channels)
-
-        if channels:
-            channels_str = ", ".join(f"<#{c_id}>" for c_id in channels)
-            message = f"Sorry, but you may only use this command within {channels_str}."
-        else:
-            message = "Sorry, but you may not use this command."
-
-        raise InChannelCheckFailure(message)
-
-    return predicate
+    return commands.check(predicate)
 
 
 def whitelist_override(bypass_defaults: bool = False, allow_dm: bool = False, **kwargs: Container[int]) -> Callable:
@@ -314,36 +186,3 @@ def whitelist_override(bypass_defaults: bool = False, allow_dm: bool = False, **
         return func
 
     return inner
-
-
-def locked() -> Callable | None:
-    """
-    Allows the user to only run one instance of the decorated command at a time.
-
-    Subsequent calls to the command from the same author are ignored until the command has completed invocation.
-
-    This decorator has to go before (below) the `command` decorator.
-    """
-    def wrap(func: Callable) -> Callable | None:
-        func.__locks = WeakValueDictionary()
-
-        @wraps(func)
-        async def inner(self: Callable, ctx: Context, *args, **kwargs) -> Callable | None:
-            lock = func.__locks.setdefault(ctx.author.id, Lock())
-            if lock.locked():
-                embed = Embed()
-                embed.colour = Colour.red()
-
-                log.debug("User tried to invoke a locked command.")
-                embed.description = (
-                    "You're already using this command. Please wait until "
-                    "it is done before you use it again."
-                )
-                embed.title = random.choice(ERROR_REPLIES)
-                await ctx.send(embed=embed)
-                return None
-
-            async with func.__locks.setdefault(ctx.author.id, Lock()):
-                return await func(self, ctx, *args, **kwargs)
-        return inner
-    return wrap
