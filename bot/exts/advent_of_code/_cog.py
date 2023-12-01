@@ -128,7 +128,7 @@ class AdventOfCode(commands.Cog):
                 log.debug(f"Giving completionist role to {member.name} ({member.mention}).")
                 await members.handle_role_change(member, member.add_roles, completionist_role)
 
-    @commands.hybrid_group(name="adventofcode", aliases=("aoc",))
+    @commands.hybrid_group(name="aoc", aliases=("adventofcode",))
     @whitelist_override(channels=AOC_WHITELIST)
     async def adventofcode_group(self, ctx: commands.Context) -> None:
         """All of the Advent of Code commands."""
