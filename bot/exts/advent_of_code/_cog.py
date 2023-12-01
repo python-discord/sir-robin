@@ -232,9 +232,9 @@ class AdventOfCode(commands.Cog):
     )
     @in_whitelist(channels=AOC_WHITELIST, redirect=AOC_REDIRECT)
     async def aoc_link_account(
-        self, 
-        interaction: discord.Interaction, 
-        *, 
+        self,
+        interaction: discord.Interaction,
+        *,
         aoc_name: str | None = None,
     ) -> None:
         """
@@ -249,7 +249,7 @@ class AdventOfCode(commands.Cog):
             # Let's check the current values in the cache to make sure it isn't already tied to a different account
             if aoc_name == await self.account_links.get(interaction.user.id):
                 await interaction.response.send_message(
-                    f"{aoc_name} is already tied to your account.", 
+                    f"{aoc_name} is already tied to your account.",
                     ephemeral=True,
                 )
                 return
@@ -310,13 +310,13 @@ class AdventOfCode(commands.Cog):
             )
             await self.account_links.delete(interaction.user.id)
             await interaction.response.send_message(
-                f"We have removed the link between your Discord ID and {aoc_cache_name}.", 
+                f"We have removed the link between your Discord ID and {aoc_cache_name}.",
                 ephemeral=True,
             )
         else:
             log.info(f"Attempted to unlink {interaction.user} ({interaction.user.id}), but no link was found.")
             await interaction.response.send_message(
-                "You don't have an Advent of Code account linked.", 
+                "You don't have an Advent of Code account linked.",
                 ephemeral=True,
             )
 
