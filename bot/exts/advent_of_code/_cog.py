@@ -226,13 +226,17 @@ class AdventOfCode(commands.Cog):
         await interaction.response.send_message("\n".join(info_str), ephemeral=True)
 
     @in_month(Month.NOVEMBER, Month.DECEMBER, Month.JANUARY, Month.FEBRUARY)
-    @adventofcode_group.command(
+    @adventofcode_group.app_command.command(
         name="link",
-        aliases=("connect",),
-        brief="Tie your Discord account with your Advent of Code name."
+        description="Tie your Discord account with your Advent of Code name.",
     )
     @in_whitelist(channels=AOC_WHITELIST, redirect=AOC_REDIRECT)
-    async def aoc_link_account(self, ctx: commands.Context, *, aoc_name: str | None = None) -> None:
+    async def aoc_link_account(
+        self, 
+        interaction: discord.Interaction, 
+        *, 
+        aoc_name: str | None = None,
+    ) -> None:
         """
         Link your Discord Account to your Advent of Code name.
 
@@ -243,15 +247,19 @@ class AdventOfCode(commands.Cog):
 
         if aoc_name:
             # Let's check the current values in the cache to make sure it isn't already tied to a different account
-            if aoc_name == await self.account_links.get(ctx.author.id):
-                await ctx.reply(f"{aoc_name} is already tied to your account.", ephemeral=True)
+            if aoc_name == await self.account_links.get(interaction.user.id):
+                await interaction.response.send_message(
+                    f"{aoc_name} is already tied to your account.", 
+                    ephemeral=True,
+                )
                 return
+
             if aoc_name in cache_aoc_names:
                 log.info(
-                    f"{ctx.author} ({ctx.author.id}) tried to connect their account to {aoc_name},"
+                    f"{interaction.user} ({interaction.user.id}) tried to connect their account to {aoc_name},"
                     " but it's already connected to another user."
                 )
-                await ctx.reply(
+                await interaction.response.send_message(
                     f"{aoc_name} is already tied to another account."
                     " Please contact an admin if you believe this is an error.",
                     ephemeral=True,
@@ -259,45 +267,58 @@ class AdventOfCode(commands.Cog):
                 return
 
             # Update an existing link
-            if old_aoc_name := await self.account_links.get(ctx.author.id):
-                log.info(f"Changing link for {ctx.author} ({ctx.author.id}) from {old_aoc_name} to {aoc_name}.")
-                await self.account_links.set(ctx.author.id, aoc_name)
-                await ctx.reply(f"Your linked account has been changed to {aoc_name}.")
+            if old_aoc_name := await self.account_links.get(interaction.user.id):
+                log.info(
+                    f"Changing link for {interaction.user.id} ({interaction.user.id}) "
+                    f"from {old_aoc_name} to {aoc_name}."
+                )
+                await self.account_links.set(interaction.user.id, aoc_name)
+                await interaction.response.send_message(f"Your linked account has been changed to {aoc_name}.")
             else:
                 # Create a new link
-                log.info(f"Linking {ctx.author} ({ctx.author.id}) to account {aoc_name}.")
-                await self.account_links.set(ctx.author.id, aoc_name)
-                await ctx.reply(f"You have linked your Discord ID to {aoc_name}.")
+                log.info(f"Linking {interaction.user} ({interaction.user.id}) to account {aoc_name}.")
+                await self.account_links.set(interaction.user.id, aoc_name)
+                await interaction.response.send_message(f"You have linked your Discord ID to {aoc_name}.")
         else:
             # User has not supplied a name, let's check if they're in the cache or not
-            if cache_name := await self.account_links.get(ctx.author.id):
-                await ctx.reply(f"You have already linked an Advent of Code account: {cache_name}.")
+            if cache_name := await self.account_links.get(interaction.user.id):
+                await interaction.response.send_message(
+                    f"You have already linked an Advent of Code account: {cache_name}."
+                )
             else:
-                await ctx.reply(
+                await interaction.response.send_message(
                     "You have not linked an Advent of Code account."
                     " Please re-run the command with one specified."
                 )
 
     @in_month(Month.NOVEMBER, Month.DECEMBER, Month.JANUARY, Month.FEBRUARY)
-    @adventofcode_group.command(
+    @adventofcode_group.app_command.command(
         name="unlink",
-        aliases=("disconnect",),
-        brief="Untie your Discord account from your Advent of Code name."
+        description="Untie your Discord account from your Advent of Code name.",
     )
     @in_whitelist(channels=AOC_WHITELIST, redirect=AOC_REDIRECT)
-    async def aoc_unlink_account(self, ctx: commands.Context) -> None:
+    async def aoc_unlink_account(self, interaction: discord.Interaction) -> None:
         """
         Unlink your Discord ID with your Advent of Code leaderboard name.
 
         Deletes the entry that was Stored in the Redis cache.
         """
-        if aoc_cache_name := await self.account_links.get(ctx.author.id):
-            log.info(f"Unlinking {ctx.author} ({ctx.author.id}) from Advent of Code account {aoc_cache_name}")
-            await self.account_links.delete(ctx.author.id)
-            await ctx.reply(f"We have removed the link between your Discord ID and {aoc_cache_name}.", ephemeral=True)
+        if aoc_cache_name := await self.account_links.get(interaction.user.id):
+            log.info(
+                f"Unlinking {interaction.user} ({interaction.user.id}) "
+                f"from Advent of Code account {aoc_cache_name}"
+            )
+            await self.account_links.delete(interaction.user.id)
+            await interaction.response.send_message(
+                f"We have removed the link between your Discord ID and {aoc_cache_name}.", 
+                ephemeral=True,
+            )
         else:
-            log.info(f"Attempted to unlink {ctx.author} ({ctx.author.id}), but no link was found.")
-            await ctx.reply("You don't have an Advent of Code account linked.", ephemeral=True)
+            log.info(f"Attempted to unlink {interaction.user} ({interaction.user.id}), but no link was found.")
+            await interaction.response.send_message(
+                "You don't have an Advent of Code account linked.", 
+                ephemeral=True,
+            )
 
     @in_month(Month.DECEMBER, Month.JANUARY, Month.FEBRUARY)
     @adventofcode_group.command(
