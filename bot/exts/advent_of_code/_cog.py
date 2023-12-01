@@ -150,7 +150,6 @@ class AdventOfCode(commands.Cog):
         await ctx.send(f":+1: Blocked {member.mention} from getting the AoC completionist role.")
 
     @adventofcode_group.command(name="countdown", aliases=("count", "c"), brief="Return time left until next day")
-    @in_whitelist(channels=AOC_WHITELIST, redirect=AOC_REDIRECT)
     async def aoc_countdown(self, ctx: commands.Context) -> None:
         """Return time left until next day."""
         if _helpers.is_in_advent():
@@ -406,6 +405,7 @@ class AdventOfCode(commands.Cog):
         global_leaderboard.set_thumbnail(url=_helpers.AOC_EMBED_THUMBNAIL)
         await ctx.send(embed=global_leaderboard)
 
+    @in_month(Month.DECEMBER, Month.JANUARY, Month.FEBRUARY)
     @adventofcode_group.command(
         name="stats",
         aliases=("dailystats", "ds"),
