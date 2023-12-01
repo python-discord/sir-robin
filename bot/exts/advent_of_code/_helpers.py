@@ -164,7 +164,7 @@ def _parse_raw_leaderboard_data(raw_leaderboard_data: dict) -> dict:
     max_score = len(leaderboard)
     for (day, _star), results in star_results.items():
         # If this day should not count in the ranking, skip it.
-        if day in AdventOfCode.ignored_days:
+        if AdventOfCode.ignored_days and day in AdventOfCode.ignored_days:
             continue
 
         sorted_result = sorted(results, key=operator.attrgetter("completion_time"))
