@@ -11,6 +11,7 @@ import aiohttp
 import arrow
 import discord
 from discord.ext import commands
+from pydis_core.utils import paste_service
 
 import bot
 from bot.bot import SirRobin
@@ -18,9 +19,6 @@ from bot.constants import AdventOfCode, Bot, Channels, Colours, Roles
 from bot.exts.advent_of_code import _caches
 
 log = logging.getLogger(__name__)
-
-PASTE_URL = "https://paste.pythondiscord.com/documents"
-RAW_PASTE_URL_TEMPLATE = "https://paste.pythondiscord.com/raw/{key}"
 
 # Base API URL for Advent of Code Private Leaderboards
 AOC_API_URL = "https://adventofcode.com/{year}/leaderboard/private/view/{leaderboard_id}.json"
@@ -289,18 +287,24 @@ async def _fetch_leaderboard_data() -> dict[str, Any]:
 
 async def _upload_leaderboard(leaderboard: str) -> str:
     """Upload the full leaderboard to our paste service and return the URL."""
-    async with aiohttp.request("POST", PASTE_URL, data=leaderboard) as resp:
-        try:
-            resp_json = await resp.json()
-        except Exception:
-            log.exception("Failed to upload full leaderboard to paste service")
-            return ""
+    # Only output up to the top 1000 so we don't hit paste length limit
+    # extra 2 lines for table header.
+    leaderboard = "\n".join(leaderboard.split("\n")[:1002])
+    file = paste_service.PasteFile(content=leaderboard, lexer="text")
+    try:
+        async with aiohttp.ClientSession() as session:
+            paste = await paste_service.send_to_paste_service(
+                files=[file],
+                http_session=session,
+            )
+    except paste_service.PasteTooLongError:
+        log.exception("Leaderboard too long to upload to paste site")
+        return ""
+    except paste_service.PasteUploadError:
+        log.exception("Failed to upload full leaderboard to paste service")
+        return ""
 
-    if "key" in resp_json:
-        return RAW_PASTE_URL_TEMPLATE.format(key=resp_json["key"])
-
-    log.error(f"Unexpected response from paste service while uploading leaderboard {resp_json}")
-    return ""
+    return paste.link
 
 
 def _get_top_leaderboard(full_leaderboard: str) -> str:
