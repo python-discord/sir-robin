@@ -464,6 +464,20 @@ def is_in_advent() -> bool:
     return arrow.now(EST).day in range(1, 25) and arrow.now(EST).month == 12
 
 
+def time_left_to_next_aoc() -> tuple[datetime.datetime, datetime.timedelta]:
+    """
+    Calculate the amount of time left until the next AoC.
+
+    This will be either this year or next year's December 1, whichever one is
+    closer and not in the past.
+    """
+    datetime_now = arrow.now(EST)
+    this_year = arrow.get(datetime.datetime(datetime_now.year, 12, 1, tzinfo=datetime.UTC), EST)
+    next_year = arrow.get(datetime.datetime(datetime_now.year + 1, 12, 1, tzinfo=datetime.UTC), EST)
+    dec_first = this_year if this_year > datetime_now else next_year
+    return dec_first, dec_first - datetime_now
+
+
 def time_left_to_est_midnight() -> tuple[datetime.datetime, datetime.timedelta]:
     """Calculate the amount of time left until midnight EST/UTC-5."""
     # Change all time properties back to 00:00
