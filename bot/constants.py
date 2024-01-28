@@ -140,6 +140,7 @@ class _Bot(EnvConfig, env_prefix="BOT_"):
     prefix: str = "&"
     token: str
     debug: bool = True
+    trace_logging: bool = False
     in_ci: bool = False
     github_bot_repo: str = "https://github.com/python-discord/sir-robin"
     # Override seasonal locks: 1 (January) to 12 (December)
