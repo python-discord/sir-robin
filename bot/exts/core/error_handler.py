@@ -44,7 +44,7 @@ class ErrorHandler(Cog):
         In the future, I would expect this to be used as a place
             to push errors to a sentry instance.
         """
-        log.trace(f"Handling a raised error {error} from {ctx.command}")
+        log.trace("Handling a %s raised from %s", type(error), ctx.command)
 
         if isinstance(error, errors.UserInputError):
             await self.handle_user_input_error(ctx, error)
