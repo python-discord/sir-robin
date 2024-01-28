@@ -2,7 +2,7 @@ import logging
 import sys
 
 import sentry_sdk
-from pydis_core.utils.logging import TRACE_LEVEL, get_logger
+from pydis_core.utils.logging import TRACE_LEVEL, get_logger, log_format
 from sentry_sdk.integrations.logging import LoggingIntegration
 
 from bot.constants import Bot, GIT_SHA
@@ -14,14 +14,8 @@ def setup_logging() -> None:
     root_log.setLevel(TRACE_LEVEL if Bot.trace_logging else logging.DEBUG if Bot.debug else logging.INFO)
 
     ch = logging.StreamHandler(stream=sys.stdout)
-    format_string = logging.Formatter("%(asctime)s | %(name)s | %(levelname)s | %(message)s")
-    ch.setFormatter(format_string)
+    ch.setFormatter(log_format)
     root_log.addHandler(ch)
-
-    get_logger("discord").setLevel(logging.WARNING)
-
-    # Set back to the default of INFO even if asyncio's debug mode is enabled.
-    get_logger("asyncio").setLevel(logging.INFO)
 
     root_log.info("Logging initialization complete.")
 
