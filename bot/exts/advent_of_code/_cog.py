@@ -5,7 +5,6 @@ from pathlib import Path
 
 import arrow
 import discord
-from async_rediscache import RedisCache
 from discord import app_commands
 from discord.ext import commands, tasks
 from pydis_core.utils import scheduling
@@ -21,7 +20,7 @@ from bot.constants import (
     Roles,
     WHITELISTED_CHANNELS,
 )
-from bot.exts.advent_of_code import _helpers
+from bot.exts.advent_of_code import _caches, _helpers
 from bot.exts.advent_of_code.views.dayandstarview import AoCDropdownView
 from bot.utils import members
 from bot.utils.decorators import in_month, in_whitelist, with_role
@@ -41,14 +40,6 @@ AOC_REDIRECT = (Channels.advent_of_code_commands, Channels.sir_lancebot_playgrou
 
 class AdventOfCode(commands.Cog):
     """Advent of Code festivities! Ho Ho Ho!"""
-
-    # Redis Cache for linking Discord IDs to Advent of Code usernames
-    # RedisCache[member_id: aoc_username_string]
-    account_links = RedisCache()
-
-    # A dict with keys of member_ids to block from getting the role
-    # RedisCache[member_id: None]
-    completionist_block_list = RedisCache()
 
     aoc_slash_group = app_commands.Group(
         name="aoc",
@@ -104,7 +95,7 @@ class AdventOfCode(commands.Cog):
 
         aoc_name_to_member_id = {
             aoc_name: member_id
-            for member_id, aoc_name in await self.account_links.items()
+            for member_id, aoc_name in await _caches.account_links.items()
         }
 
         try:
@@ -136,7 +127,7 @@ class AdventOfCode(commands.Cog):
                 log.debug(f"{member.name} ({member.mention}) already has the completionist role.")
                 continue
 
-            if not await self.completionist_block_list.contains(member_id):
+            if not await _caches.completionist_block_list.contains(member_id):
                 log.debug(f"Giving completionist role to {member.name} ({member.mention}).")
                 await members.handle_role_change(member, member.add_roles, completionist_role)
 
@@ -157,7 +148,7 @@ class AdventOfCode(commands.Cog):
         if completionist_role in member.roles:
             await member.remove_roles(completionist_role)
 
-        await self.completionist_block_list.set(member.id, "sentinel")
+        await _caches.completionist_block_list.set(member.id, "sentinel")
         await ctx.send(f":+1: Blocked {member.mention} from getting the AoC completionist role.")
 
     @adventofcode_group.command(name="countdown", aliases=("count", "c"), brief="Return time left until next day")
@@ -254,12 +245,12 @@ class AdventOfCode(commands.Cog):
 
         Stored in a Redis Cache with the format of `Discord ID: Advent of Code Name`
         """
-        cache_items = await self.account_links.items()
+        cache_items = await _caches.account_links.items()
         cache_aoc_names = [value for _, value in cache_items]
 
         if aoc_name:
             # Let's check the current values in the cache to make sure it isn't already tied to a different account
-            if aoc_name == await self.account_links.get(ctx.author.id):
+            if aoc_name == await _caches.account_links.get(ctx.author.id):
                 await ctx.reply(f"{aoc_name} is already tied to your account.")
                 return
             if aoc_name in cache_aoc_names:
@@ -274,18 +265,18 @@ class AdventOfCode(commands.Cog):
                 return
 
             # Update an existing link
-            if old_aoc_name := await self.account_links.get(ctx.author.id):
+            if old_aoc_name := await _caches.account_links.get(ctx.author.id):
                 log.info(f"Changing link for {ctx.author} ({ctx.author.id}) from {old_aoc_name} to {aoc_name}.")
-                await self.account_links.set(ctx.author.id, aoc_name)
+                await _caches.account_links.set(ctx.author.id, aoc_name)
                 await ctx.reply(f"Your linked account has been changed to {aoc_name}.")
             else:
                 # Create a new link
                 log.info(f"Linking {ctx.author} ({ctx.author.id}) to account {aoc_name}.")
-                await self.account_links.set(ctx.author.id, aoc_name)
+                await _caches.account_links.set(ctx.author.id, aoc_name)
                 await ctx.reply(f"You have linked your Discord ID to {aoc_name}.")
         else:
             # User has not supplied a name, let's check if they're in the cache or not
-            if cache_name := await self.account_links.get(ctx.author.id):
+            if cache_name := await _caches.account_links.get(ctx.author.id):
                 await ctx.reply(f"You have already linked an Advent of Code account: {cache_name}.")
             else:
                 await ctx.reply(
@@ -306,9 +297,9 @@ class AdventOfCode(commands.Cog):
 
         Deletes the entry that was Stored in the Redis cache.
         """
-        if aoc_cache_name := await self.account_links.get(ctx.author.id):
+        if aoc_cache_name := await _caches.account_links.get(ctx.author.id):
             log.info(f"Unlinking {ctx.author} ({ctx.author.id}) from Advent of Code account {aoc_cache_name}")
-            await self.account_links.delete(ctx.author.id)
+            await _caches.account_links.delete(ctx.author.id)
             await ctx.reply(f"We have removed the link between your Discord ID and {aoc_cache_name}.")
         else:
             log.info(f"Attempted to unlink {ctx.author} ({ctx.author.id}), but no link was found.")
@@ -374,7 +365,7 @@ class AdventOfCode(commands.Cog):
             aoc_name = aoc_name[1:-1]
 
         # Check if an advent of code account is linked in the Redis Cache if aoc_name is not given
-        if (aoc_cache_name := await self.account_links.get(ctx.author.id)) and aoc_name is None:
+        if (aoc_cache_name := await _caches.account_links.get(ctx.author.id)) and aoc_name is None:
             aoc_name = aoc_cache_name
 
         async with ctx.typing():
