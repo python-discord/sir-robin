@@ -70,33 +70,6 @@ class FetchingLeaderboardFailedError(Exception):
     """Raised when one or more leaderboards could not be fetched at all."""
 
 
-def _format_leaderboard_line(rank: int, data: dict[str, Any], *, is_author: bool) -> str:
-    """
-    Build a string representing a line of the leaderboard.
-
-    Parameters:
-        rank:
-            Rank in the leaderboard of this entry.
-
-        data:
-            Mapping with entry information.
-
-    Keyword arguments:
-        is_author:
-            Whether to address the name displayed in the returned line
-            personally.
-
-    Returns:
-        A formatted line for the leaderboard.
-    """
-    return AOC_TABLE_TEMPLATE.format(
-        rank=rank,
-        name=data["name"] if not is_author else f"(You) {data['name']}",
-        score=str(data["score"]),
-        stars=f"({data['star_1']}, {data['star_2']})"
-    )
-
-
 def leaderboard_sorting_function(entry: tuple[str, dict]) -> tuple[int, int]:
     """
     Provide a sorting value for our leaderboard.
