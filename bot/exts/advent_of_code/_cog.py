@@ -77,7 +77,8 @@ class AdventOfCode(commands.Cog):
             _helpers.new_puzzle_notification(self.bot),
         )
 
-        self.completionist_task.start()
+        if await _caches.aoc_settings.get(_caches.AoCSettingOption.COMPLETIONIST_ENABLED.value):
+            self.completionist_task.start()
 
     @tasks.loop(minutes=10.0)
     async def completionist_task(self) -> None:
@@ -136,6 +137,26 @@ class AdventOfCode(commands.Cog):
         """All of the Advent of Code commands."""
         if not ctx.invoked_subcommand:
             await self.bot.invoke_help_command(ctx)
+
+    @with_role(Roles.admins, fail_silently=True)
+    @adventofcode_group.command(
+        name="completionist_toggle",
+        aliases=("ct", "toggle"),
+        brief="Toggle whether or not the completionist role is issued to new users.",
+    )
+    async def completionist_toggle(self, ctx: commands.Context) -> None:
+        """Toggle whether or not the completionist role is issued to new users."""
+        current_state = await _caches.aoc_settings.get(_caches.AoCSettingOption.COMPLETIONIST_ENABLED.value)
+        new_state = not current_state
+        if new_state:
+            self.completionist_task.start()
+            state_string = "on"
+        else:
+            self.completionist_task.cancel()
+            state_string = "off"
+
+        await _caches.aoc_settings.set(_caches.AoCSettingOption.COMPLETIONIST_ENABLED.value, new_state)
+        await ctx.send(f":+1: Completionist role issuing is now {state_string}.")
 
     @with_role(Roles.admins, fail_silently=True)
     @adventofcode_group.command(

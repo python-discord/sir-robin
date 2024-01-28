@@ -1,4 +1,10 @@
+from enum import Enum
+
 import async_rediscache
+
+
+class AoCSettingOption(Enum):
+    COMPLETIONIST_ENABLED = "completionist_enabled"
 
 # How many people are in each leaderboard
 # RedisCache[leaderboard_id, int]
@@ -19,3 +25,7 @@ account_links = async_rediscache.RedisCache(namespace="AOC_account_links")
 # Member IDs that are blocked from receiving the AoC completionist role
 # RedisCache[member_id, sentinel_value]
 completionist_block_list = async_rediscache.RedisCache(namespace="AOC_completionist_block_list")
+
+# AoC settings cache
+# RedisCache[AoCSettingOption, bool]
+aoc_settings = async_rediscache.RedisCache(namespace="AOC_settings")
