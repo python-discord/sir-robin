@@ -8,6 +8,7 @@ import discord
 from async_rediscache import RedisCache
 from discord import app_commands
 from discord.ext import commands, tasks
+from pydis_core.utils import scheduling
 
 from bot.bot import SirRobin
 from bot.constants import (
@@ -64,17 +65,27 @@ class AdventOfCode(commands.Cog):
         self.about_aoc_filepath = Path("./bot/exts/advent_of_code/about.json")
         self.cached_about_aoc = self._build_about_embed()
 
-        notification_coro = _helpers.new_puzzle_notification(self.bot)
-        self.notification_task = self.bot.loop.create_task(notification_coro)
-        self.notification_task.set_name("Daily AoC Notification")
-        self.notification_task.add_done_callback(_helpers.background_task_callback)
+        self.scheduler = scheduling.Scheduler(self.__class__.__name__)
 
-        status_coro = _helpers.countdown_status(self.bot)
-        self.status_task = self.bot.loop.create_task(status_coro)
-        self.status_task.set_name("AoC Status Countdown")
-        self.status_task.add_done_callback(_helpers.background_task_callback)
+    def cog_unload(self) -> None:
+        """Cancel all tasks on cog unload."""
+        self.scheduler.cancel_all()
 
-        # Don't start task while event isn't running
+    async def cog_load(self) -> None:
+        """Start all AoC tasks on cog load."""
+        log.debug("Initialising AoC tasks")
+        self.scheduler.schedule_at(
+            _helpers.advent_of_code_start_time(hours_before=2),
+            "AoC Status Countdown",
+            _helpers.countdown_status(self.bot),
+        )
+
+        self.scheduler.schedule_at(
+            _helpers.advent_of_code_start_time(hours_before=1),
+            "Daily AoC Notification",
+            _helpers.new_puzzle_notification(self.bot),
+        )
+
         self.completionist_task.start()
 
     @tasks.loop(minutes=10.0)
@@ -456,13 +467,6 @@ class AdventOfCode(commands.Cog):
                 await ctx.send(":x: Something went wrong while trying to refresh the cache!")
             else:
                 await ctx.send("\N{OK Hand Sign} Refreshed leaderboard cache!")
-
-    def cog_unload(self) -> None:
-        """Cancel season-related tasks on cog unload."""
-        log.debug("Unloading the cog and canceling the background task.")
-        self.notification_task.cancel()
-        self.status_task.cancel()
-        self.completionist_task.cancel()
 
     def _build_about_embed(self) -> discord.Embed:
         """Build and return the informational "About AoC" embed from the resources file."""

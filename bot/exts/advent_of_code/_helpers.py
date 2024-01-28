@@ -481,52 +481,18 @@ def time_left_to_est_midnight() -> tuple[datetime.datetime, datetime.timedelta]:
     return tomorrow, tomorrow - arrow.now(EST)
 
 
-async def wait_for_advent_of_code(*, hours_before: int = 1) -> None:
+def advent_of_code_start_time(*, hours_before: int = 0) -> datetime.datetime:
     """
-    Wait for the Advent of Code event to start.
+    Get the time that the AoC from AdventOfCode.year starts.
 
-    This function returns `hours_before` (default: 1) the Advent of Code
-    actually starts. This allows functions to schedule and execute code that
-    needs to run before the event starts.
-
-    If the event has already started, this function returns immediately.
-
-    Note: The "next Advent of Code" is determined based on the current value
-    of the `AOC_YEAR` environment variable. This allows callers to exit early
-    if we're already past the Advent of Code edition the bot is currently
-    configured for.
+    hours_before can be used to offset the time returned if needed.
     """
-    start = arrow.get(datetime.datetime(AdventOfCode.year, 12, 1, tzinfo=datetime.UTC), EST)
-    target = start - datetime.timedelta(hours=hours_before)
-    now = arrow.now(EST)
-
-    # If we've already reached or passed to target, we
-    # simply return immediately.
-    if now >= target:
-        return
-
-    delta = target - now
-    await asyncio.sleep(delta.total_seconds())
+    aoc_start = arrow.get(datetime.datetime(AdventOfCode.year, 12, 1, tzinfo=datetime.UTC), EST)
+    return aoc_start - datetime.timedelta(hours=hours_before)
 
 
 async def countdown_status(bot: SirRobin) -> None:
-    """
-    Add the time until the next challenge is published to the bot's status.
-
-    This function sleeps until 2 hours before the event and exists one hour
-    after the last challenge has been published. It will not start up again
-    automatically for next year's event, as it will wait for the environment
-    variable AOC_YEAR to be updated.
-
-    This ensures that the task will only start sleeping again once the next
-    event approaches and we're making preparations for that event.
-    """
-    log.debug("Initializing status countdown task.")
-    # We wait until 2 hours before the event starts. Then we
-    # set our first countdown status.
-    await wait_for_advent_of_code(hours_before=2)
-
-    # Log that we're going to start with the countdown status.
+    """Add the time until the next challenge is published to the bot's status."""
     log.info("The Advent of Code has started or will start soon, starting countdown status.")
 
     # Calculate when the task needs to stop running. To prevent the task from
@@ -564,17 +530,7 @@ async def countdown_status(bot: SirRobin) -> None:
 
 
 async def new_puzzle_notification(bot: SirRobin) -> None:
-    """
-    Announce the release of a new Advent of Code puzzle.
-
-    This background task hibernates until just before the Advent of Code starts
-    and will then start announcing puzzles as they are published. After the
-    event has finished, this task will terminate.
-    """
-    # We wake up one hour before the event starts to prepare the announcement
-    # of the release of the first puzzle.
-    await wait_for_advent_of_code(hours_before=1)
-
+    """Announce the release of a new Advent of Code puzzle when published."""
     log.info("The Advent of Code has started or will start soon, waking up notification task.")
 
     aoc_channel = bot.get_channel(Channels.advent_of_code)
