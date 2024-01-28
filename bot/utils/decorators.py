@@ -131,8 +131,14 @@ def in_month(*allowed_months: Month) -> Callable:
 def with_role(*role_ids: int, fail_silently: bool = False) -> Callable:
     """Check to see whether the invoking user has any of the roles specified in role_ids."""
     async def predicate(ctx: Context) -> bool:
+        log.debug(
+            "Checking if %s has one of the following role IDs %s. Fail silently is set to %s.",
+            ctx.author,
+            role_ids,
+            fail_silently
+        )
         try:
-            await commands.has_any_role(*role_ids).predicate(ctx)
+            return await commands.has_any_role(*role_ids).predicate(ctx)
         except commands.MissingAnyRole as e:
             if fail_silently:
                 raise SilentRoleFailure from e
