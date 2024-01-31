@@ -58,7 +58,7 @@ class AdventOfCode(commands.Cog):
 
         self.scheduler = scheduling.Scheduler(self.__class__.__name__)
 
-    def cog_unload(self) -> None:
+    async def cog_unload(self) -> None:
         """Cancel all tasks on cog unload."""
         self.scheduler.cancel_all()
 
