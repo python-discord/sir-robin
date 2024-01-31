@@ -1,9 +1,14 @@
+import contextlib
+from sys import exception
+
 import discord
 from discord.ext import commands
 from pydis_core import BotBase
 from pydis_core.site_api import APIClient
+from pydis_core.utils.error_handling import handle_forbidden_from_block
 from pydis_core.utils.logging import get_logger
 from pydis_core.utils.scheduling import create_task
+from sentry_sdk import push_scope
 
 from bot import constants, exts
 from bot.exts.code_jams._views import JamTeamInfoView
@@ -79,3 +84,26 @@ class SirRobin(BotBase):
             await ctx.invoke(help_command, ctx.command.qualified_name)
             return
         await ctx.send_help(ctx.command)
+
+    async def on_error(self, event: str, *args, **kwargs) -> None:
+        """Log errors raised in event listeners rather than printing them to stderr."""
+        e_val = exception()
+
+        if isinstance(e_val, discord.errors.Forbidden):
+            message = args[0] if event == "on_message" else args[1] if event == "on_message_edit" else None
+
+            with contextlib.suppress(discord.errors.Forbidden):
+                # Attempt to handle the error. This re-raises the error if's not due to a block,
+                # in which case the error is suppressed and handled normally. Otherwise, it was
+                # handled so return.
+                await handle_forbidden_from_block(e_val, message)
+                return
+
+        self.stats.incr(f"errors.event.{event}")
+
+        with push_scope() as scope:
+            scope.set_tag("event", event)
+            scope.set_extra("args", args)
+            scope.set_extra("kwargs", kwargs)
+
+            log.exception(f"Unhandled exception in {event}.")

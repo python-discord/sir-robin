@@ -1,9 +1,11 @@
 import logging
 import sys
 
+import sentry_sdk
 from pydis_core.utils.logging import get_logger
+from sentry_sdk.integrations.logging import LoggingIntegration
 
-from bot.constants import Bot
+from bot.constants import Bot, GIT_SHA
 
 
 def setup_logging() -> None:
@@ -23,3 +25,21 @@ def setup_logging() -> None:
     get_logger("asyncio").setLevel(logging.INFO)
 
     root_log.info("Logging initialization complete.")
+
+
+def setup_sentry() -> None:
+    """Set up the Sentry logging integrations."""
+    sentry_logging = LoggingIntegration(
+        level=logging.DEBUG,
+        event_level=logging.WARNING
+    )
+
+    sentry_sdk.init(
+        dsn=Bot.sentry_dsn,
+        integrations=[
+            sentry_logging,
+        ],
+        release=f"sir-robin@{GIT_SHA}",
+        traces_sample_rate=0.5,
+        profiles_sample_rate=0.5,
+    )

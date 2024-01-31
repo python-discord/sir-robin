@@ -144,6 +144,7 @@ class _Bot(EnvConfig, env_prefix="BOT_"):
     github_bot_repo: str = "https://github.com/python-discord/sir-robin"
     # Override seasonal locks: 1 (January) to 12 (December)
     month_override: Month | None = None
+    sentry_dsn: str = ""
 
 
 Bot = _Bot()
@@ -212,6 +213,10 @@ class Colours:
     python_yellow = 0xFFD43B
     grass_green = 0x66FF00
     gold = 0xE6C200
+
+
+# Git SHA for Sentry
+GIT_SHA = environ.get("GIT_SHA", "development")
 
 
 # Whitelisted channels

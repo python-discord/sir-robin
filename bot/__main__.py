@@ -10,8 +10,10 @@ from redis import RedisError
 import bot
 from bot import constants
 from bot.bot import SirRobin
+from bot.log import setup_sentry
 
 log = get_logger(__name__)
+setup_sentry()
 
 
 async def _create_redis_session() -> RedisSession:
