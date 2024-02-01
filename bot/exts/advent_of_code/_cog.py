@@ -138,7 +138,7 @@ class AdventOfCode(commands.Cog):
         if not ctx.invoked_subcommand:
             await self.bot.invoke_help_command(ctx)
 
-    @with_role(Roles.admins, fail_silently=True)
+    @with_role(Roles.admins, Roles.events_lead, fail_silently=True)
     @adventofcode_group.command(
         name="completionist_toggle",
         aliases=("ct", "toggle"),
