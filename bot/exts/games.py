@@ -1,36 +1,35 @@
-import asyncio
-import traceback
 import enum
-import types
 import random
+import types
 
 import discord
+from async_rediscache import RedisCache
 from discord.ext import commands
 from pydis_core.utils.logging import get_logger
-from pydis_core.utils.paste_service import PasteFile, PasteTooLongError, PasteUploadError, send_to_paste_service
-from pydis_core.utils.regex import FORMATTED_CODE_REGEX
-from async_rediscache import RedisCache
 
-from bot.bot import SirRobin
 from bot import constants
+from bot.bot import SirRobin
 
 logger = get_logger()
 
 
 class Team(enum.StrEnum):
-    LIST = 'list'
-    DICT = 'dict'
-    TUPLE = 'tuple'
+    """The three teams for Python Discord Games 2024."""
+
+    LIST = "list"
+    DICT = "dict"
+    TUPLE = "tuple"
 
 TEAM_ADJECTIVES = types.MappingProxyType({
-    Team.LIST: ['noble', 'organized', 'orderly', 'chivalrous', 'valiant'],
-    Team.DICT: ['wise', 'knowledgeable', 'powerful'],
-    Team.TUPLE: ['resilient', 'strong', 'steadfast', 'resourceful'],
+    Team.LIST: ["noble", "organized", "orderly", "chivalrous", "valiant"],
+    Team.DICT: ["wise", "knowledgeable", "powerful"],
+    Team.TUPLE: ["resilient", "strong", "steadfast", "resourceful"],
 })
 
 
 class PydisGames(commands.Cog):
     """Facilitate our glorious games."""
+
     # RedisCache[Team, int]
     points = RedisCache()
 
@@ -46,15 +45,16 @@ class PydisGames(commands.Cog):
             ]
         }
 
-    async def award_points(self, team: Team, points: int):
+    async def award_points(self, team: Team, points: int) -> None:
+        """Increment points for a team."""
         await self.points.increment(team, points)
 
     @commands.group(name="games")
-    async def games_command_group(self, ctx: commands.Context):
-        pass
+    async def games_command_group(self, ctx: commands.Context) -> None:
+        """The games command group."""
 
-    @games_command_group.command(aliases=('assign',))
-    async def join(self, ctx: commands.Context):
+    @games_command_group.command(aliases=("assign",))
+    async def join(self, ctx: commands.Context) -> None:
         """Let the sorting hat decide the team you shall join!"""
         # FIXME: Check that the user isn't already assigned to a team.
 
@@ -69,11 +69,11 @@ class PydisGames(commands.Cog):
         await ctx.send(f"{ctx.author.mention}, you seem to be extremely {adjective}. "
                        f"You shall be assigned to... {role_with_fewest_members.mention}!")
 
-    @games_command_group.command(aliases=('score', 'points', 'leaderboard', 'lb'))
-    async def scores(self, ctx: commands.Context):
+    @games_command_group.command(aliases=("score", "points", "leaderboard", "lb"))
+    async def scores(self, ctx: commands.Context) -> None:
         """The current leaderboard of points for each team."""
         current_points: list = sorted(await self.points.items(), key=lambda t: t[1])
-        team_messages = '\n'.join(
+        team_messages = "\n".join(
             f"Team {team_name.capitalize()}: {points}\n"
             for team_name, points in current_points
         )
