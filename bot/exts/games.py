@@ -22,58 +22,57 @@ class Team(enum.StrEnum):
     DICT = 'dict'
     TUPLE = 'tuple'
 
+TEAM_ADJECTIVES = types.MappingProxyType({
+    Team.LIST: ['noble', 'organized', 'orderly', 'chivalrous', 'valiant'],
+    Team.DICT: ['wise', 'knowledgeable', 'powerful'],
+    Team.TUPLE: ['resilient', 'strong', 'steadfast', 'resourceful'],
+})
+
 
 class PydisGames(commands.Cog):
     """Facilitate our glorious games."""
-    team_adjectives = types.MappingProxyType({
-        Team.LIST: ['noble', 'organized', 'orderly', 'chivalrous', 'valiant'],
-        Team.DICT: ['wise', 'knowledgeable', 'powerful', ],
-        Team.TUPLE: ['resilient', 'strong', 'steadfast', 'resourceful', ],
-    })
-
     # RedisCache[Team, int]
     points = RedisCache()
 
     def __init__(self, bot: SirRobin):
         self.bot = bot
-        self.team_roles: dict[Team, discord.Role] | None = None
-
-    async def _refresh_roles(self) -> None:
-        self.team_roles = {
-            role: self.bot.get_guild(267624335836053506).get_role(role_id)
+        self.team_roles: dict[Team, discord.Role] = {
+            role: self.bot.get_guild(constants.Bot.guild).get_role(role_id)
             for role, role_id in
             [
-                (Team.LIST, 1),
-                (Team.DICT, 2),
-                (Team.TUPLE, 3),
+                (Team.LIST, constants.Roles.team_list),
+                (Team.DICT, constants.Roles.team_dict),
+                (Team.TUPLE, constants.Roles.team_tuple),
             ]
         }
 
-    async def award_points(self, team: Team, points: int) -> None:
+    async def award_points(self, team: Team, points: int):
         await self.points.increment(team, points)
 
     @commands.group(name="games")
-    async def games_command_group(self, ctx: commands.Context) -> None:
+    async def games_command_group(self, ctx: commands.Context):
         pass
 
-    @games_command_group.command
-    async def join(self, ctx: commands.Context) -> None:
-        if not self.team_roles:
-            await self._refresh_roles()
+    @games_command_group.command(aliases=('assign',))
+    async def join(self, ctx: commands.Context):
+        """Let the sorting hat decide the team you shall join!"""
+        # FIXME: Check that the user isn't already assigned to a team.
 
         team_with_fewest_members: Team = min(
-            self.team_roles.keys(), key=lambda role: len(role.members)
+            self.team_roles.keys(), key=lambda role: len(self.team_roles[role].members)
         )
         role_with_fewest_members: discord.Role = self.team_roles[team_with_fewest_members]
+
         await ctx.author.add_roles(role_with_fewest_members)
 
-        adjective: str = random.choice(self.team_adjectives[team_with_fewest_members])
-        await ctx.send(f"{ctx.author.mention} you are very {adjective}. "
-                       f"You have been assigned {role_with_fewest_members.mention}!")
+        adjective: str = random.choice(TEAM_ADJECTIVES[team_with_fewest_members])
+        await ctx.send(f"{ctx.author.mention}, you seem to be extremely {adjective}. "
+                       f"You shall be assigned to... {role_with_fewest_members.mention}!")
 
-    @games_command_group.command(alias=('score', 'points'))
+    @games_command_group.command(aliases=('score', 'points', 'leaderboard', 'lb'))
     async def scores(self, ctx: commands.Context):
-        current_points: list[str, int] = sorted(await self.points.items(), key=lambda t: t[1])
+        """The current leaderboard of points for each team."""
+        current_points: list = sorted(await self.points.items(), key=lambda t: t[1])
         team_messages = '\n'.join(
             f"Team {team_name.capitalize()}: {points}\n"
             for team_name, points in current_points
@@ -83,6 +82,5 @@ class PydisGames(commands.Cog):
 
 
 async def setup(bot: SirRobin) -> None:
-    """Load the BlurpleFormatter cog."""
+    """Load the PydisGames cog."""
     await bot.add_cog(PydisGames(bot))
-

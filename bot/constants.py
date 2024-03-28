@@ -182,6 +182,10 @@ class _Roles(EnvConfig, env_prefix="ROLE_"):
     aoc_completionist: int = 1191547731873894440
     bots: int = 277546923144249364
 
+    team_dict: int
+    team_list: int
+    team_tuple: int
+
 
 Roles = _Roles()
 
