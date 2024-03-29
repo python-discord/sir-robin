@@ -10,7 +10,7 @@ from pydis_core.utils.logging import get_logger
 from bot import constants
 from bot.bot import SirRobin
 
-logger = get_logger()
+logger = get_logger(__name__)
 
 
 class Team(enum.StrEnum):
@@ -35,6 +35,12 @@ class PydisGames(commands.Cog):
 
     def __init__(self, bot: SirRobin):
         self.bot = bot
+        self.team_roles: dict[Team, discord.Role] = {}
+
+    async def cog_load(self) -> None:
+        """Set the team roles. Don't load the cog if any roles are missing."""
+        await self.bot.wait_until_guild_available()
+
         self.team_roles: dict[Team, discord.Role] = {
             role: self.bot.get_guild(constants.Bot.guild).get_role(role_id)
             for role, role_id in
@@ -44,6 +50,9 @@ class PydisGames(commands.Cog):
                 (Team.TUPLE, constants.Roles.team_tuple),
             ]
         }
+
+        if any(role is None for role in self.team_roles.values()):
+            raise ValueError("One or more team roles are missing.")
 
     async def award_points(self, team: Team, points: int) -> None:
         """Increment points for a team."""
@@ -59,7 +68,7 @@ class PydisGames(commands.Cog):
         # FIXME: Check that the user isn't already assigned to a team.
 
         team_with_fewest_members: Team = min(
-            self.team_roles.keys(), key=lambda role: len(self.team_roles[role].members)
+            self.team_roles, key=lambda role: len(self.team_roles[role].members)
         )
         role_with_fewest_members: discord.Role = self.team_roles[team_with_fewest_members]
 
