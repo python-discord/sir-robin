@@ -67,6 +67,8 @@ class PydisGames(commands.Cog):
     @commands.group(name="games")
     async def games_command_group(self, ctx: commands.Context) -> None:
         """The games command group."""
+        if not ctx.invoked_subcommand:
+            await ctx.send_help(ctx.command)
 
     @games_command_group.command(aliases=("assign",))
     async def join(self, ctx: commands.Context) -> None:
