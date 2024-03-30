@@ -68,9 +68,12 @@ class PydisGames(commands.Cog):
         self.guild = self.bot.get_guild(constants.Bot.guild)
         self.team_roles: dict[Team, discord.Role] = {}
 
-        self.team_reaction_message_id = None
+        self.team_game_message_id = None
+        self.team_game_users_already_reacted: set[int] = set()
         self.chosen_team = None
-        self.users_already_reacted = set()
+
+        self.super_game_message_id = None
+        self.super_game_users_reacted: set[discord.Member] = set()
 
     async def cog_load(self) -> None:
         """Set the team roles and initialize the cache. Don't load the cog if any roles are missing."""
@@ -113,7 +116,7 @@ class PydisGames(commands.Cog):
             return
         await self.set_time("team")
 
-        self.team_reaction_message_id = msg.id
+        self.team_game_message_id = msg.id
         self.chosen_team = random.choice(list(Team))
         logger.info(f"Starting game in {msg.channel.name} for team {self.chosen_team}")
         await msg.add_reaction(self.chosen_team.value.emoji)
@@ -121,29 +124,31 @@ class PydisGames(commands.Cog):
         await asyncio.sleep(EVENT_UP_TIME)
 
         await msg.clear_reaction(self.chosen_team.value.emoji)
-        self.team_reaction_message_id = self.chosen_team = None
-        self.users_already_reacted.clear()
+        self.team_game_message_id = self.chosen_team = None
+        self.team_game_users_already_reacted.clear()
 
-    @commands.Cog.listener()
-    async def on_reaction_add(self, reaction: discord.Reaction, user: discord.Member) -> None:
-        """Update score for the user's team."""
-        if (
-            self.team_reaction_message_id is None  # game is not currently happening
-            or reaction.message.id != self.team_reaction_message_id
-            or user.id in self.users_already_reacted
-        ):
+    async def handle_team_game_reaction(self, reaction: discord.Reaction, user: discord.Member) -> None:
+        if user.id in self.team_game_users_already_reacted:
             return
 
         member_team = self.get_team(user)
         if not member_team:
             return
 
-        self.users_already_reacted.add(user.id)
+        self.team_game_users_already_reacted.add(user.id)
 
         if member_team == self.chosen_team:
             await self.award_points(member_team, 1)
         else:
             await self.award_points(member_team, -1)
+
+    @commands.Cog.listener()
+    async def on_reaction_add(self, reaction: discord.Reaction, user: discord.Member) -> None:
+        """Update score for the user's team."""
+        if reaction.message.id == self.team_game_message_id and self.team_game_message_id is not None:
+            await self.handle_team_game_reaction(reaction, user)
+        elif reaction.message.id == self.super_game_message_id and self.super_game_message_id is not None:
+            self.super_game_users_reacted.add(user)
 
     @tasks.loop(minutes=5)
     async def super_game(self):
@@ -163,18 +168,14 @@ class PydisGames(commands.Cog):
         embed.set_image(url=duck_image_url)
 
         message = await channel.send(embed=embed)
+        self.super_game_message_id = message.id
         await asyncio.sleep(15)
 
-        users_who_reacted: set[discord.Member] = {
-            user
-            for reaction in message.reactions
-            async for user in reaction.users()
-        }
-        # `users_who_reacted` is always empty, so this approach can't be used.
-
-        team_counts = Counter(self.get_team(user) for user in users_who_reacted)
+        team_counts = Counter(self.get_team(user) for user in self.super_game_users_reacted)
         team_counts.pop(None, None)
-        logger.info(f"{users_who_reacted = }\n{team_counts = }")
+        self.super_game_users_reacted.clear()
+
+        logger.debug(f"{team_counts = }")
         for team, count in team_counts.items():
             await self.award_points(team, count * 5)
 
