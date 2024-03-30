@@ -152,6 +152,12 @@ class PydisGames(commands.Cog):
 
     @tasks.loop(minutes=5)
     async def super_game(self):
+        if random.random() < .25:
+            # with a 25% chance every 5 minutes, the event should happen on average
+            # three times an hour
+            logger.info("Super game occurrence randomly skipped.")
+            return
+
         channel = self.guild.get_channel(random.choice(ALLOWED_CHANNELS))
         logger.info(f"Starting a super game in {channel.name}")
 
