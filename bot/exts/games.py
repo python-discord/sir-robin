@@ -124,8 +124,7 @@ class PydisGames(commands.Cog):
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction, user: discord.Member) -> None:
         """Update score for the user's team."""
-        # TODO Make sure that a user doesn't react several times?
-        if user.id in self.users_already_reacted:
+        if user.id in self.users_already_reacted or reaction.message.channel.id not in ALLOWED_CHANNELS:
             return
 
         member_team = self.get_team(user)
