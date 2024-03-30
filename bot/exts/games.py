@@ -2,13 +2,13 @@ import asyncio
 import enum
 import random
 import types
-from collections import namedtuple
+from collections import namedtuple, Counter
 from typing import Literal
 
 import arrow
 import discord
 from async_rediscache import RedisCache
-from discord.ext import commands
+from discord.ext import commands, tasks
 from pydis_core.utils.logging import get_logger
 
 from bot import constants
@@ -49,6 +49,7 @@ ALLOWED_CHANNELS = (
 
 # Time for a reaction to be up, in seconds.
 EVENT_UP_TIME = 5
+QUACKSTACK_URL = "https://quackstack.pythondiscord.com/duck"
 
 
 class PydisGames(commands.Cog):
@@ -98,6 +99,8 @@ class PydisGames(commands.Cog):
             if reaction_type not in times:
                 await self.set_time(reaction_type)
 
+        self.super_game.start()
+
     @commands.Cog.listener()
     async def on_message(self, msg: discord.Message) -> None:
         """Add a reaction if it's time and the message is in the right channel, then remove it after a few seconds."""
@@ -124,7 +127,11 @@ class PydisGames(commands.Cog):
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction, user: discord.Member) -> None:
         """Update score for the user's team."""
-        if user.id in self.users_already_reacted or reaction.message.channel.id not in ALLOWED_CHANNELS:
+        if (
+            self.team_reaction_message_id is None  # game is not currently happening
+            or reaction.message.id != self.team_reaction_message_id
+            or user.id in self.users_already_reacted
+        ):
             return
 
         member_team = self.get_team(user)
@@ -137,6 +144,39 @@ class PydisGames(commands.Cog):
             await self.award_points(member_team, 1)
         else:
             await self.award_points(member_team, -1)
+
+    @tasks.loop(minutes=5)
+    async def super_game(self):
+        channel = self.guild.get_channel(random.choice(ALLOWED_CHANNELS))
+        logger.info(f"Starting a super game in {channel.name}")
+
+        async with self.bot.http_session.get(QUACKSTACK_URL) as response:
+            if response.status != 201:
+                logger.error(f"Response to Quackstack returned code {response.status}")
+                return
+            duck_image_url = response.headers['Location']
+
+        embed = discord.Embed(
+            title="Quack!",
+            description="Every gamer react to this message before time runs out for extra points!"
+        )
+        embed.set_image(url=duck_image_url)
+
+        message = await channel.send(embed=embed)
+        await asyncio.sleep(15)
+
+        users_who_reacted: set[discord.Member] = {
+            user
+            for reaction in message.reactions
+            async for user in reaction.users()
+        }
+        # `users_who_reacted` is always empty, so this approach can't be used.
+
+        team_counts = Counter(self.get_team(user) for user in users_who_reacted)
+        team_counts.pop(None, None)
+        logger.info(f"{users_who_reacted = }\n{team_counts = }")
+        for team, count in team_counts.items():
+            await self.award_points(team, count * 5)
 
     def get_team(self, member: discord.Member) -> Team | None:
         """Return the member's team, if they have one."""
