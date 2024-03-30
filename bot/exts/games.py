@@ -35,7 +35,7 @@ TEAM_ADJECTIVES = types.MappingProxyType({
 })
 
 # Minimum and maximum time to add team reaction, in seconds.
-REACTION_INTERVALS: types.MappingProxyType[Literal["team", "super"], tuple[int, int]] = types.MappingProxyType({
+REACTION_INTERVALS_SECONDS: types.MappingProxyType[Literal["team", "super"], tuple[int, int]] = types.MappingProxyType({
     "team": (30, 120),
     "super": (20 * 60, 40 * 60)
 })
@@ -93,7 +93,7 @@ class PydisGames(commands.Cog):
                 await self.points.set(role.value.name, 0)
 
         times = await self.target_times.items()
-        for reaction_type in REACTION_INTERVALS:
+        for reaction_type in REACTION_INTERVALS_SECONDS:
             if reaction_type not in times:
                 await self.set_time(reaction_type)
 
@@ -140,9 +140,9 @@ class PydisGames(commands.Cog):
 
     async def set_time(self, reaction_type: Literal["team", "super"]) -> None:
         """Set the time after which a reaction of the appropriate time can be added."""
-        interval = REACTION_INTERVALS[reaction_type]
-        relative_time_to_next_reaction = random.randint(interval[0], interval[1])
-        next_reaction_timestamp = (arrow.utcnow() + relative_time_to_next_reaction).timestamp()
+        interval = REACTION_INTERVALS_SECONDS[reaction_type]
+        relative_seconds_to_next_reaction = random.randint(interval[0], interval[1])
+        next_reaction_timestamp = arrow.utcnow().shift(seconds=relative_seconds_to_next_reaction).timestamp()
 
         await self.target_times.set(reaction_type, next_reaction_timestamp)
 
