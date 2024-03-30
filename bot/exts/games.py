@@ -104,8 +104,8 @@ class PydisGames(commands.Cog):
         if msg.channel.id not in ALLOWED_CHANNELS:
             return
 
-        reaction_time = await self.target_times.get("team")
-        if arrow.utcnow() < reaction_time:
+        reaction_time: float = await self.target_times.get("team")
+        if arrow.utcnow() < arrow.Arrow.fromtimestamp(reaction_time):
             return
         await self.set_time("team")
 
@@ -119,10 +119,10 @@ class PydisGames(commands.Cog):
         self.team_reaction_message_id = self.chosen_team = None
 
     @commands.Cog.listener()
-    async def on_reaction_add(self, msg: discord.Message) -> None:
+    async def on_reaction_add(self, reaction: discord.Reaction, user: discord.User) -> None:
         """Update score for the user's team."""
         # TODO Make sure that a user doesn't react several times?
-        member_team = self.get_team(msg.author)
+        member_team = self.get_team(user)
         if not member_team:
             return
 
