@@ -20,6 +20,7 @@ class Team(enum.StrEnum):
     DICT = "dict"
     TUPLE = "tuple"
 
+
 TEAM_ADJECTIVES = types.MappingProxyType({
     Team.LIST: ["noble", "organized", "orderly", "chivalrous", "valiant"],
     Team.DICT: ["wise", "knowledgeable", "powerful"],
@@ -65,7 +66,9 @@ class PydisGames(commands.Cog):
     @games_command_group.command(aliases=("assign",))
     async def join(self, ctx: commands.Context) -> None:
         """Let the sorting hat decide the team you shall join!"""
-        # FIXME: Check that the user isn't already assigned to a team.
+        if any(role in ctx.author.roles for role in self.team_roles.values()):
+            await ctx.reply("You're already assigned to a team!")
+            return
 
         team_with_fewest_members: Team = min(
             self.team_roles, key=lambda role: len(self.team_roles[role].members)
@@ -75,8 +78,9 @@ class PydisGames(commands.Cog):
         await ctx.author.add_roles(role_with_fewest_members)
 
         adjective: str = random.choice(TEAM_ADJECTIVES[team_with_fewest_members])
-        await ctx.send(f"{ctx.author.mention}, you seem to be extremely {adjective}. "
-                       f"You shall be assigned to... {role_with_fewest_members.mention}!")
+        await ctx.reply(
+            f"You seem to be extremely {adjective}. You shall be assigned to... {role_with_fewest_members.mention}!"
+        )
 
     @games_command_group.command(aliases=("score", "points", "leaderboard", "lb"))
     async def scores(self, ctx: commands.Context) -> None:
