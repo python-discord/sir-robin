@@ -110,7 +110,7 @@ class PydisGames(commands.Cog):
     async def on_message(self, msg: discord.Message) -> None:
         """Add a reaction if it's time and the message is in the right channel, then remove it after a few seconds."""
         # TODO does this need a lock to prevent race conditions?
-        if msg.channel.id not in ALLOWED_CHANNELS:
+        if msg.channel.id not in ALLOWED_CHANNELS or msg.author.bot:
             return
 
         reaction_time: float = await self.target_times.get("team")
