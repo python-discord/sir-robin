@@ -69,6 +69,7 @@ class PydisGames(commands.Cog):
 
         self.team_reaction_message_id = None
         self.chosen_team = None
+        self.users_already_reacted = set()
 
     async def cog_load(self) -> None:
         """Set the team roles and initialize the cache. Don't load the cog if any roles are missing."""
@@ -118,14 +119,20 @@ class PydisGames(commands.Cog):
 
         await msg.clear_reaction(self.chosen_team.value.emoji)
         self.team_reaction_message_id = self.chosen_team = None
+        self.users_already_reacted.clear()
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction, user: discord.Member) -> None:
         """Update score for the user's team."""
         # TODO Make sure that a user doesn't react several times?
+        if user.id in self.users_already_reacted:
+            return
+
         member_team = self.get_team(user)
         if not member_team:
             return
+
+        self.users_already_reacted.add(user.id)
 
         if member_team == self.chosen_team:
             await self.award_points(member_team, 1)
