@@ -39,7 +39,7 @@ class PydisGames(commands.Cog):
         self.team_roles: dict[Team, discord.Role] = {}
 
     async def cog_load(self) -> None:
-        """Set the team roles. Don't load the cog if any roles are missing."""
+        """Set the team roles and initial scores. Don't load the cog if any roles are missing."""
         await self.bot.wait_until_guild_available()
 
         self.team_roles: dict[Team, discord.Role] = {
@@ -54,6 +54,11 @@ class PydisGames(commands.Cog):
 
         if any(role is None for role in self.team_roles.values()):
             raise ValueError("One or more team roles are missing.")
+
+        team_scores = await self.points.items()
+        for role in self.team_roles:
+            if role.value not in team_scores:
+                await self.points.set(role.value, 0)
 
     async def award_points(self, team: Team, points: int) -> None:
         """Increment points for a team."""
