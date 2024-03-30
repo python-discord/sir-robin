@@ -2,8 +2,8 @@ import asyncio
 import enum
 import random
 import types
-from collections import namedtuple, Counter
-from typing import Literal
+from collections import Counter
+from typing import Literal, NamedTuple
 
 import arrow
 import discord
@@ -15,17 +15,20 @@ from bot import constants
 from bot.bot import SirRobin
 
 logger = get_logger(__name__)
+GameType = Literal['team', 'super']
 
 
-team_info = namedtuple("team_info", ("name", "emoji"))
+class TeamInfo(NamedTuple):
+    name: str
+    emoji: str
 
 
 class Team(enum.Enum):
     """The three teams for Python Discord Games 2024."""
 
-    LIST = team_info("list", constants.Emojis.team_list)
-    DICT = team_info("dict", constants.Emojis.team_dict)
-    TUPLE = team_info("tuple", constants.Emojis.team_tuple)
+    LIST = TeamInfo("list", constants.Emojis.team_list)
+    DICT = TeamInfo("dict", constants.Emojis.team_dict)
+    TUPLE = TeamInfo("tuple", constants.Emojis.team_tuple)
 
 
 TEAM_ADJECTIVES = types.MappingProxyType({
@@ -35,7 +38,7 @@ TEAM_ADJECTIVES = types.MappingProxyType({
 })
 
 # Minimum and maximum time to add team reaction, in seconds.
-REACTION_INTERVALS_SECONDS: types.MappingProxyType[Literal["team", "super"], tuple[int, int]] = types.MappingProxyType({
+REACTION_INTERVALS_SECONDS: types.MappingProxyType[GameType, tuple[int, int]] = types.MappingProxyType({
     "team": (30, 120),
     "super": (20 * 60, 40 * 60)
 })
@@ -51,7 +54,6 @@ ALLOWED_CHANNELS = (
 EVENT_UP_TIME = 5
 QUACKSTACK_URL = "https://quackstack.pythondiscord.com/duck"
 
-
 class PydisGames(commands.Cog):
     """Facilitate our glorious games."""
 
@@ -60,7 +62,7 @@ class PydisGames(commands.Cog):
     # RedisCache[Team, int]
     points = RedisCache()
 
-    # RedisCache[Literal["team", "super"], float timestamp]
+    # RedisCache[GameType, float timestamp]
     target_times = RedisCache()
 
     def __init__(self, bot: SirRobin):
@@ -192,7 +194,7 @@ class PydisGames(commands.Cog):
                 return team
         return None
 
-    async def set_time(self, reaction_type: Literal["team", "super"]) -> None:
+    async def set_time(self, reaction_type: GameType) -> None:
         """Set the time after which a reaction of the appropriate time can be added."""
         interval = REACTION_INTERVALS_SECONDS[reaction_type]
         relative_seconds_to_next_reaction = random.randint(interval[0], interval[1])
