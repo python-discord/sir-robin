@@ -111,15 +111,16 @@ class PydisGames(commands.Cog):
 
         self.team_reaction_message_id = msg.id
         self.chosen_team = random.choice(list(Team))
-        await msg.add_reaction(self.chosen_team.emoji)
+        logger.info(f"Starting game in {msg.channel.name} for team {self.chosen_team}")
+        await msg.add_reaction(self.chosen_team.value.emoji)
 
         await asyncio.sleep(EVENT_UP_TIME)
 
-        await msg.clear_reaction(self.chosen_team.emoji)
+        await msg.clear_reaction(self.chosen_team.value.emoji)
         self.team_reaction_message_id = self.chosen_team = None
 
     @commands.Cog.listener()
-    async def on_reaction_add(self, reaction: discord.Reaction, user: discord.User) -> None:
+    async def on_reaction_add(self, reaction: discord.Reaction, user: discord.Member) -> None:
         """Update score for the user's team."""
         # TODO Make sure that a user doesn't react several times?
         member_team = self.get_team(user)

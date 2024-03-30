@@ -166,9 +166,9 @@ class _Emojis(EnvConfig, env_prefix="EMOJI_"):
     star: str = "\u2B50"
     christmas_tree: str = "\U0001F384"
     # TODO set these later.
-    team_tuple: str = ""
-    team_list: str = ""
-    team_dict: str = ""
+    team_tuple: str
+    team_list: str
+    team_dict: str
 
 
 Emojis = _Emojis()
