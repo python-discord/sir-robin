@@ -1,6 +1,7 @@
 import enum
 import random
 import types
+from collections import namedtuple
 
 import discord
 from async_rediscache import RedisCache
@@ -13,12 +14,15 @@ from bot.bot import SirRobin
 logger = get_logger(__name__)
 
 
-class Team(enum.StrEnum):
+team_info = namedtuple("team_info", ("name", "emoji"))
+
+
+class Team(enum.Enum):
     """The three teams for Python Discord Games 2024."""
 
-    LIST = "list"
-    DICT = "dict"
-    TUPLE = "tuple"
+    LIST = team_info("list", constants.Emojis.team_list)
+    DICT = team_info("dict", constants.Emojis.team_dict)
+    TUPLE = team_info("tuple", constants.Emojis.team_tuple)
 
 
 TEAM_ADJECTIVES = types.MappingProxyType({
@@ -57,8 +61,8 @@ class PydisGames(commands.Cog):
 
         team_scores = await self.points.items()
         for role in self.team_roles:
-            if role.value not in team_scores:
-                await self.points.set(role.value, 0)
+            if role.value.name not in team_scores:
+                await self.points.set(role.value.name, 0)
 
     async def award_points(self, team: Team, points: int) -> None:
         """Increment points for a team."""
@@ -93,12 +97,12 @@ class PydisGames(commands.Cog):
     async def scores(self, ctx: commands.Context) -> None:
         """The current leaderboard of points for each team."""
         current_points: list = sorted(await self.points.items(), key=lambda t: t[1])
-        team_messages = "\n".join(
-            f"Team {team_name.capitalize()}: {points}\n"
+        team_scores = "\n".join(
+            f"{Team[team_name.upper()].value.emoji} **Team {team_name.capitalize()}**: {points}\n"
             for team_name, points in current_points
         )
-        message = f"The current points are:\n{team_messages}"
-        await ctx.send(message)
+        embed = discord.Embed(title="Current team points", description=team_scores, color=discord.Colour.blurple())
+        await ctx.send(embed=embed)
 
 
 async def setup(bot: SirRobin) -> None:
