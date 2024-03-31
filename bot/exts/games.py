@@ -114,9 +114,10 @@ class PydisGames(commands.Cog):
             if role.value.name not in team_scores:
                 await self.points.set(role.value.name, 0)
 
-        settings = await self.game_settings.items()
+        settings = await self.game_settings.to_dict()
         for setting_name, value in DEFAULT_SETTINGS.items():
             if setting_name not in settings:
+                logger.debug(f"The setting {setting_name} wasn't found, setting the default.")
                 await self.game_settings.set(setting_name, value)
 
         times = await self.target_times.items()
@@ -132,6 +133,7 @@ class PydisGames(commands.Cog):
             self.team_game_message_id is not None
             or msg.channel.id not in ALLOWED_CHANNELS
             or msg.author.bot
+            or not (await self.is_on.get("value", False))
         ):
             return
 
@@ -178,6 +180,9 @@ class PydisGames(commands.Cog):
     @tasks.loop(minutes=5)
     async def super_game(self) -> None:
         """The super game task. Send a ducky, wait for people to react, and tally the points at the end."""
+        if not (await self.is_on.get("value", False)):
+            return
+
         probability = await self.game_settings.get("ducky_probability")
         if random.random() < probability:
             # with a 25% chance every 5 minutes, the event should happen on average
@@ -321,8 +326,8 @@ class PydisGames(commands.Cog):
 
         description = textwrap.dedent(f"""
             Is on: **{is_on}**
-            Min team between team reactions: **{min_reaction_time}**
-            Max team between team reactions: **{max_reaction_time}**
+            Min time between team reactions: **{min_reaction_time}**
+            Max time between team reactions: **{max_reaction_time}**
             Ducky probability: **{ducky_probability}**
         """)
         embed = discord.Embed(
