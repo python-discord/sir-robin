@@ -183,7 +183,8 @@ class PydisGames(commands.Cog):
 
         embed = discord.Embed(
             title="Quack!",
-            description="Every gamer react to this message before time runs out for extra points!"
+            description="Every gamer react to this message before time runs out for extra points!",
+            color=discord.Colour.gold()
         )
         embed.set_image(url=duck_image_url)
 
