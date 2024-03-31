@@ -199,6 +199,9 @@ class PydisGames(commands.Cog):
         for team, count in team_counts.items():
             await self.award_points(team, count * 5)
 
+        embed.description = "Time's up! Hope you reacted in time."
+        await message.edit(embed=embed)
+
     def get_team(self, member: discord.Member) -> Team | None:
         """Return the member's team, if they have one."""
         for team, role in self.team_roles.items():
