@@ -165,10 +165,9 @@ class _Emojis(EnvConfig, env_prefix="EMOJI_"):
     trashcan: str = "<:trashcan:637136429717389331>"
     star: str = "\u2B50"
     christmas_tree: str = "\U0001F384"
-    # TODO set these later.
-    team_tuple: str
-    team_list: str
-    team_dict: str
+    team_tuple: str = "<:team_tuple:1224089419003334768>"
+    team_list: str = "<:team_list:1224089544257962134>"
+    team_dict: str = "<:team_dict:1224089495373353021>"
 
 
 Emojis = _Emojis()
