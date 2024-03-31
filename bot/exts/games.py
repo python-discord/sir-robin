@@ -109,9 +109,10 @@ class PydisGames(commands.Cog):
         if any(role is None for role in self.team_roles.values()):
             raise ValueError("One or more team roles are missing.")
 
-        team_scores = await self.points.items()
+        team_scores = await self.points.to_dict()
         for role in self.team_roles:
             if role.value.name not in team_scores:
+                logger.debug(f"Initializing {role} with score 0.")
                 await self.points.set(role.value.name, 0)
 
         settings = await self.game_settings.to_dict()
