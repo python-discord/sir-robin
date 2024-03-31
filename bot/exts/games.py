@@ -184,7 +184,7 @@ class PydisGames(commands.Cog):
             return
 
         probability = await self.game_settings.get("ducky_probability")
-        if random.random() < probability:
+        if random.random() > probability:
             # with a 25% chance every 5 minutes, the event should happen on average
             # three times an hour
             logger.info("Super game occurrence randomly skipped.")
