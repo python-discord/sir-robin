@@ -55,6 +55,9 @@ ALLOWED_CHANNELS = (
 # Channels where the game commands can be run.
 ALLOWED_COMMAND_CHANNELS = (constants.Channels.bot_commands,)
 
+# Roles allowed to use the management commands.
+ELEVATED_ROLES = (constants.Roles.admins, constants.Roles.moderation_team, constants.Roles.events_lead)
+
 # Time for a reaction to be up, in seconds.
 EVENT_UP_TIME = 5
 
@@ -71,6 +74,9 @@ class PydisGames(commands.Cog):
 
     # RedisCache[GameType, float timestamp]
     target_times = RedisCache()
+
+    # RedisCache["value", bool]
+    is_on = RedisCache()
 
     def __init__(self, bot: SirRobin):
         self.bot = bot
@@ -259,6 +265,32 @@ class PydisGames(commands.Cog):
         )
         embed = discord.Embed(title="Current team points", description=team_scores, color=discord.Colour.blurple())
         await ctx.send(embed=embed)
+
+    @games_command_group.command()
+    @commands.has_any_role(*ELEVATED_ROLES)
+    async def on(self, ctx: commands.Context) -> None:
+        """Turn on the games."""
+        await self.is_on.set("value", True)
+        await ctx.message.add_reaction("✅")
+
+    @games_command_group.command()
+    @commands.has_any_role(*ELEVATED_ROLES)
+    async def off(self, ctx: commands.Context) -> None:
+        """Turn off the games."""
+        await self.is_on.set("value", False)
+        await ctx.message.add_reaction("✅")
+
+    @games_command_group.command()
+    @commands.has_any_role(*ELEVATED_ROLES)
+    async def status(self, ctx: commands.Context) -> None:
+        """Get the state of the games."""
+        is_on = await self.is_on.get("value", False)
+        embed = discord.Embed(
+            title="Games State",
+            description=f"Is on: **{is_on}**",
+            color=discord.Colour.blue()
+        )
+        await ctx.reply(embed=embed)
 
 
 async def setup(bot: SirRobin) -> None:

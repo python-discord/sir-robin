@@ -184,6 +184,7 @@ class _Roles(EnvConfig, env_prefix="ROLE_"):
     helpers: int = 267630620367257601
     aoc_completionist: int = 1191547731873894440
     bots: int = 277546923144249364
+    moderation_team: int = 267629731250176001
 
     team_list: int = 1222691191582097418
     team_dict: int = 1222691368653033652
