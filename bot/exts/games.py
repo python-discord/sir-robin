@@ -1,6 +1,7 @@
 import asyncio
 import enum
 import random
+import textwrap
 import types
 from collections import Counter
 from typing import Literal, NamedTuple
@@ -9,6 +10,7 @@ import arrow
 import discord
 from async_rediscache import RedisCache
 from discord.ext import commands, tasks
+from discord.ext.commands import BadArgument
 from pydis_core.utils.logging import get_logger
 
 from bot import constants
@@ -40,10 +42,9 @@ TEAM_ADJECTIVES = types.MappingProxyType({
     Team.TUPLE: ["resilient", "strong", "steadfast", "resourceful"],
 })
 
-# Minimum and maximum time to add team reaction, in seconds.
-REACTION_INTERVALS_SECONDS: types.MappingProxyType[GameType, tuple[int, int]] = types.MappingProxyType({
-    "team": (30, 120),
-    "super": (20 * 60, 40 * 60)
+# The default settings to initialize the cache with.
+DEFAULT_SETTINGS: types.MappingProxyType[str, int | float] = types.MappingProxyType({
+    "reaction_min": 30, "reaction_max": 120, "ducky_probability": 0.25
 })
 
 # Channels where the game runs.
@@ -67,8 +68,6 @@ QUACKSTACK_URL = "https://quackstack.pythondiscord.com/duck"
 class PydisGames(commands.Cog):
     """Facilitate our glorious games."""
 
-    # TODO limit the cog commands to bot-commands
-
     # RedisCache[Team, int]
     points = RedisCache()
 
@@ -77,6 +76,9 @@ class PydisGames(commands.Cog):
 
     # RedisCache["value", bool]
     is_on = RedisCache()
+
+    # RedisCache[str, int | float]
+    game_settings = RedisCache()
 
     def __init__(self, bot: SirRobin):
         self.bot = bot
@@ -112,10 +114,14 @@ class PydisGames(commands.Cog):
             if role.value.name not in team_scores:
                 await self.points.set(role.value.name, 0)
 
+        settings = await self.game_settings.items()
+        for setting_name, value in DEFAULT_SETTINGS.items():
+            if setting_name not in settings:
+                await self.game_settings.set(setting_name, value)
+
         times = await self.target_times.items()
-        for reaction_type in REACTION_INTERVALS_SECONDS:
-            if reaction_type not in times:
-                await self.set_time(reaction_type)
+        if "team" not in times:
+            await self.set_reaction_time("team")
 
         self.super_game.start()
 
@@ -132,7 +138,7 @@ class PydisGames(commands.Cog):
         reaction_time: float = await self.target_times.get("team")
         if arrow.utcnow() < arrow.Arrow.fromtimestamp(reaction_time):
             return
-        await self.set_time("team")
+        await self.set_reaction_time("team")
 
         self.team_game_message_id = msg.id
         self.chosen_team = random.choice(list(Team))
@@ -172,7 +178,8 @@ class PydisGames(commands.Cog):
     @tasks.loop(minutes=5)
     async def super_game(self) -> None:
         """The super game task. Send a ducky, wait for people to react, and tally the points at the end."""
-        if random.random() < .25:
+        probability = await self.game_settings.get("ducky_probability")
+        if random.random() < probability:
             # with a 25% chance every 5 minutes, the event should happen on average
             # three times an hour
             logger.info("Super game occurrence randomly skipped.")
@@ -216,10 +223,11 @@ class PydisGames(commands.Cog):
                 return team
         return None
 
-    async def set_time(self, reaction_type: GameType) -> None:
-        """Set the time after which a reaction of the appropriate time can be added."""
-        interval = REACTION_INTERVALS_SECONDS[reaction_type]
-        relative_seconds_to_next_reaction = random.randint(interval[0], interval[1])
+    async def set_reaction_time(self, reaction_type: GameType) -> None:
+        """Set the time after which a team reaction can be added."""
+        reaction_min = await self.game_settings.get("reaction_min")
+        reaction_max = await self.game_settings.get("reaction_max")
+        relative_seconds_to_next_reaction = random.randint(reaction_min, reaction_max)
         next_reaction_timestamp = arrow.utcnow().shift(seconds=relative_seconds_to_next_reaction).timestamp()
 
         await self.target_times.set(reaction_type, next_reaction_timestamp)
@@ -282,12 +290,44 @@ class PydisGames(commands.Cog):
 
     @games_command_group.command()
     @commands.has_any_role(*ELEVATED_ROLES)
+    async def set_interval(self, ctx: commands.Context, min_time: int, max_time: int) -> None:
+        """Set the minimum and maximum number of seconds between team reactions."""
+        await self.game_settings.set("reaction_min", min_time)
+        await self.game_settings.set("reaction_max", max_time)
+        await ctx.message.add_reaction("✅")
+
+    @games_command_group.command()
+    @commands.has_any_role(*ELEVATED_ROLES)
+    async def set_probability(self, ctx: commands.Context, probability: float) -> None:
+        """
+        Set the probability for the super ducky to be posted once every 5 minutes. Value is between 0 and 1.
+
+        For example, with a 25% (0.25) chance every 5 minutes, the event should happen on average three times an hour.
+        """
+        if probability < 0 or probability > 1:
+            raise BadArgument("Value must be between 0 and 1.")
+
+        await self.game_settings.set("ducky_probability", probability)
+        await ctx.message.add_reaction("✅")
+
+    @games_command_group.command()
+    @commands.has_any_role(*ELEVATED_ROLES)
     async def status(self, ctx: commands.Context) -> None:
         """Get the state of the games."""
         is_on = await self.is_on.get("value", False)
+        min_reaction_time = await self.game_settings.get("reaction_min")
+        max_reaction_time = await self.game_settings.get("reaction_max")
+        ducky_probability = await self.game_settings.get("ducky_probability")
+
+        description = textwrap.dedent(f"""
+            Is on: **{is_on}**
+            Min team between team reactions: **{min_reaction_time}**
+            Max team between team reactions: **{max_reaction_time}**
+            Ducky probability: **{ducky_probability}**
+        """)
         embed = discord.Embed(
             title="Games State",
-            description=f"Is on: **{is_on}**",
+            description=description,
             color=discord.Colour.blue()
         )
         await ctx.reply(embed=embed)
