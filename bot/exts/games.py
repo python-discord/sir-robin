@@ -13,12 +13,15 @@ from pydis_core.utils.logging import get_logger
 
 from bot import constants
 from bot.bot import SirRobin
+from bot.utils.decorators import in_whitelist
 
 logger = get_logger(__name__)
-GameType = Literal['team', 'super']
+GameType = Literal["team", "super"]
 
 
 class TeamInfo(NamedTuple):
+    """Tuple containing the info on a team."""
+
     name: str
     emoji: str
 
@@ -49,10 +52,14 @@ ALLOWED_CHANNELS = (
     constants.Channels.off_topic_1,
     constants.Channels.off_topic_2,
 )
+# Channels where the game commands can be run.
+ALLOWED_COMMAND_CHANNELS = (constants.Channels.bot_commands,)
 
 # Time for a reaction to be up, in seconds.
 EVENT_UP_TIME = 5
+
 QUACKSTACK_URL = "https://quackstack.pythondiscord.com/duck"
+
 
 class PydisGames(commands.Cog):
     """Facilitate our glorious games."""
@@ -133,6 +140,7 @@ class PydisGames(commands.Cog):
         self.team_game_users_already_reacted.clear()
 
     async def handle_team_game_reaction(self, reaction: discord.Reaction, user: discord.Member) -> None:
+        """Award points depending on the user's team."""
         if user.id in self.team_game_users_already_reacted:
             return
 
@@ -156,7 +164,8 @@ class PydisGames(commands.Cog):
             self.super_game_users_reacted.add(user)
 
     @tasks.loop(minutes=5)
-    async def super_game(self):
+    async def super_game(self) -> None:
+        """The super game task. Send a ducky, wait for people to react, and tally the points at the end."""
         if random.random() < .25:
             # with a 25% chance every 5 minutes, the event should happen on average
             # three times an hour
@@ -170,7 +179,7 @@ class PydisGames(commands.Cog):
             if response.status != 201:
                 logger.error(f"Response to Quackstack returned code {response.status}")
                 return
-            duck_image_url = response.headers['Location']
+            duck_image_url = response.headers["Location"]
 
         embed = discord.Embed(
             title="Quack!",
@@ -216,6 +225,7 @@ class PydisGames(commands.Cog):
             await ctx.send_help(ctx.command)
 
     @games_command_group.command(aliases=("assign",))
+    @in_whitelist(channels=ALLOWED_COMMAND_CHANNELS, redirect=ALLOWED_COMMAND_CHANNELS)
     async def join(self, ctx: commands.Context) -> None:
         """Let the sorting hat decide the team you shall join!"""
         if any(role in ctx.author.roles for role in self.team_roles.values()):
@@ -235,6 +245,7 @@ class PydisGames(commands.Cog):
         )
 
     @games_command_group.command(aliases=("score", "points", "leaderboard", "lb"))
+    @in_whitelist(channels=ALLOWED_COMMAND_CHANNELS, redirect=ALLOWED_COMMAND_CHANNELS)
     async def scores(self, ctx: commands.Context) -> None:
         """The current leaderboard of points for each team."""
         current_points: list = sorted(await self.points.items(), key=lambda t: t[1])
