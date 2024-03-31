@@ -176,7 +176,8 @@ class PydisGames(commands.Cog):
         if reaction.message.id == self.team_game_message_id and self.team_game_message_id is not None:
             await self.handle_team_game_reaction(reaction, user)
         elif reaction.message.id == self.super_game_message_id and self.super_game_message_id is not None:
-            self.super_game_users_reacted.add(user)
+            if not isinstance(reaction.emoji, str) and reaction.emoji.name.startswith("ducky_"):
+                self.super_game_users_reacted.add(user)
 
     @tasks.loop(minutes=5)
     async def super_game(self) -> None:
@@ -202,7 +203,7 @@ class PydisGames(commands.Cog):
 
         embed = discord.Embed(
             title="Quack!",
-            description="Every gamer react to this message before time runs out for extra points!",
+            description="Every gamer react **with a ducky** to this message before time runs out for extra points!",
             color=discord.Colour.gold()
         )
         embed.set_image(url=duck_image_url)
