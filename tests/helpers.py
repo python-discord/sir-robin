@@ -666,6 +666,7 @@ class MockAsyncWebhook(CustomMockMixin, unittest.mock.MagicMock):
     spec_set = webhook_instance
     additional_spec_asyncs = ("send", "edit", "delete", "execute")
 
+
 @contextmanager
 def no_create_task():
     def side_effect(coro, *_, **__):

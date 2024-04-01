@@ -1,5 +1,4 @@
 from collections.abc import Callable, Container
-from typing import NoReturn
 
 from discord.ext import commands
 from discord.ext.commands import Context
@@ -13,7 +12,7 @@ log = get_logger(__name__)
 
 def in_code_jam_category(code_jam_category_name: str) -> Callable:
     """Raises `CodeJamCategoryCheckFailure` when the command is invoked outside the Code Jam categories."""
-    async def predicate(ctx: commands.Context) -> bool | NoReturn:
+    async def predicate(ctx: commands.Context) -> bool:
         if not ctx.guild:
             return False
         if not ctx.message.channel.category:
