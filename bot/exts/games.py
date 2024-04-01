@@ -273,7 +273,7 @@ class PydisGames(commands.Cog):
     @in_whitelist(channels=ALLOWED_COMMAND_CHANNELS, redirect=ALLOWED_COMMAND_CHANNELS)
     async def scores(self, ctx: commands.Context) -> None:
         """The current leaderboard of points for each team."""
-        current_points: list = sorted(await self.points.items(), key=lambda t: t[1])
+        current_points: list = sorted(await self.points.items(), key=lambda t: t[1], reverse=True)
         team_scores = "\n".join(
             f"{Team[team_name.upper()].value.emoji} **Team {team_name.capitalize()}**: {points}\n"
             for team_name, points in current_points
