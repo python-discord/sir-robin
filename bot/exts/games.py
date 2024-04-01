@@ -44,7 +44,7 @@ TEAM_ADJECTIVES = types.MappingProxyType({
 
 # The default settings to initialize the cache with.
 DEFAULT_SETTINGS: types.MappingProxyType[str, int | float] = types.MappingProxyType({
-    "reaction_min": 30, "reaction_max": 120, "ducky_probability": 0.25
+    "reaction_min": 30, "reaction_max": 120, "ducky_probability": 0.25, "game_uptime": 15
 })
 
 # Channels where the game runs.
@@ -58,9 +58,6 @@ ALLOWED_COMMAND_CHANNELS = (constants.Channels.bot_commands,)
 
 # Roles allowed to use the management commands.
 ELEVATED_ROLES = (constants.Roles.admins, constants.Roles.moderation_team, constants.Roles.events_lead)
-
-# Time for a reaction to be up, in seconds.
-EVENT_UP_TIME = 5
 
 QUACKSTACK_URL = "https://quackstack.pythondiscord.com/duck"
 
@@ -84,6 +81,8 @@ class PydisGames(commands.Cog):
         self.bot = bot
         self.guild = self.bot.get_guild(constants.Bot.guild)
         self.team_roles: dict[Team, discord.Role] = {}
+
+        self.event_uptime: int = 15
 
         self.team_game_message_id = None
         self.team_game_users_already_reacted: set[int] = set()
@@ -125,6 +124,7 @@ class PydisGames(commands.Cog):
         if "team" not in times:
             await self.set_reaction_time("team")
 
+        self.event_uptime = await self.game_settings.get('game_uptime')
         self.super_game.start()
 
     @commands.Cog.listener()
@@ -148,7 +148,7 @@ class PydisGames(commands.Cog):
         logger.info(f"Starting game in {msg.channel.name} for team {self.chosen_team}")
         await msg.add_reaction(self.chosen_team.value.emoji)
 
-        await asyncio.sleep(EVENT_UP_TIME)
+        await asyncio.sleep(self.event_uptime)
 
         await msg.clear_reaction(self.chosen_team.value.emoji)
         self.team_game_message_id = self.chosen_team = None
@@ -299,6 +299,17 @@ class PydisGames(commands.Cog):
     @commands.has_any_role(*ELEVATED_ROLES)
     async def set_interval(self, ctx: commands.Context, min_time: int, max_time: int) -> None:
         """Set the minimum and maximum number of seconds between team reactions."""
+        if max_time > min_time:
+            await ctx.send("The minimum interval can't be greater than the maximum.")
+            return
+
+        game_uptime = await self.game_settings.get('game_uptime')
+        if min_time < game_uptime:
+            await ctx.send(f"Min time can't be less than the game uptime, which is {game_uptime}")
+            return
+
+        logger.info(f"New game intervals set to {min_time}, {max_time} by {ctx.author.name}")
+
         await self.game_settings.set("reaction_min", min_time)
         await self.game_settings.set("reaction_max", max_time)
         await ctx.message.add_reaction("✅")
@@ -315,6 +326,26 @@ class PydisGames(commands.Cog):
             raise BadArgument("Value must be between 0 and 1.")
 
         await self.game_settings.set("ducky_probability", probability)
+        await ctx.message.add_reaction("✅")
+
+    @games_command_group.command()
+    @commands.has_any_role(*ELEVATED_ROLES)
+    async def set_uptime(self, ctx: commands.Context, uptime: int) -> None:
+        """
+        Set the number of seconds for which the team game runs
+        """
+        if uptime <= 0:
+            await ctx.send(f"Uptime must be greater than 0, but is {uptime}")
+            return
+
+        current_min = await self.game_settings.get("reaction_min")
+        if uptime > current_min:
+            await ctx.send(f"Uptime can't be greater than the minimum interval, which is {current_min}")
+            return
+
+        await self.game_settings.set("game_uptime", uptime)
+        self.event_uptime = uptime
+        logger.info(f"game_uptime set to {uptime}s by {ctx.author.name}")
         await ctx.message.add_reaction("✅")
 
     @games_command_group.command()
