@@ -165,6 +165,9 @@ class _Emojis(EnvConfig, env_prefix="EMOJI_"):
     trashcan: str = "<:trashcan:637136429717389331>"
     star: str = "\u2B50"
     christmas_tree: str = "\U0001F384"
+    team_tuple: str = "<:team_tuple:1224089419003334768>"
+    team_list: str = "<:team_list:1224089544257962134>"
+    team_dict: str = "<:team_dict:1224089495373353021>"
 
 
 Emojis = _Emojis()
@@ -181,6 +184,11 @@ class _Roles(EnvConfig, env_prefix="ROLE_"):
     helpers: int = 267630620367257601
     aoc_completionist: int = 1191547731873894440
     bots: int = 277546923144249364
+    moderation_team: int = 267629731250176001
+
+    team_list: int = 1222691191582097418
+    team_dict: int = 1222691368653033652
+    team_tuple: int = 1222691399246286888
 
 
 Roles = _Roles()
