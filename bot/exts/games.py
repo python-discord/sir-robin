@@ -124,7 +124,7 @@ class PydisGames(commands.Cog):
         if "team" not in times:
             await self.set_reaction_time("team")
 
-        self.event_uptime = await self.game_settings.get('game_uptime')
+        self.event_uptime = await self.game_settings.get("game_uptime")
         self.super_game.start()
 
     @commands.Cog.listener()
@@ -303,7 +303,7 @@ class PydisGames(commands.Cog):
             await ctx.send("The minimum interval can't be greater than the maximum.")
             return
 
-        game_uptime = await self.game_settings.get('game_uptime')
+        game_uptime = await self.game_settings.get("game_uptime")
         if min_time < game_uptime:
             await ctx.send(f"Min time can't be less than the game uptime, which is {game_uptime}")
             return
@@ -331,9 +331,7 @@ class PydisGames(commands.Cog):
     @games_command_group.command()
     @commands.has_any_role(*ELEVATED_ROLES)
     async def set_uptime(self, ctx: commands.Context, uptime: int) -> None:
-        """
-        Set the number of seconds for which the team game runs
-        """
+        """Set the number of seconds for which the team game runs."""
         if uptime <= 0:
             await ctx.send(f"Uptime must be greater than 0, but is {uptime}")
             return
