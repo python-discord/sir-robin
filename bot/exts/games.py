@@ -299,7 +299,7 @@ class PydisGames(commands.Cog):
     @commands.has_any_role(*ELEVATED_ROLES)
     async def set_interval(self, ctx: commands.Context, min_time: int, max_time: int) -> None:
         """Set the minimum and maximum number of seconds between team reactions."""
-        if max_time > min_time:
+        if min_time > max_time:
             await ctx.send("The minimum interval can't be greater than the maximum.")
             return
 
