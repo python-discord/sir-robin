@@ -58,7 +58,10 @@ class ErrorHandler(Cog):
             embed = self._get_error_embed("Command not found", str(error))
         else:
             # If we haven't handled it by this point, it is considered an unexpected/handled error.
-            log.exception(f"Error executing command invoked by {ctx.message.author}: {ctx.message.content}")
+            log.exception(
+                f"Error executing command invoked by {ctx.message.author}: {ctx.message.content}",
+                exc_info=error,
+            )
             embed = self._get_error_embed(
                 "Unexpected error",
                 "Sorry, an unexpected error occurred. Please let us know!\n\n"
