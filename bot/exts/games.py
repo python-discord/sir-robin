@@ -144,7 +144,7 @@ class PydisGames(commands.Cog):
         await self.set_reaction_time("team")
 
         self.team_game_message_id = msg.id
-        self.chosen_team = random.choice(list(Team))
+        self.chosen_team = await self.weighted_random_team()
         logger.info(f"Starting game in {msg.channel.name} for team {self.chosen_team}")
         await msg.add_reaction(self.chosen_team.value.emoji)
 
@@ -229,6 +229,18 @@ class PydisGames(commands.Cog):
             if role in member.roles:
                 return team
         return None
+
+    async def weighted_random_team(self) -> Team:
+        scores = await self.points.to_dict()
+        teams: list[str] = list(scores.keys())
+        inverse_points = [1 / (points or 1) for points in scores.values()]
+        total_inverse_weights = sum(inverse_points)
+        weights = [w / total_inverse_weights for w in inverse_points]
+
+        logger.debug(f"{scores = }, {weights = }")
+
+        team_selection = random.choices(teams, weights=weights, k=1)[0]
+        return Team[team_selection.upper()]
 
     async def set_reaction_time(self, reaction_type: GameType) -> None:
         """Set the time after which a team reaction can be added."""
