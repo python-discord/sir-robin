@@ -6,6 +6,7 @@ import async_rediscache
 class AoCSettingOption(Enum):
     COMPLETIONIST_ENABLED = "completionist_enabled"
 
+
 # How many people are in each leaderboard
 # RedisCache[leaderboard_id, int]
 leaderboard_counts = async_rediscache.RedisCache(namespace="AOC_leaderboard_counts")

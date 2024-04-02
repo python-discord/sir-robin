@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import enum
 import random
 import textwrap
@@ -8,6 +9,7 @@ from typing import Literal, NamedTuple
 
 import arrow
 import discord
+import discord.errors
 from async_rediscache import RedisCache
 from discord.ext import commands, tasks
 from discord.ext.commands import BadArgument
@@ -124,7 +126,7 @@ class PydisGames(commands.Cog):
         if "team" not in times:
             await self.set_reaction_time("team")
 
-        self.event_uptime = await self.game_settings.get('game_uptime')
+        self.event_uptime = await self.game_settings.get("game_uptime")
         self.super_game.start()
 
     @commands.Cog.listener()
@@ -150,7 +152,10 @@ class PydisGames(commands.Cog):
 
         await asyncio.sleep(self.event_uptime)
 
-        await msg.clear_reaction(self.chosen_team.value.emoji)
+        # If the message was deleted in the meantime, the
+        # reaction is gone either way. Continue with cleanup.
+        with contextlib.suppress(discord.errors.NotFound):
+            await msg.clear_reaction(self.chosen_team.value.emoji)
         self.team_game_message_id = self.chosen_team = None
         self.team_game_users_already_reacted.clear()
 
@@ -311,11 +316,11 @@ class PydisGames(commands.Cog):
     @commands.has_any_role(*ELEVATED_ROLES)
     async def set_interval(self, ctx: commands.Context, min_time: int, max_time: int) -> None:
         """Set the minimum and maximum number of seconds between team reactions."""
-        if max_time > min_time:
+        if min_time > max_time:
             await ctx.send("The minimum interval can't be greater than the maximum.")
             return
 
-        game_uptime = await self.game_settings.get('game_uptime')
+        game_uptime = await self.game_settings.get("game_uptime")
         if min_time < game_uptime:
             await ctx.send(f"Min time can't be less than the game uptime, which is {game_uptime}")
             return
@@ -343,9 +348,7 @@ class PydisGames(commands.Cog):
     @games_command_group.command()
     @commands.has_any_role(*ELEVATED_ROLES)
     async def set_uptime(self, ctx: commands.Context, uptime: int) -> None:
-        """
-        Set the number of seconds for which the team game runs
-        """
+        """Set the number of seconds for which the team game runs."""
         if uptime <= 0:
             await ctx.send(f"Uptime must be greater than 0, but is {uptime}")
             return
