@@ -236,6 +236,7 @@ class PydisGames(commands.Cog):
         return None
 
     async def weighted_random_team(self) -> Team:
+        """Randomly select the next chosen team weighted by current team points."""
         scores = await self.points.to_dict()
         teams: list[str] = list(scores.keys())
         inverse_points = [1 / (points or 1) for points in scores.values()]
