@@ -67,6 +67,7 @@ jobs:
       - name: Deploy to Kubernetes
         uses: Azure/k8s-deploy@v4
         with:
+          namespace: bots
           manifests: |
-              infra/kubernetes/namespaces/default/sir-robin/deployment.yaml
+              infra/kubernetes/namespaces/bots/sir-robin/deployment.yaml
           images: 'ghcr.io/python-discord/sir-robin:${{ inputs.sha-tag }}'
