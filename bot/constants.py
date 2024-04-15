@@ -152,7 +152,7 @@ Bot = _Bot()
 
 
 class _Codejam(EnvConfig, env_prefix="CODE_JAM_"):
-    api: str = "http://code-jam-management.default.svc.cluster.local:8000"
+    api: str = "http://code-jam-management.apis.svc.cluster.local:8000"
     api_key: str = "badbot13m0n8f570f942013fc818f234916ca531"
 
 
