@@ -195,7 +195,7 @@ Roles = _Roles()
 
 
 class _RedisConfig(EnvConfig, env_prefix="REDIS_"):
-    host: str = "redis.default.svc.cluster.local"
+    host: str = "redis.databases.svc.cluster.local"
     port: int = 6379
     password: str | None = None
     use_fakeredis: bool = False
