@@ -210,8 +210,8 @@ class AdventOfCode(commands.Cog):
         current_date = datetime.now(tz=UTC)
         allowed_months = (Month.NOVEMBER.value, Month.DECEMBER.value)
         if not (
-            current_date.month in allowed_months and current_date.year == AocConfig.year
-            or current_date.month == Month.JANUARY.value and current_date.year == AocConfig.year + 1
+            (current_date.month in allowed_months and current_date.year == AocConfig.year)
+            or (current_date.month == Month.JANUARY.value and current_date.year == AocConfig.year + 1)
         ):
             # Only allow joining the leaderboard in the run up to AOC and the January following.
             await interaction.response.send_message(

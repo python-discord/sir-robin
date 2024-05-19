@@ -152,7 +152,7 @@ Bot = _Bot()
 
 
 class _Codejam(EnvConfig, env_prefix="CODE_JAM_"):
-    api: str = "http://code-jam-management.default.svc.cluster.local:8000"
+    api: str = "http://code-jam-management.apis.svc.cluster.local:8000"
     api_key: str = "badbot13m0n8f570f942013fc818f234916ca531"
 
 
@@ -195,7 +195,7 @@ Roles = _Roles()
 
 
 class _RedisConfig(EnvConfig, env_prefix="REDIS_"):
-    host: str = "redis.default.svc.cluster.local"
+    host: str = "redis.databases.svc.cluster.local"
     port: int = 6379
     password: str | None = None
     use_fakeredis: bool = False
