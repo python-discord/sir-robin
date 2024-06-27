@@ -8,7 +8,7 @@ from pydis_core.site_api import APIClient
 from pydis_core.utils.error_handling import handle_forbidden_from_block
 from pydis_core.utils.logging import get_logger
 from pydis_core.utils.scheduling import create_task
-from sentry_sdk import push_scope
+from sentry_sdk import new_scope
 
 from bot import constants, exts
 from bot.exts.code_jams._views import JamTeamInfoView
@@ -101,7 +101,7 @@ class SirRobin(BotBase):
 
         self.stats.incr(f"errors.event.{event}")
 
-        with push_scope() as scope:
+        with new_scope() as scope:
             scope.set_tag("event", event)
             scope.set_extra("args", args)
             scope.set_extra("kwargs", kwargs)
