@@ -1,7 +1,7 @@
 services:
   postgres:
     restart: unless-stopped
-    image: postgres:13-alpine
+    image: postgres:16-alpine
     ports:
       - "127.0.0.1:7777:5432"
     environment:
