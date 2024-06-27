@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install Python Dependencies
-        uses: HassanAbouelela/actions/setup-python@setup-python_v1.4.2
+        uses: HassanAbouelela/actions/setup-python@setup-python_v1.6.0
         with:
           python_version: '3.12'
           install_args: "--only main --only lint --only test"
