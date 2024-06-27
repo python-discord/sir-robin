@@ -11,11 +11,12 @@ from pydis_core.utils.members import get_or_fetch_member
 from pydis_core.utils.paste_service import PasteFile, PasteTooLongError, PasteUploadError, send_to_paste_service
 
 from bot.bot import SirRobin
-from bot.constants import Roles
+from bot.constants import Emojis, Roles
 from bot.exts.code_jams import _creation_utils
 from bot.exts.code_jams._flows import add_flow, creation_flow, deletion_flow, move_flow, pin_flow, remove_flow
 from bot.exts.code_jams._views import JamConfirmation, JamInfoView, JamTeamInfoConfirmation
 from bot.utils.checks import in_code_jam_category
+from bot.utils.decorators import with_role
 
 log = get_logger(__name__)
 PIN_ALLOWED_ROLES: tuple[int, ...] = (Roles.admins, Roles.code_jam_event_team)
@@ -221,6 +222,41 @@ class CodeJams(commands.Cog):
     async def unpin(self, ctx: commands.Context, message: discord.Message | None = None) -> None:
         """Lets Code Jam Participants to unpin messages in their team channels."""
         await pin_flow(ctx, PIN_ALLOWED_ROLES, self.bot.code_jam_mgmt_api, message, True)
+
+    @codejam.group()
+    @with_role(Roles.admins, Roles.code_jam_event_team, fail_silently=True)
+    async def support(self, ctx: commands.Context) -> None:
+        """Apply or remove the Code Jam Support role."""
+        if ctx.invoked_subcommand is None:
+            await ctx.send_help(ctx.command)
+
+    @support.command()
+    @with_role(Roles.admins, Roles.code_jam_event_team, fail_silently=True)
+    async def off(self, ctx: commands.Context) -> None:
+        """Remove the Code Jam Support role."""
+        user = ctx.author
+        cj_support_role = ctx.guild.get_role(Roles.code_jam_support)
+
+        if cj_support_role not in user.roles:
+            await ctx.send(":question: You don't have the role.")
+            return
+
+        await user.remove_roles(cj_support_role)
+        await ctx.send(f"{Emojis.check_mark} Code Jam Support role has been removed.")
+
+    @support.command()
+    @with_role(Roles.admins, Roles.code_jam_event_team, fail_silently=True)
+    async def on(self, ctx: commands.Context) -> None:
+        """Add the Code Jam Support role."""
+        user = ctx.author
+        cj_support_role = ctx.guild.get_role(Roles.code_jam_support)
+
+        if cj_support_role in user.roles:
+            await ctx.send(":question: You already have the role.")
+            return
+
+        await user.add_roles(cj_support_role)
+        await ctx.send(f"{Emojis.check_mark} Code Jam Support role has been applied.")
 
     @codejam.command("ping")
     @commands.has_any_role(Roles.admins, Roles.events_lead, Roles.code_jam_event_team, Roles.code_jam_participants)

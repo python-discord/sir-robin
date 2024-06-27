@@ -181,6 +181,7 @@ class _Roles(EnvConfig, env_prefix="ROLE_"):
     event_runner: int = 940911658799333408
     summer_aoc: int = 988801794668908655
     code_jam_participants: int = 991678713093705781
+    code_jam_support: int = 1254657197535920141
     helpers: int = 267630620367257601
     aoc_completionist: int = 1191547731873894440
     bots: int = 277546923144249364
