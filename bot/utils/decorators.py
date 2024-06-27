@@ -75,7 +75,7 @@ def in_month_command(*allowed_months: Month) -> Callable:
 
     Uses the current UTC month at the time of running the predicate.
     """
-    async def predicate(ctx: Context) -> bool:
+    async def predicate(ctx: Context) -> bool:  # noqa: RUF029
         current_month = resolve_current_month()
         can_run = current_month in allowed_months
 
