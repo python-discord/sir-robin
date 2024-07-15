@@ -17,9 +17,28 @@ async def _create_category(guild: discord.Guild) -> discord.CategoryChannel:
 
     category_overwrites = {
         guild.default_role: discord.PermissionOverwrite(read_messages=False),
-        guild.me: discord.PermissionOverwrite(read_messages=True),
-        guild.get_role(Roles.bots): discord.PermissionOverwrite(read_messages=True),
-        guild.get_role(Roles.events_lead): discord.PermissionOverwrite(manage_channels=True),
+        guild.me: discord.PermissionOverwrite(
+            read_messages=True,
+            send_messages=True,
+            manage_messages=True,
+            mention_everyone=True,
+            connect=True,
+        ),
+        guild.get_role(Roles.bots): discord.PermissionOverwrite(
+            read_messages=True,
+            send_messages=True
+        ),
+        guild.get_role(Roles.events_lead): discord.PermissionOverwrite(
+            manage_channels=True,
+            manage_webhooks=True
+        ),
+        guild.get_role(Roles.code_jam_event_team): discord.PermissionOverwrite(
+            read_messages=True,
+            send_messages=True,
+            connect=True,
+            move_members=True,
+            mention_everyone=True,
+        ),
     }
     category = await guild.create_category_channel(
         CATEGORY_NAME,
@@ -60,8 +79,21 @@ def _get_overwrites(
     """Get code jam team channels permission overwrites."""
     return {
         guild.default_role: discord.PermissionOverwrite(read_messages=False),
-        guild.get_role(Roles.events_lead): discord.PermissionOverwrite(manage_channels=True),
-        guild.get_role(Roles.code_jam_event_team): discord.PermissionOverwrite(read_messages=True),
+        guild.me: discord.PermissionOverwrite(
+            read_messages=True,
+            send_messages=True,
+            manage_messages=True,
+            mention_everyone=True,
+        ),
+        guild.get_role(Roles.events_lead): discord.PermissionOverwrite(
+            manage_channels=True,
+            manage_webhooks=True,
+        ),
+        guild.get_role(Roles.code_jam_event_team): discord.PermissionOverwrite(
+            read_messages=True,
+            send_messages=True,
+            mention_everyone=True,
+        ),
         team_role: discord.PermissionOverwrite(read_messages=True),
         guild.get_role(Roles.bots): discord.PermissionOverwrite(read_messages=True, send_messages=True),
     }
