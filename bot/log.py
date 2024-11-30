@@ -3,7 +3,9 @@ import sys
 
 import sentry_sdk
 from pydis_core.utils.logging import TRACE_LEVEL, get_logger, log_format
+from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
+from sentry_sdk.integrations.redis import RedisIntegration
 
 from bot.constants import Bot, GIT_SHA
 
@@ -31,6 +33,8 @@ def setup_sentry() -> None:
         dsn=Bot.sentry_dsn,
         integrations=[
             sentry_logging,
+            RedisIntegration(),
+            AsyncioIntegration(),
         ],
         release=f"sir-robin@{GIT_SHA}",
         traces_sample_rate=0.5,
