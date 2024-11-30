@@ -111,12 +111,12 @@ def in_month(*allowed_months: Month) -> Callable:
     def decorator(callable_: Callable) -> Callable:
         # Functions decorated as commands are turned into instances of `Command`
         if isinstance(callable_, Command):
-            logging.debug(f"Command {callable_.qualified_name} will be locked to {human_months(allowed_months)}")
+            log.debug(f"Command {callable_.qualified_name} will be locked to {human_months(allowed_months)}")
             actual_deco = in_month_command(*allowed_months)
 
         # D.py will assign this attribute when `callable_` is registered as a listener
         elif hasattr(callable_, "__cog_listener__"):
-            logging.debug(f"Listener {callable_.__qualname__} will be locked to {human_months(allowed_months)}")
+            log.debug(f"Listener {callable_.__qualname__} will be locked to {human_months(allowed_months)}")
             actual_deco = in_month_listener(*allowed_months)
 
         # Otherwise we're unsure exactly what has been decorated
