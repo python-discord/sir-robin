@@ -1,9 +1,9 @@
-import logging
 import typing as t
 
 import discord
+from pydis_core.utils import logging
 
-log = logging.getLogger(__name__)
+log = logging.get_logger(__name__)
 
 
 async def get_or_fetch_member(guild: discord.Guild, member_id: int) -> discord.Member | None:

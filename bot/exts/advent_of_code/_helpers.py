@@ -2,7 +2,6 @@ import asyncio
 import collections
 import datetime
 import json
-import logging
 import math
 import operator
 from typing import Any
@@ -11,14 +10,14 @@ import aiohttp
 import arrow
 import discord
 from discord.ext import commands
-from pydis_core.utils import paste_service
+from pydis_core.utils import logging, paste_service
 
 import bot
 from bot.bot import SirRobin
 from bot.constants import AdventOfCode, Bot, Channels, Colours, Roles
 from bot.exts.advent_of_code import _caches
 
-log = logging.getLogger(__name__)
+log = logging.get_logger(__name__)
 
 # Base API URL for Advent of Code Private Leaderboards
 AOC_API_URL = "https://adventofcode.com/{year}/leaderboard/private/view/{leaderboard_id}.json"

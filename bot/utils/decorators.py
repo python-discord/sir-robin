@@ -1,10 +1,10 @@
 import asyncio
 import functools
-import logging
 from collections.abc import Callable, Container
 
 from discord.ext import commands
 from discord.ext.commands import Command, Context
+from pydis_core.utils import logging
 
 from bot.constants import Channels, Month
 from bot.utils import human_months, resolve_current_month
@@ -13,7 +13,7 @@ from bot.utils.exceptions import InMonthCheckFailure, SilentRoleFailure
 
 ONE_DAY = 24 * 60 * 60
 
-log = logging.getLogger(__name__)
+log = logging.get_logger(__name__)
 
 
 def seasonal_task(*allowed_months: Month, sleep_time: float | int = ONE_DAY) -> Callable:

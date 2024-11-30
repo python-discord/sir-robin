@@ -1,5 +1,4 @@
 import asyncio
-import logging
 from datetime import timedelta
 from typing import Literal
 
@@ -8,12 +7,13 @@ import discord
 from async_rediscache import RedisCache
 from discord.ext import commands, tasks
 from discord.utils import MISSING
+from pydis_core.utils import logging
 
 from bot.bot import SirRobin
 from bot.constants import Bot, Channels, Roles
 from bot.utils.time import time_until
 
-log = logging.getLogger(__name__)
+log = logging.get_logger(__name__)
 
 AOC_URL = "https://adventofcode.com/{year}/day/{day}"
 LAST_DAY = 25

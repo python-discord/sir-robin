@@ -1,5 +1,4 @@
 import json
-import logging
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -7,7 +6,7 @@ import arrow
 import discord
 from discord import app_commands
 from discord.ext import commands, tasks
-from pydis_core.utils import scheduling
+from pydis_core.utils import logging, scheduling
 
 from bot.bot import SirRobin
 from bot.constants import (
@@ -25,7 +24,7 @@ from bot.exts.advent_of_code.views.dayandstarview import AoCDropdownView
 from bot.utils import members
 from bot.utils.decorators import in_month, in_whitelist, with_role
 
-log = logging.getLogger(__name__)
+log = logging.get_logger(__name__)
 
 AOC_REQUEST_HEADER = {"user-agent": "PythonDiscord AoC Event Bot"}
 

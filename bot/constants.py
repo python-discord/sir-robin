@@ -1,12 +1,12 @@
 import dataclasses
 import enum
-import logging
 from datetime import UTC, datetime
 from os import environ
 
 from pydantic_settings import BaseSettings
+from pydis_core.utils import logging
 
-log = logging.getLogger(__name__)
+log = logging.get_logger(__name__)
 
 
 class EnvConfig(
