@@ -96,7 +96,7 @@ class CodeJams(commands.Cog):
     @commands.has_any_role(Roles.admins, Roles.events_lead)
     async def end(self, ctx: commands.Context) -> None:
         """
-        Delete all code jam channels.
+        Delete all code jam channels and team-specific roles.
 
         A confirmation message is displayed with the categories and channels
         that are going to be deleted, by pressing "Confirm" the deletion
@@ -142,6 +142,13 @@ class CodeJams(commands.Cog):
             view=confirm_view
         )
         await confirm_view.wait()
+
+        # Unassign the code jam participant and team lead roles, without deleting the roles themselves
+        for permanent_role_id in (Roles.code_jam_team_leads, Roles.code_jam_participants):
+            permanent_role = await ctx.guild.get_role(permanent_role_id)
+            for user in permanent_role.members:
+                await user.remove_roles(permanent_role)
+
         await ctx.send("Code Jam has officially ended! :sunrise:")
 
     @codejam.command()
