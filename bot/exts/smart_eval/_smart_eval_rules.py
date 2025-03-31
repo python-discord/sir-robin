@@ -1,3 +1,5 @@
+from bot.exts.miscellaneous import ZEN_OF_PYTHON
+
 # If you want to capture something that will be used in the response, capture it with a named group called "content"
 
 RULES = {
@@ -41,9 +43,12 @@ RULES = {
         "Semicolons do not belong in Python code",
         "You say this is Python, but the presence of a semicolon makes me think otherwise.",
     ],
-    r"\b(:?foo|bar|baz)\b": [  # Detect boring metasyntactic variables
+    r"\b(?:foo|bar|baz)\b": [  # Detect boring metasyntactic variables
         "foo, bar, and baz are boring - use spam, ham, and eggs instead.",
-    ]
+    ],
+    r"(?m:^\s*import\s+this\s*$)": [ # Detect use of "import this"
+        f"```\n{ZEN_OF_PYTHON}```",
+    ],
 }
 
 DEFAULT_RESPONSES = [
