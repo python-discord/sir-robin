@@ -61,4 +61,13 @@ DEFAULT_RESPONSES = [
     "Are you sure this is Python code? It looks like Rust",
     "It may run, depends on the weather today.",
     "Hmm, maybe AI isn't ready to take over the world yet after all - I don't understand this.",
+    "Ah... I see... Very interesting code indeed. I give it 10 quacks out of 10.",
+    "My sources say \"Help I'm trapped in a code evaluating factory\".",
+    "Look! A bug!",
+    "An exquisite piece of code, if I do say so myself.",
+    (
+        "Let's see... carry the 1, read 512 bytes from 0x000001E5F6D2D15A,"
+        " boot up the quantum flux capacitor... oh wait, where was I?"
+    ),
+    "Before evaluating this code, I need to make sure you're not a robot. I get a little nervous around other bots.",
 ]
