@@ -1,6 +1,5 @@
-import random
-
 import arrow
+
 from bot.exts.miscellaneous import ZEN_OF_PYTHON
 
 RULES = {
@@ -93,7 +92,7 @@ DEFAULT_RESPONSES = [
     "Are you sure this is Python code? It looks like Rust",
     "It may run, depends on the weather today.",
     "Hmm, maybe AI isn't ready to take over the world yet after all - I don't understand this.",
-    f"Ah... I see... Very interesting code indeed. I give it {random.randint(0, 11)} quacks out of 10.",
+    "Ah... I see... Very interesting code indeed. I give it 10 quacks out of 10.",
     "My sources say \"Help I'm trapped in a code evaluating factory\".",
     "Look! A bug! :scream:",
     "An exquisite piece of code, if I do say so myself.",
@@ -102,7 +101,7 @@ DEFAULT_RESPONSES = [
         " boot up the quantum flux capacitor... oh wait, where was I?"
     ),
     "Before evaluating this code, I need to make sure you're not a robot. I get a little nervous around other bots.",
-    f"Attempting to execute this code... Result: `2 + 2 = 4` ({random.randint(0, 100)}% confidence)",
+    "Attempting to execute this code... Result: `2 + 2 = 4` (78% confidence)",
     "Attempting to execute this code... Result: `42`",
     "Attempting to execute this code... Result: SUCCESS (but don't ask me how I did it).",
     "Running... somewhere, in the multiverse, this code is already running perfectly.",
