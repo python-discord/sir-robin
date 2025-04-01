@@ -114,15 +114,18 @@ class SmartEval(commands.Cog):
             )
             return
 
+
+        msg = "Thank you for donating your GPU to our Smart Eval command."
         fake_hardware = await self.improve_gpu_name(hardware)
         await self.smarte_donation_cache.set(ctx.author.id, fake_hardware)
 
-        await ctx.reply(
-            "Thank you for donating your GPU to our Smart Eval command."
-            f" I did decide that instead of *{hardware}*, it would be better if you donated *{fake_hardware}*."
-            " So I've recorded that GPU donation instead."
-            " \n\nIt will be used wisely and definitely not for shenanigans!"
-        )
+        if fake_hardware != hardware:
+            msg += (
+                f" I did decide that instead of *{hardware}*, it would be better if you donated *{fake_hardware}*."
+                " So I've recorded that GPU donation instead."
+            )
+        msg += "\n\nIt will be used wisely and definitely not for shenanigans!"
+        await ctx.reply(msg)
 
     @commands.command(aliases=["smarte"])
     @commands.max_concurrency(1, commands.BucketType.user)
