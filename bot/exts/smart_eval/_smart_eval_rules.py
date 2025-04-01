@@ -53,7 +53,10 @@ RULES = {
             " and I don't think I can handle that."
         ),
         "I spy with my little eye... something sketchy like `{}`.",
-        ""
+        (
+            ":rotating_light: Your code has been flagged for review by the"
+            " Special Provisional Supreme Grand High Council of Pydis."
+        ),
     ],
 }
 
@@ -63,7 +66,7 @@ DEFAULT_RESPONSES = [
     "Hmm, maybe AI isn't ready to take over the world yet after all - I don't understand this.",
     "Ah... I see... Very interesting code indeed. I give it 10 quacks out of 10.",
     "My sources say \"Help I'm trapped in a code evaluating factory\".",
-    "Look! A bug!",
+    "Look! A bug! :scream:",
     "An exquisite piece of code, if I do say so myself.",
     (
         "Let's see... carry the 1, read 512 bytes from 0x000001E5F6D2D15A,"
