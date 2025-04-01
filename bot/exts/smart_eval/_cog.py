@@ -114,6 +114,12 @@ class SmartEval(commands.Cog):
             )
             return
 
+        if len(hardware) > 255:
+            await ctx.reply(
+                "This hardware name is too complicated, I don't have the context window "
+                "to remember that"
+            )
+            return
 
         msg = "Thank you for donating your GPU to our Smart Eval command."
         fake_hardware = await self.improve_gpu_name(hardware)
