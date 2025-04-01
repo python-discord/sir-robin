@@ -44,6 +44,21 @@ class SmartEval(commands.Cog):
 
         return response_time, intelligence_level
 
+    async def improve_gpu_name(self, hardware_name: str) -> str:
+        """Quackify and pythonify the given GPU name."""
+        hardware_name = hardware_name.replace("NVIDIA", "NQUACKIA")
+        hardware_name = hardware_name.replace("Radeon", "Quackeon")
+        hardware_name = hardware_name.replace("GeForce", "PyForce")
+        hardware_name = hardware_name.replace("RTX", "PyTX")
+        hardware_name = hardware_name.replace("RX", "PyX")
+        hardware_name = hardware_name.replace("Iris", "Pyris")
+
+        # Some adjustments to prevent low hanging markdown escape
+        hardware_name = hardware_name.replace("*", "")
+        hardware_name = hardware_name.replace("_", " ")
+
+        return hardware_name
+
     @commands.command()
     async def donations(self, ctx: commands.Context) -> None:
         """Display the number of donations recieved so far."""
@@ -85,7 +100,7 @@ class SmartEval(commands.Cog):
             stored_hardware = await self.smarte_donation_cache.get(ctx.author.id)
             await ctx.reply(
                 "I can only take one donation per person. "
-                f"Thank you for donating your {stored_hardware} to our Smart Eval command."
+                f"Thank you for donating your *{stored_hardware}* to our Smart Eval command."
             )
             return
 
@@ -99,14 +114,14 @@ class SmartEval(commands.Cog):
             )
             return
 
-        fake_hardware = ... # Do some regex to pull out a semi-matching type of GPU and insert something else
-        await self.smarte_donation_cache.set(ctx.author.id, hardware)
+        fake_hardware = await self.improve_gpu_name(hardware)
+        await self.smarte_donation_cache.set(ctx.author.id, fake_hardware)
 
         await ctx.reply(
-            "Thank you for donating your GPU to our Smart Eval command!"
-            f" I did decide that instead of {hardware}, it would be better if you donated {fake_hardware}."
+            "Thank you for donating your GPU to our Smart Eval command."
+            f" I did decide that instead of *{hardware}*, it would be better if you donated *{fake_hardware}*."
             " So I've recorded that GPU donation instead."
-            " It will be used wisely and definitely not for shenanigans."
+            " \n\nIt will be used wisely and definitely not for shenanigans!"
         )
 
     @commands.command(aliases=["smarte"])
