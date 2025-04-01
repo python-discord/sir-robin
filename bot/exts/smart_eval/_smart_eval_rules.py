@@ -1,4 +1,5 @@
 import arrow
+import random
 
 from bot.exts.miscellaneous import ZEN_OF_PYTHON
 
@@ -20,8 +21,8 @@ RULES = {
     r"(?i:^print\((?:\"|\')Hello World[.!]?(?:\"|\')\)$)": [  # Detect just printing hello world
         "You don't want to know how many times I've seen hello world in my training dataset, try something new."
     ],
-    r"(?P<content>__import__|__code__|ctypes)": [  # Detect use of esoteric stuff
-        "Using `{}`?? Try asking someone in #esoteric-python"
+    r"(?P<content>__import__|__code__|ctypes|inspect)": [  # Detect use of esoteric stuff
+        "Using `{}`?? Try asking someone in <#470884583684964352>"  # Eso-py channel ID so it actually links
     ],
     r"(?m:(?:import |from )(?P<content>requests|httpx|aiohttp))": [  # Detect use of networking libraries
         (
@@ -92,7 +93,7 @@ DEFAULT_RESPONSES = [
     "Are you sure this is Python code? It looks like Rust",
     "It may run, depends on the weather today.",
     "Hmm, maybe AI isn't ready to take over the world yet after all - I don't understand this.",
-    "Ah... I see... Very interesting code indeed. I give it 10 quacks out of 10.",
+    f"Ah... I see... Very interesting code indeed. I give it {random.randint(0, 11)} quacks out of 10.",
     "My sources say \"Help I'm trapped in a code evaluating factory\".",
     "Look! A bug! :scream:",
     "An exquisite piece of code, if I do say so myself.",
@@ -101,7 +102,7 @@ DEFAULT_RESPONSES = [
         " boot up the quantum flux capacitor... oh wait, where was I?"
     ),
     "Before evaluating this code, I need to make sure you're not a robot. I get a little nervous around other bots.",
-    "Attempting to execute this code... Result: `2 + 2 = 4` (78% confidence)",
+    f"Attempting to execute this code... Result: `2 + 2 = 4` ({random.randint(0, 100)}% confidence)",
     "Attempting to execute this code... Result: `42`",
     "Attempting to execute this code... Result: SUCCESS (but don't ask me how I did it).",
     "Running... somewhere, in the multiverse, this code is already running perfectly.",
