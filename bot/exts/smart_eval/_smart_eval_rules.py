@@ -47,6 +47,14 @@ RULES = {
     r"(?m:^\s*import\s+this\s*$)": [ # Detect use of "import this"
         f"```\n{ZEN_OF_PYTHON}```",
     ],
+    r"\b(?P<content>exec|eval)\b": [  # Detect use of exec and eval
+        (
+            "Sorry, but running the code inside your `{}` call would require another me,"
+            " and I don't think I can handle that."
+        ),
+        "I spy with my little eye... something sketchy like `{}`.",
+        ""
+    ],
 }
 
 DEFAULT_RESPONSES = [
