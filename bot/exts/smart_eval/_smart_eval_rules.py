@@ -81,7 +81,7 @@ RULES = {
     r"(?m:^\s*raise\s*)": [  # Detect raise
         "Wondering why you're getting errors? You're literally using `raise`, just get rid of that!",
     ],
-    r"(?m:^\s*import\s+threading\s*$)": [  # Detect threading import
+    r"(?m:^\s*(?:import|from)\s+threading\s*$)": [  # Detect threading import
         "Uh-oh, your threads have jumbled up my brain!",
         "have jumbled up my Uh-oh, threads brain! your",
         "my up jumbled your brain! have Uh-oh, threads",
