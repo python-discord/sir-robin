@@ -20,8 +20,8 @@ RULES = {
     r"(?i:^print\((?:\"|\')Hello World[.!]?(?:\"|\')\)$)": [  # Detect just printing hello world
         "You don't want to know how many times I've seen hello world in my training dataset, try something new."
     ],
-    r"(?P<content>__import__|__code__|ctypes)": [  # Detect use of esoteric stuff
-        "Using `{}`?? Try asking someone in #esoteric-python"
+    r"(?P<content>__import__|__code__|ctypes|inspect)": [  # Detect use of esoteric stuff
+        "Using `{}`?? Try asking someone in <#470884583684964352>"  # Eso-py channel ID so it actually links
     ],
     r"(?m:(?:import |from )(?P<content>requests|httpx|aiohttp))": [  # Detect use of networking libraries
         (
