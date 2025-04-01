@@ -1,6 +1,6 @@
-import arrow
 import random
 
+import arrow
 from bot.exts.miscellaneous import ZEN_OF_PYTHON
 
 RULES = {
