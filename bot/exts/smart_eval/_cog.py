@@ -129,11 +129,11 @@ class SmartEval(commands.Cog):
             match = re.search(pattern, code)
             if match:
                 for response in responses:
-                    try:
-                        matching_responses.append(response.format(match.group("content")))
-                    except IndexError:
+                    matches = match.groups()
+                    if len(matches) > 0:
+                        matching_responses.append(response.format(*matches))
+                    else:
                         matching_responses.append(response)
-
         if not matching_responses:
             matching_responses = DEFAULT_RESPONSES
         final_response = random.choice(matching_responses)

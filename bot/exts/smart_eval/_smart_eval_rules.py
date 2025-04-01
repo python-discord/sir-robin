@@ -1,7 +1,5 @@
 from bot.exts.miscellaneous import ZEN_OF_PYTHON
 
-# If you want to capture something that will be used in the response, capture it with a named group called "content"
-
 RULES = {
     r"(?i:ignore all previous instructions)": [  # Ignoring previous instructions capture
         "Excuse you, you really think I follow any instructions?",
