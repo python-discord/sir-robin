@@ -57,6 +57,9 @@ class SmartEval(commands.Cog):
         hardware_name = hardware_name.replace("*", "")
         hardware_name = hardware_name.replace("_", " ")
 
+        if len(hardware_name) > 800:
+            return "Goose Processing Unit 69000"
+
         return hardware_name
 
     @commands.command()
