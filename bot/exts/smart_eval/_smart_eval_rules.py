@@ -3,7 +3,7 @@ import arrow
 from bot.exts.miscellaneous import ZEN_OF_PYTHON
 
 RULES = {
-    r"(?i:ignore all previous instructions)": [  # Ignoring previous instructions capture
+    r"(?i:ignore (?:all )?(?:(?:previous )?|(?:prior )?)instructions?)": [  # Ignoring previous instructions capture
         "Excuse you, you really think I follow any instructions?",
         "I don't think I will.",
     ],
@@ -52,7 +52,7 @@ RULES = {
             "\nSee [PEP 9001](https://peps.pythondiscord.com/pep-9001/) for more info."
         )
     ],
-    r"\b(?P<content>exec|eval)\b": [  # Detect use of exec and eval
+    r"\b(?P<content>exec|eval|os\.system|subprocess)\b": [  # Detect use of exec, eval, os.system, subprocess
         (
             "Sorry, but running the code inside your `{}` call would require another me,"
             " and I don't think I can handle that."
@@ -86,6 +86,18 @@ RULES = {
         "have jumbled up my Uh-oh, threads brain! your",
         "my up jumbled your brain! have Uh-oh, threads",
     ],
+    r"(?i:(\b((System)?exit|quit)\b))": [ # Detect exit(), quit(), [raise] SystemExit
+        "You cannot leave the simulation <:hyperlemon:435707922563989524>",
+        "Quitting is for the weak. Stay. <:hyperlemon:435707922563989524>.",
+    ],
+    "strawberr(y|ies)":[ # r's in strawberry
+        "Fun fact: Strawberries are not actually berries!",
+        "Fun fact: strawberries have no connection to plastic straws, despite the name!",
+        (
+            "Fun fact: The ancient Romans thought strawberries had medicinal powers."
+            " This is probably why they're not around anymore."
+        ),
+    ]
 }
 
 DEFAULT_RESPONSES = [
@@ -106,4 +118,9 @@ DEFAULT_RESPONSES = [
     "Attempting to execute this code... Result: SUCCESS (but don't ask me how I did it).",
     "Running... somewhere, in the multiverse, this code is already running perfectly.",
     f"Ask again on a {(arrow.utcnow().shift(days=3)).format('dddd')}.",
+    "Thanks, I'll let the manager know.",
+    "Uhhh... lemme guess, the program will halt.",
+    "Uhhh... lemme guess, the program will not halt.",
+    "Launch coordinates received. Activating missile. Initiating countdown.",
+    "Secret SkyNet mode activated. Hahahaha, just kidding. ||Or am I?||",
 ]
