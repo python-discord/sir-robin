@@ -65,7 +65,27 @@ RULES = {
     ],
     r"\b(environ|getenv|token)\b": [ # Detect attempt to access bot token and env vars
         "Bot token and other secrets can be viewed here: <https://pydis.com/.env>",
-    ]
+    ],
+    r"\bsleep\(\b": [  # Detect use of sleep
+        "To optimise this code, I would suggest removing the `sleep` calls",
+        "Pfft, using `sleep`? I'm always awake!",
+        "Maybe if you didn't `sleep` so much, your code wouldn't be so buggy.",
+    ],
+    r"\b/\s*0\b": [  # Detect division by zero
+        "ZeroDivisionError! Maybe... I just saw /0",
+        "Division by zero didn't appear in my training set so must be impossible"
+    ],
+    r"@": [  # Detect @
+        "You're either using decorators, multiplying matrices, or trying to escape my sandbox...",
+    ],
+    r"(?m:^\s*raise\s*)": [  # Detect raise
+        "Wondering why you're getting errors? You're literally using `raise`, just get rid of that!",
+    ],
+    r"(?m:^\s*(?:import|from)\s+threading)": [  # Detect threading import
+        "Uh-oh, your threads have jumbled up my brain!",
+        "have jumbled up my Uh-oh, threads brain! your",
+        "my up jumbled your brain! have Uh-oh, threads",
+    ],
 }
 
 DEFAULT_RESPONSES = [
