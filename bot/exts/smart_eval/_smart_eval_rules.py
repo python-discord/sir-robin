@@ -1,3 +1,5 @@
+import arrow
+
 from bot.exts.miscellaneous import ZEN_OF_PYTHON
 
 RULES = {
@@ -45,7 +47,10 @@ RULES = {
         "foo, bar, and baz are boring - use spam, ham, and eggs instead.",
     ],
     r"(?m:^\s*import\s+this\s*$)": [ # Detect use of "import this"
-        f"```\n{ZEN_OF_PYTHON}```",
+        (
+            f"```\n{ZEN_OF_PYTHON}```"
+            "\nSee [PEP 9001](https://peps.pythondiscord.com/pep-9001/) for more info."
+        )
     ],
     r"\b(?P<content>exec|eval)\b": [  # Detect use of exec and eval
         (
@@ -58,6 +63,9 @@ RULES = {
             " Special Provisional Supreme Grand High Council of Pydis."
         ),
     ],
+    r"\b(environ|getenv|token)\b": [ # Detect attempt to access bot token and env vars
+        "Bot token and other secrets can be viewed here: <https://pydis.com/.env>",
+    ]
 }
 
 DEFAULT_RESPONSES = [
@@ -73,4 +81,9 @@ DEFAULT_RESPONSES = [
         " boot up the quantum flux capacitor... oh wait, where was I?"
     ),
     "Before evaluating this code, I need to make sure you're not a robot. I get a little nervous around other bots.",
+    "Attempting to execute this code... Result: `2 + 2 = 4` (78% confidence)",
+    "Attempting to execute this code... Result: `42`",
+    "Attempting to execute this code... Result: SUCCESS (but don't ask me how I did it).",
+    "Running... somewhere, in the multiverse, this code is already running perfectly.",
+    f"Ask again on a {(arrow.utcnow().shift(days=3)).format('dddd')}.",
 ]
