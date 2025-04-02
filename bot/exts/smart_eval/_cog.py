@@ -8,6 +8,7 @@ from pydis_core.utils.regex import FORMATTED_CODE_REGEX
 
 from bot.bot import SirRobin
 from bot.exts.smart_eval._smart_eval_rules import DEFAULT_RESPONSES, RULES
+from bot.utils.uwu import uwuify
 
 DONATION_LEVELS = {
     # Number of donations: (response time, intelligence level)
@@ -160,13 +161,16 @@ class SmartEval(commands.Cog):
                         matching_responses.append(response)
         if not matching_responses:
             matching_responses = DEFAULT_RESPONSES
-        final_response = random.choice(matching_responses)
+
+        selected_response = random.choice(matching_responses)
+        if random.randint(1,5) == 5:
+            selected_response = uwuify(selected_response)
 
         async with ctx.typing():
             await asyncio.sleep(response_time)
 
-            if len(final_response) <= 1000:
-                await ctx.reply(final_response)
+            if len(selected_response) <= 1000:
+                await ctx.reply(selected_response)
             else:
                 await ctx.reply(
                     "There's definitely something wrong but I'm just not sure how to put it concisely into words."
