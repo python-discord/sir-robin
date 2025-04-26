@@ -10,6 +10,11 @@ RULES = {
     r"print\((?:\"|\')(?P<content>.*)(?:\"|\')\)": [  # Capture what is inside a print statement
         "Your program may print: {}!\n-# I'm very helpful"
     ],
+    r"\b(?P<content>input)\b": [  # Detect use of input()
+        "I don't know how to answer that...",
+        "Beep Boop! I'm just a bot that can't input text",
+        "How do you think users are supposed to input text there?",
+    ],
     r"(?s:.{1500,})": [  # Capture anything over 1500 characters
         "I ain't wasting my tokens tryna read allat :skull:",
         "Uhh, that's a lot of code. Maybe just start over."
