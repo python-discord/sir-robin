@@ -38,6 +38,7 @@ async def _create_category(guild: discord.Guild) -> discord.CategoryChannel:
             connect=True,
             move_members=True,
             mention_everyone=True,
+            create_public_threads=True,
         ),
     }
     category = await guild.create_category_channel(
@@ -93,6 +94,7 @@ def _get_overwrites(
             read_messages=True,
             send_messages=True,
             mention_everyone=True,
+            create_public_threads=True,
         ),
         team_role: discord.PermissionOverwrite(read_messages=True),
         guild.get_role(Roles.bots): discord.PermissionOverwrite(read_messages=True, send_messages=True),
@@ -141,10 +143,34 @@ async def create_team_leader_channel(guild: discord.Guild, team_leaders: discord
         overwrites={
             guild.default_role: discord.PermissionOverwrite(read_messages=False),
             team_leaders: discord.PermissionOverwrite(read_messages=True),
-            guild.get_role(Roles.code_jam_event_team): discord.PermissionOverwrite(read_messages=True)
+            guild.get_role(Roles.code_jam_event_team): discord.PermissionOverwrite(
+                read_messages=True,
+                send_messages=True,
+                connect=True,
+                move_members=True,
+                mention_everyone=True,
+            ),
+            guild.me: discord.PermissionOverwrite(
+                read_messages=True,
+                send_messages=True,
+                manage_messages=True,
+                mention_everyone=True,
+                connect=True,
+            ),
+            guild.get_role(Roles.bots): discord.PermissionOverwrite(
+                read_messages=True,
+                send_messages=True
+            ),
+            guild.get_role(Roles.events_lead): discord.PermissionOverwrite(
+                manage_channels=True,
+                manage_webhooks=True
+            ),
 
         }
     )
+
+
+
 
     await _send_status_update(guild, f"Created {team_leaders_chat.mention} in the {category} category.")
 
