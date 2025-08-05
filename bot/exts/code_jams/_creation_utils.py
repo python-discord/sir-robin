@@ -38,6 +38,7 @@ async def _create_category(guild: discord.Guild) -> discord.CategoryChannel:
             connect=True,
             move_members=True,
             mention_everyone=True,
+            create_public_threads=True,
         ),
     }
     category = await guild.create_category_channel(
@@ -93,6 +94,7 @@ def _get_overwrites(
             read_messages=True,
             send_messages=True,
             mention_everyone=True,
+            create_public_threads=True,
         ),
         team_role: discord.PermissionOverwrite(read_messages=True),
         guild.get_role(Roles.bots): discord.PermissionOverwrite(read_messages=True, send_messages=True),
