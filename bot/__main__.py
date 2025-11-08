@@ -58,6 +58,11 @@ if not constants.Bot.in_ci:
                 guild_id=constants.Bot.guild,
                 allowed_roles=allowed_roles,
                 command_prefix=constants.Bot.prefix,
+                allowed_mentions=discord.AllowedMentions(
+                    everyone=False,
+                    roles=False,
+                    users=True,
+                ),
                 activity=discord.Game("The Not-Quite-So-Bot-as-Sir-Lancebot"),
                 intents=_intents,
             )
