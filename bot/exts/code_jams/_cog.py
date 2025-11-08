@@ -272,7 +272,7 @@ class CodeJams(commands.Cog):
             log.error("Failed to find '%s' in CJMS.", ctx.channel.name)
             await ctx.send("Failed to find team role id in database.")
             return
-        await ctx.send(f"<@&{role_id}>")
+        await ctx.send(f"<@&{role_id}>", allowed_mentions=discord.AllowedMentions(roles=[discord.Object(role_id)]))
 
     @staticmethod
     def jam_categories(guild: Guild) -> list[discord.CategoryChannel]:

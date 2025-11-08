@@ -300,6 +300,7 @@ class SummerAoC(commands.Cog):
         thread_starter = await channel.send(
             f"<@&{Roles.summer_aoc}>",
             embed=self.get_puzzle_embed(),
+            allowed_mentions=discord.AllowedMentions(roles=[discord.Object(Roles.summer_aoc)])
         )
         await thread_starter.create_thread(name=f"Day {self.current_day} Spoilers")
 
