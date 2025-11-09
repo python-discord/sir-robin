@@ -16,6 +16,7 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
+          resolution-strategy: "lowest"
           activate-environment: true
 
       - name: Install dependencies

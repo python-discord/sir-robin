@@ -16,6 +16,7 @@ description = ""
 
 [tool.uv]
 prerelease = "allow"
+required-version = ">=0.9.7"
 
 [dependency-groups]
 dev = [
