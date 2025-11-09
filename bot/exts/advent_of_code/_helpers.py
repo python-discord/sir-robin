@@ -65,7 +65,7 @@ def days_in_year(year:int | None = None) -> int:
     return 25 if year < 2025 else 12
 
 DAYS_THIS_YEAR = days_in_year()
-
+STARS_THIS_YEAR = DAYS_THIS_YEAR
 
 class UnexpectedRedirect(aiohttp.ClientError):
     """Raised when an unexpected redirect was detected."""
