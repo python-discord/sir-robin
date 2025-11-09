@@ -385,12 +385,23 @@ class AdventOfCode(commands.Cog):
             aoc_name = aoc_name[1:-1]
 
         # Check if an advent of code account is linked in the Redis Cache if aoc_name is not given
+        is_explict_name: bool = bool(aoc_name)
         if (aoc_cache_name := await _caches.account_links.get(ctx.author.id)) and aoc_name is None:
             aoc_name = aoc_cache_name
 
+        name_not_found: bool = False
         async with ctx.typing():
             try:
-                leaderboard = await _helpers.fetch_leaderboard(self_placement_name=aoc_name)
+                try:
+                    leaderboard = await _helpers.fetch_leaderboard(
+                        self_placement_name=aoc_name, use_you_for_placement=not is_explict_name
+                    )
+                except _helpers.UserNotInLeaderboardError:
+                    if is_explict_name:
+                        raise commands.BadArgument("Sorry, the provided profile does not exist in this leaderboard.")
+                    aoc_name = None
+                    name_not_found = True
+                    leaderboard = await _helpers.fetch_leaderboard()
             except _helpers.FetchingLeaderboardFailedError:
                 await ctx.send(":x: Unable to fetch leaderboard!")
                 return
@@ -398,15 +409,25 @@ class AdventOfCode(commands.Cog):
         number_of_participants = leaderboard["number_of_participants"]
 
         top_count = min(AocConfig.leaderboard_displayed_members, number_of_participants)
-        self_placement_header = f" (and your personal stats compared to the top {top_count})" if aoc_name else ""
-        header = f"Here's our current top {top_count}{self_placement_header}! {Emojis.christmas_tree * 3}"
+        header = ""
+        if name_not_found:
+            header += (
+                f"\n:x: Your linked Advent of Code account '{aoc_cache_name}' was not found in the leaderboard."
+                " Showing top leaderboard only. "
+                "Wait up to 30 minutes after joining the leaderboard for your stats to appear.\n\n"
+            )
+        header += f"Here's our current top {top_count}"
+        if aoc_name:
+            header += (
+                f" (and {f"the requested user ({Emojis.orange_diamond})" if is_explict_name else 'your'}"
+                f" personal stats compared to the top {top_count})"
+            )
+        header += f"! {Emojis.christmas_tree * 3}"
         table = (
-            "```\n"
-            f"{leaderboard['placement_leaderboard'] if aoc_name else leaderboard['top_leaderboard']}"
-            "\n```"
+            f"```\n{leaderboard['placement_leaderboard'] if aoc_name else leaderboard['top_leaderboard']} \n```"
         )
-        info_embed = _helpers.get_summary_embed(leaderboard)
 
+        info_embed = _helpers.get_summary_embed(leaderboard)
         await ctx.send(content=f"{header}\n\n{table}", embed=info_embed)
         return
 
