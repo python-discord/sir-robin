@@ -56,6 +56,16 @@ COUNTDOWN_STEP = 60 * 5
 # for each star to compute the rank score.
 StarResult = collections.namedtuple("StarResult", "member_id completion_time")
 
+# In 2025, AOC was changed to be held from Dec 1 to 12, with 12 days rather than 25.
+# This implementation is done in such a way that any arbitary number of days can be supported.
+def days_in_year(year:int | None = None) -> int:
+    """Return the number of days in the current Advent of Code year."""
+    if year is None:
+        year = AdventOfCode.year
+    return 25 if year < 2025 else 12
+
+DAYS_THIS_YEAR = days_in_year()
+
 
 class UnexpectedRedirect(aiohttp.ClientError):
     """Raised when an unexpected redirect was detected."""
@@ -427,13 +437,15 @@ async def get_public_join_code(author: discord.Member) -> str | None:
 
 def is_in_advent() -> bool:
     """
-    Check if we're currently on an Advent of Code day, excluding 25 December.
+    Check if we're currently on an Advent of Code day, excluding the final day of AOC for that year.
 
     This helper function is used to check whether or not a feature that prepares
     something for the next Advent of Code challenge should run. As the puzzle
-    published on the 25th is the last puzzle, this check excludes that date.
+    published on the final day is the last puzzle, this check excludes that date.
     """
-    return arrow.now(EST).day in range(1, 25) and arrow.now(EST).month == 12
+    # Advent of Code always begins on December 1st, and runs for one month
+    now = arrow.now(EST)
+    return now.month == 12 and now.day in range(1, DAYS_THIS_YEAR)
 
 
 def time_left_to_est_midnight() -> tuple[datetime.datetime, datetime.timedelta]:
@@ -471,7 +483,7 @@ async def countdown_status(bot: SirRobin) -> None:
     # sleeping for the entire year, it will only wait in the currently
     # configured year. This means that the task will only start hibernating once
     # we start preparing the next event by changing environment variables.
-    last_challenge = arrow.get(datetime.datetime(AdventOfCode.year, 12, 25, tzinfo=datetime.UTC), EST)
+    last_challenge = arrow.get(datetime.datetime(AdventOfCode.year, 12, DAYS_THIS_YEAR, tzinfo=datetime.UTC), EST)
     end = last_challenge + datetime.timedelta(hours=1)
 
     while arrow.now(EST) < end:
@@ -516,9 +528,8 @@ async def new_puzzle_notification(bot: SirRobin) -> None:
         log.error("Could not find the AoC role to announce the daily puzzle")
         return
 
-    # The last event day is 25 December, so we only have to schedule
-    # a reminder if the current day is before 25 December.
-    end = arrow.get(datetime.datetime(AdventOfCode.year, 12, 25, tzinfo=datetime.UTC), EST)
+    # Only schedule a reminder if the current day is before the final day December.
+    end = arrow.get(datetime.datetime(AdventOfCode.year, 12, DAYS_THIS_YEAR, tzinfo=datetime.UTC), EST)
     while arrow.now(EST) < end:
         log.trace("Started puzzle notification loop.")
         tomorrow, time_left = time_left_to_est_midnight()

@@ -15,6 +15,7 @@ from bot.utils.time import time_until
 
 log = logging.get_logger(__name__)
 
+# TODO: Add support for different years in accordance with AOC changes
 AOC_URL = "https://adventofcode.com/{year}/day/{day}"
 LAST_DAY = 25
 FIRST_YEAR = 2015
