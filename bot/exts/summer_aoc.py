@@ -11,13 +11,13 @@ from pydis_core.utils import logging
 
 from bot.bot import SirRobin
 from bot.constants import Bot, Channels, Roles
+from bot.exts.advent_of_code._helpers import days_in_year
 from bot.utils.time import time_until
 
 log = logging.get_logger(__name__)
 
 # TODO: Add support for different years in accordance with AOC changes
 AOC_URL = "https://adventofcode.com/{year}/day/{day}"
-LAST_DAY = 25
 FIRST_YEAR = 2015
 LAST_YEAR = arrow.get().year - 1
 PUBLIC_NAME = "Revival of Code"
@@ -64,8 +64,9 @@ class SummerAoC(commands.Cog):
         self.wait_task: asyncio.Task | None = None
         self.loop_task: tasks.Loop | None = None
 
-        self.is_running = False
+        self.is_running: bool = False
         self.year: int | None = None
+        self.days_this_year: int | None = None
         self.current_day: int | None = None
         self.day_interval: int | None = None
         self.post_time = 0
@@ -146,6 +147,7 @@ class SummerAoC(commands.Cog):
 
         self.is_running = True
         self.year = year
+        self.days_this_year = days_in_year(year)
         self.current_day = 1
         self.day_interval = day_interval
         self.post_time = post_time
@@ -175,8 +177,8 @@ class SummerAoC(commands.Cog):
             await ctx.send(embed=embed)
             return
 
-        if not 1 <= day <= LAST_DAY:
-            raise commands.BadArgument(f"Start day must be between 1 and {LAST_DAY}, inclusive")
+        if not 1 <= day <= self.days_this_year:
+            raise commands.BadArgument(f"Start day must be between 1 and {self.days_this_year}, inclusive")
 
         log.info(f"Setting the current day of Summer AoC to {day}")
         await self.stop_event()
@@ -188,7 +190,7 @@ class SummerAoC(commands.Cog):
 
         embed = self.get_info_embed()
         if now:
-            if self.current_day > LAST_DAY:
+            if self.current_day > self.days_this_year:
                 title = "Puzzle posted and event is now ending"
             else:
                 title = "Puzzle posted and event is now running"
@@ -198,7 +200,7 @@ class SummerAoC(commands.Cog):
         embed.title = title
         embed.color = discord.Color.green()
         await ctx.send(embed=embed)
-        if self.current_day <= LAST_DAY:
+        if self.current_day <= self.days_this_year:
             await self.start_event()
 
     @summer_aoc_group.command(name="stop")
@@ -291,7 +293,7 @@ class SummerAoC(commands.Cog):
 
     async def post_puzzle(self) -> None:
         """Create a thread for the current day's puzzle."""
-        if self.current_day > LAST_DAY:
+        if self.current_day > self.days_this_year:
             log.error("Attempted to post puzzle after last day, stopping event")
             await self.stop_event()
             return
@@ -307,7 +309,7 @@ class SummerAoC(commands.Cog):
 
         self.current_day += 1
         await self.save_event_state()
-        if self.current_day > LAST_DAY:
+        if self.current_day > self.days_this_year:
             await self.stop_event()
 
     def get_info_embed(self) -> discord.Embed:
@@ -327,7 +329,7 @@ class SummerAoC(commands.Cog):
 
     def get_puzzle_embed(self) -> discord.Embed:
         """Generate an embed for the day's puzzle post."""
-        if self.current_day == LAST_DAY:
+        if self.current_day == self.days_this_year:
             next_puzzle_text = LAST_PUZZLE_TEXT.format(timestamp=int(arrow.get(REAL_AOC_START).timestamp()))
         else:
             next_puzzle_text = NEXT_PUZZLE_TEXT.format(
