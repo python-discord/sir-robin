@@ -477,7 +477,7 @@ async def countdown_status(bot: SirRobin) -> None:
     while arrow.now(EST) < end:
         _, time_left = time_left_to_est_midnight()
 
-        aligned_seconds = int(math.ceil(time_left.seconds / COUNTDOWN_STEP)) * COUNTDOWN_STEP
+        aligned_seconds = math.ceil(time_left.seconds / COUNTDOWN_STEP) * COUNTDOWN_STEP
         hours, minutes = aligned_seconds // 3600, aligned_seconds // 60 % 60
 
         if aligned_seconds == 0:

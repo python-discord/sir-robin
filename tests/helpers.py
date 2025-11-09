@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import collections
 import itertools
 import logging
@@ -143,6 +141,46 @@ guild_data = {
 }
 guild_instance = discord.Guild(data=guild_data, state=unittest.mock.MagicMock())
 
+# Create a Role instance to get a realistic Mock of `discord.Role`
+role_data = {"name": "role", "id": 1}
+role_instance = discord.Role(guild=guild_instance, state=unittest.mock.MagicMock(), data=role_data)
+
+class MockRole(CustomMockMixin, unittest.mock.Mock, ColourMixin, HashableMixin):
+    """
+    A Mock subclass to mock `discord.Role` objects.
+
+    Instances of this class will follow the specifications of `discord.Role` instances. For more
+    information, see the `MockGuild` docstring.
+    """
+    spec_set = role_instance
+
+    def __init__(self, **kwargs) -> None:
+        default_kwargs = {
+            "id": next(self.discord_id),
+            "name": "role",
+            "position": 1,
+            "colour": discord.Colour(0xdeadbf),
+            "permissions": discord.Permissions(),
+        }
+        super().__init__(**collections.ChainMap(kwargs, default_kwargs))
+
+        if isinstance(self.colour, int):
+            self.colour = discord.Colour(self.colour)
+
+        if isinstance(self.permissions, int):
+            self.permissions = discord.Permissions(self.permissions)
+
+        if "mention" not in kwargs:
+            self.mention = f"&{self.name}"
+
+    def __lt__(self, other):
+        """Simplified position-based comparisons similar to those of `discord.Role`."""
+        return self.position < other.position
+
+    def __ge__(self, other):
+        """Simplified position-based comparisons similar to those of `discord.Role`."""
+        return self.position >= other.position
+
 
 class MockGuild(CustomMockMixin, unittest.mock.Mock, HashableMixin):
     """
@@ -186,48 +224,6 @@ class MockGuild(CustomMockMixin, unittest.mock.Mock, HashableMixin):
     def roles(self) -> list[MockRole]:
         """Cached roles property."""
         return [MockRole(name="@everyone", position=1, id=0)]
-
-
-# Create a Role instance to get a realistic Mock of `discord.Role`
-role_data = {"name": "role", "id": 1}
-role_instance = discord.Role(guild=guild_instance, state=unittest.mock.MagicMock(), data=role_data)
-
-
-class MockRole(CustomMockMixin, unittest.mock.Mock, ColourMixin, HashableMixin):
-    """
-    A Mock subclass to mock `discord.Role` objects.
-
-    Instances of this class will follow the specifications of `discord.Role` instances. For more
-    information, see the `MockGuild` docstring.
-    """
-    spec_set = role_instance
-
-    def __init__(self, **kwargs) -> None:
-        default_kwargs = {
-            "id": next(self.discord_id),
-            "name": "role",
-            "position": 1,
-            "colour": discord.Colour(0xdeadbf),
-            "permissions": discord.Permissions(),
-        }
-        super().__init__(**collections.ChainMap(kwargs, default_kwargs))
-
-        if isinstance(self.colour, int):
-            self.colour = discord.Colour(self.colour)
-
-        if isinstance(self.permissions, int):
-            self.permissions = discord.Permissions(self.permissions)
-
-        if "mention" not in kwargs:
-            self.mention = f"&{self.name}"
-
-    def __lt__(self, other):
-        """Simplified position-based comparisons similar to those of `discord.Role`."""
-        return self.position < other.position
-
-    def __ge__(self, other):
-        """Simplified position-based comparisons similar to those of `discord.Role`."""
-        return self.position >= other.position
 
 
 # Create a Member instance to get a realistic Mock of `discord.Member`

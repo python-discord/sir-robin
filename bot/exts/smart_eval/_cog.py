@@ -64,7 +64,7 @@ class SmartEval(commands.Cog):
     async def donations(self, ctx: commands.Context) -> None:
         """Display the number of donations recieved so far."""
         total_donations = await self.total_donations()
-        response_time, intelligence_level = await self.get_gpu_capabilities()
+        _response_time, intelligence_level = await self.get_gpu_capabilities()
         msg = (
             f"Currently, I have received {total_donations} GPU donations, "
             f"and am at intelligence level {intelligence_level}! "
@@ -138,7 +138,7 @@ class SmartEval(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.user)
     async def smart_eval(self, ctx: commands.Context, *, code: str) -> None:
         """Evaluate your Python code with PyDis's newest chatbot."""
-        response_time, intelligence_level = await self.get_gpu_capabilities()
+        response_time, _intelligence_level = await self.get_gpu_capabilities()
 
         if match := FORMATTED_CODE_REGEX.match(code):
             code = match.group("code")
