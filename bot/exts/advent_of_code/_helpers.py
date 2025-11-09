@@ -58,14 +58,14 @@ StarResult = collections.namedtuple("StarResult", "member_id completion_time")
 
 # In 2025, AOC was changed to be held from Dec 1 to 12, with 12 days rather than 25.
 # This implementation is done in such a way that any arbitary number of days can be supported.
-def days_in_year(year:int | None = None) -> int:
+def days_in_year(year: int | None = None) -> int:
     """Return the number of days in the current Advent of Code year."""
     if year is None:
         year = AdventOfCode.year
     return 25 if year < 2025 else 12
 
 DAYS_THIS_YEAR = days_in_year()
-STARS_THIS_YEAR = DAYS_THIS_YEAR
+STARS_THIS_YEAR = DAYS_THIS_YEAR * 2
 
 class UnexpectedRedirect(aiohttp.ClientError):
     """Raised when an unexpected redirect was detected."""
