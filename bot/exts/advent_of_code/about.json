@@ -15,13 +15,13 @@
         "inline": true
     },
     {
-        "name": "How does scoring work?",
-        "value": "For the [global leaderboard](https://adventofcode.com/leaderboard), the first person to get a star first gets 100 points, the second person gets 99 points, and so on down to 1 point at 100th place.\n\nFor private leaderboards, the first person to get a star gets N points, where N is the number of people on the leaderboard. The second person to get the star gets N-1 points and so on and so forth.",
+        "name": "Is it a competition?",
+        "value": "In prior years, AoC had a global leaderboard which ranked all participants. Beginning in 2025, the only leaderboards available are private leaderboards. In these private leaderboards, the first person to get a star gets N points, where N is the number of people on the leaderboard. The second person to get the star gets N-1 points and so on and so forth.",
         "inline": false
     },
     {
-        "name": "Join our private leaderboard!",
-        "value": "Come join the Python Discord private leaderboard and compete against other people in the community! Get the join code using `.aoc join` and visit the [private leaderboard page](https://adventofcode.com/leaderboard/private) to join our leaderboard.",
+        "name": "Join our leaderboard!",
+        "value": "Come join the Python Discord leaderboard and compete against other people in the community! Get the join code using </aoc join:1312458389388787853> and visit the [leaderboard page](https://adventofcode.com/leaderboard/private) to join our leaderboard.",
         "inline": false
     }
 ]
