@@ -158,7 +158,7 @@ def _parse_raw_leaderboard_data(raw_leaderboard_data: dict) -> dict:
 
     # Create summary stats for the stars completed for each day of the event.
     daily_stats = {}
-    for day in range(1, 26):
+    for day in range(1, DAYS_THIS_YEAR + 1):
         day = str(day)
         star_one = len(star_results.get((day, "1"), []))
         star_two = len(star_results.get((day, "2"), []))
