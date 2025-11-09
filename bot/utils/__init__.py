@@ -1,5 +1,4 @@
 import asyncio
-import contextlib
 import re
 import string
 from collections.abc import Iterable
@@ -153,25 +152,3 @@ def replace_many(
         return replacement.lower()
 
     return regex.sub(_repl, sentence)
-
-
-@contextlib.asynccontextmanager
-async def unlocked_role(role: discord.Role, delay: int = 5) -> None:
-    """
-    Create a context in which `role` is unlocked, relocking it automatically after use.
-
-    A configurable `delay` is added before yielding the context and directly after exiting the
-    context to allow the role settings change to properly propagate at Discord's end. This
-    prevents things like role mentions from failing because of synchronization issues.
-
-    Usage:
-    >>> async with unlocked_role(role, delay=5):
-    ...     await ctx.send(f"Hey {role.mention}, free pings for everyone!")
-    """
-    await role.edit(mentionable=True)
-    await asyncio.sleep(delay)
-    try:
-        yield
-    finally:
-        await asyncio.sleep(delay)
-        await role.edit(mentionable=False)

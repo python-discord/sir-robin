@@ -284,7 +284,8 @@ class PydisGames(commands.Cog):
 
         adjective: str = random.choice(TEAM_ADJECTIVES[team_with_fewest_members])
         await ctx.reply(
-            f"You seem to be extremely {adjective}. You shall be assigned to... {role_with_fewest_members.mention}!"
+            f"You seem to be extremely {adjective}. You shall be assigned to... {role_with_fewest_members.mention}!",
+            allowed_mentions=discord.AllowedMentions(roles=False, replied_user=True),
         )
 
     @games_command_group.command(aliases=("score", "points", "leaderboard", "lb"))

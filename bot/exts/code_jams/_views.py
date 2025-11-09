@@ -66,7 +66,8 @@ class JamTeamInfoConfirmation(discord.ui.View):
         await announcements.send(
             f"<@&{Roles.code_jam_participants}> ! You have been sorted into a team!"
             " Click the button below to get a detailed description!",
-            view=JamTeamInfoView(self.bot)
+            view=JamTeamInfoView(self.bot),
+            allowed_mentions=discord.AllowedMentions(roles=[discord.Object(id=Roles.code_jam_participants)])
         )
 
         teams = await self.bot.code_jam_mgmt_api.get(

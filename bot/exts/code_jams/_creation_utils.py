@@ -179,7 +179,10 @@ async def _send_status_update(guild: discord.Guild, message: str) -> None:
     """Inform the events lead with a status update when the command is ran."""
     channel: discord.TextChannel = guild.get_channel(Channels.code_jam_planning)
 
-    await channel.send(f"<@&{Roles.events_lead}>\n\n{message}")
+    await channel.send(
+        f"<@&{Roles.events_lead}>\n\n{message}",
+        allowed_mentions=discord.AllowedMentions(roles=[discord.Object(Roles.events_lead)]),
+    )
 
 
 async def _add_team_leader_roles(members: list[dict[str: discord.Member, str: bool]],
