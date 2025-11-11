@@ -42,7 +42,7 @@ REQUIRED_CACHE_KEYS = (
 
 AOC_EMBED_THUMBNAIL = (
     "https://raw.githubusercontent.com/python-discord"
-    "/branding/main/seasonal/christmas/server_icons/festive_256.gif"
+    "/branding/main/events/christmas/server_icons/festive_256.gif"
 )
 
 # Create an easy constant for the EST timezone
@@ -188,7 +188,7 @@ def _format_leaderboard(leaderboard: dict[str, dict], self_placement_name: str |
         raise commands.BadArgument(
             "Sorry, your profile does not exist in this leaderboard."
             "\n\n"
-            "To join our leaderboard, run the command `/aoc join`."
+            "To join our leaderboard, run the command </aoc join:1312458389388787853>."
             " If you've joined recently, please wait up to 30 minutes for our leaderboard to refresh."
         )
     return "\n".join(leaderboard_lines)
