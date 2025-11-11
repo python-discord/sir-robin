@@ -398,7 +398,7 @@ class AdventOfCode(commands.Cog):
         number_of_participants = leaderboard["number_of_participants"]
 
         top_count = min(AocConfig.leaderboard_displayed_members, number_of_participants)
-        self_placement_header = " (and your personal stats compared to the top 10)" if aoc_name else ""
+        self_placement_header = f" (and your personal stats compared to the top {top_count})" if aoc_name else ""
         header = f"Here's our current top {top_count}{self_placement_header}! {Emojis.christmas_tree * 3}"
         table = (
             "```\n"
