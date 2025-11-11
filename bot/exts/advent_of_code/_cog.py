@@ -82,7 +82,7 @@ class AdventOfCode(commands.Cog):
     @tasks.loop(minutes=10.0)
     async def completionist_task(self) -> None:
         """
-        Give members who have completed all 50 AoC stars the completionist role.
+        Give members who have completed all AoC stars for this year the completionist role.
 
         Runs on a schedule, as defined in the task.loop decorator.
         """
@@ -107,8 +107,8 @@ class AdventOfCode(commands.Cog):
         placement_leaderboard = json.loads(leaderboard["placement_leaderboard"])
 
         for member_aoc_info in placement_leaderboard.values():
-            if member_aoc_info["stars"] != 50:
-                # Only give the role to people who have completed all 50 stars
+            if member_aoc_info["stars"] < _helpers.STARS_THIS_YEAR:
+                # Only give the role to people who have completed all stars for this year
                 continue
 
             aoc_name = member_aoc_info["name"] or f"Anonymous #{member_aoc_info['id']}"

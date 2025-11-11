@@ -2,6 +2,8 @@ from datetime import UTC, datetime
 
 import discord
 
+from bot.exts.advent_of_code._helpers import DAYS_THIS_YEAR
+
 AOC_DAY_AND_STAR_TEMPLATE = "{rank: >4} | {name:25.25} | {completion_time: >10}"
 
 
@@ -52,7 +54,7 @@ class AoCDropdownView(discord.ui.View):
 
     @discord.ui.select(
         placeholder="Day",
-        options=[discord.SelectOption(label=str(i)) for i in range(1, 26)],
+        options=[discord.SelectOption(label=str(i)) for i in range(1, DAYS_THIS_YEAR + 1)],
         custom_id="day_select",
     )
     async def day_select(self, interaction: discord.Interaction, select: discord.ui.Select) -> None:
