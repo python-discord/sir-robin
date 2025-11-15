@@ -407,8 +407,8 @@ class AdventOfCode(commands.Cog):
                 return
 
         number_of_participants = leaderboard["number_of_participants"]
-
         top_count = min(AocConfig.leaderboard_displayed_members, number_of_participants)
+
         header = ""
         if name_not_found:
             header += (
@@ -416,12 +416,15 @@ class AdventOfCode(commands.Cog):
                 " Showing top leaderboard only. "
                 "Wait up to 30 minutes after joining the leaderboard for your stats to appear.\n\n"
             )
+
         header += f"Here's our current top {top_count}"
+
         if aoc_name:
             header += (
                 f" (and {'the requested user (\U0001f536)' if is_explict_name else 'your'}"
                 " personal stats compared to the top 10)"
             )
+
         header += f"! {Emojis.christmas_tree * 3}"
         table = (
             f"```\n{leaderboard['placement_leaderboard'] if aoc_name else leaderboard['top_leaderboard']} \n```"
