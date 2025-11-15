@@ -385,11 +385,11 @@ class AdventOfCode(commands.Cog):
             aoc_name = aoc_name[1:-1]
 
         # Check if an advent of code account is linked in the Redis Cache if aoc_name is not given
-        is_explict_name: bool = bool(aoc_name)
+        is_explict_name = bool(aoc_name)
         if (aoc_cache_name := await _caches.account_links.get(ctx.author.id)) and aoc_name is None:
             aoc_name = aoc_cache_name
 
-        name_not_found: bool = False
+        name_not_found = False
         async with ctx.typing():
             try:
                 try:
@@ -407,8 +407,8 @@ class AdventOfCode(commands.Cog):
                 return
 
         number_of_participants = leaderboard["number_of_participants"]
-
         top_count = min(AocConfig.leaderboard_displayed_members, number_of_participants)
+
         header = ""
         if name_not_found:
             header += (
@@ -416,12 +416,15 @@ class AdventOfCode(commands.Cog):
                 " Showing top leaderboard only. "
                 "Wait up to 30 minutes after joining the leaderboard for your stats to appear.\n\n"
             )
+
         header += f"Here's our current top {top_count}"
+
         if aoc_name:
             header += (
                 f" (and {f"the requested user ({Emojis.orange_diamond})" if is_explict_name else 'your'}"
                 f" personal stats compared to the top {top_count})"
             )
+
         header += f"! {Emojis.christmas_tree * 3}"
         table = (
             f"```\n{leaderboard['placement_leaderboard'] if aoc_name else leaderboard['top_leaderboard']} \n```"
