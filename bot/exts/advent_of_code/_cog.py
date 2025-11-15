@@ -385,7 +385,7 @@ class AdventOfCode(commands.Cog):
             aoc_name = aoc_name[1:-1]
 
         # Check if an advent of code account is linked in the Redis Cache if aoc_name is not given
-        is_explict_name: bool = bool(aoc_name)
+        is_explict_name = bool(aoc_name)
         if (aoc_cache_name := await _caches.account_links.get(ctx.author.id)) and aoc_name is None:
             aoc_name = aoc_cache_name
 

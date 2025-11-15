@@ -174,7 +174,7 @@ def _format_leaderboard(
     for rank, data in enumerate(leaderboard.values(), start=1):
         if self_placement_name and data["name"].lower() == self_placement_name.lower():
             if use_you_for_placement:
-                name = f"(You) {data['name']}"
+                name = f"(You) {data["name"]}"
             else:
                 name = f"(\U0001f536) {data['name']}"
             leaderboard_lines.insert(
