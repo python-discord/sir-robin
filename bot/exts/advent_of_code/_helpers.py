@@ -9,7 +9,6 @@ from typing import Any
 import aiohttp
 import arrow
 import discord
-from discord.ext import commands
 from pydis_core.utils import logging, paste_service
 
 import bot
@@ -67,6 +66,10 @@ class UnexpectedResponseStatus(aiohttp.ClientError):
 
 class FetchingLeaderboardFailedError(Exception):
     """Raised when one or more leaderboards could not be fetched at all."""
+
+
+class UserNotInLeaderboardError(Exception):
+    """Raised when a user is not found in the requested leaderboard."""
 
 
 def leaderboard_sorting_function(entry: tuple[str, dict]) -> tuple[int, int]:
@@ -159,20 +162,29 @@ def _parse_raw_leaderboard_data(raw_leaderboard_data: dict) -> dict:
     return {"daily_stats": daily_stats, "leaderboard": sorted_leaderboard, "per_day_and_star": per_day_star_stats}
 
 
-def _format_leaderboard(leaderboard: dict[str, dict], self_placement_name: str | None = None) -> str:
+def _format_leaderboard(
+    leaderboard: dict[str, dict],
+    self_placement_name: str | None = None,
+    *,
+    use_you_for_placement: bool = True,
+) -> str:
     """Format the leaderboard using the AOC_TABLE_TEMPLATE."""
     leaderboard_lines = [HEADER]
     self_placement_exists = False
     for rank, data in enumerate(leaderboard.values(), start=1):
         if self_placement_name and data["name"].lower() == self_placement_name.lower():
+            if use_you_for_placement:
+                name = f"(You) {data["name"]}"
+            else:
+                name = f"(\U0001f536) {data['name']}"
             leaderboard_lines.insert(
                 1,
                 AOC_TABLE_TEMPLATE.format(
                     rank=rank,
-                    name=f"(You) {data['name']}",
+                    name=name,
                     score=str(data["score"]),
-                    stars=f"({data['star_1']}, {data['star_2']})"
-                )
+                    stars=f"({data['star_1']}, {data['star_2']})",
+                ),
             )
             self_placement_exists = True
             continue
@@ -185,12 +197,7 @@ def _format_leaderboard(leaderboard: dict[str, dict], self_placement_name: str |
             )
         )
     if self_placement_name and not self_placement_exists:
-        raise commands.BadArgument(
-            "Sorry, your profile does not exist in this leaderboard."
-            "\n\n"
-            "To join our leaderboard, run the command `/aoc join`."
-            " If you've joined recently, please wait up to 30 minutes for our leaderboard to refresh."
-        )
+        raise UserNotInLeaderboardError
     return "\n".join(leaderboard_lines)
 
 
@@ -285,7 +292,12 @@ def _get_top_leaderboard(full_leaderboard: str) -> str:
 
 
 @_caches.leaderboard_cache.atomic_transaction
-async def fetch_leaderboard(invalidate_cache: bool = False, self_placement_name: str | None = None) -> dict:
+async def fetch_leaderboard(
+    invalidate_cache: bool = False,
+    self_placement_name: str | None = None,
+    *,
+    use_you_for_placement: bool = True,
+) -> dict:
     """
     Get the current Python Discord combined leaderboard.
 
@@ -337,7 +349,11 @@ async def fetch_leaderboard(invalidate_cache: bool = False, self_placement_name:
             json.loads(cached_leaderboard["placement_leaderboard"])
         )["leaderboard"]
         cached_leaderboard["placement_leaderboard"] = _get_top_leaderboard(
-            _format_leaderboard(formatted_placement_leaderboard, self_placement_name=self_placement_name)
+            _format_leaderboard(
+                formatted_placement_leaderboard,
+                self_placement_name=self_placement_name,
+                use_you_for_placement=use_you_for_placement,
+            )
         )
     return cached_leaderboard
 
