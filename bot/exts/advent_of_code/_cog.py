@@ -389,7 +389,7 @@ class AdventOfCode(commands.Cog):
         if (aoc_cache_name := await _caches.account_links.get(ctx.author.id)) and aoc_name is None:
             aoc_name = aoc_cache_name
 
-        name_not_found: bool = False
+        name_not_found = False
         async with ctx.typing():
             try:
                 try:
