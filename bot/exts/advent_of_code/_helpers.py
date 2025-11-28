@@ -90,6 +90,14 @@ def leaderboard_sorting_function(entry: tuple[str, dict]) -> tuple[int, int]:
     return result["score"], result["star_2"] + result["star_1"]
 
 
+def _get_user_placement(user_name: str, leaderboard: dict[int, dict]) -> int | None:
+    """Get the placement of a specific user in the leaderboard."""
+    for rank, data in enumerate(leaderboard.values(), start=1):
+        if data["name"] == user_name:
+            return rank
+    return None
+
+
 def _parse_raw_leaderboard_data(raw_leaderboard_data: dict) -> dict:
     """
     Parse the leaderboard data received from the AoC website.
@@ -170,22 +178,29 @@ def _parse_raw_leaderboard_data(raw_leaderboard_data: dict) -> dict:
 
 
 def _format_leaderboard(leaderboard: dict[str, dict], self_placement_name: str | None = None) -> str:
-    """Format the leaderboard using the AOC_TABLE_TEMPLATE."""
+    """
+    Format the leaderboard using the AOC_TABLE_TEMPLATE.
+
+    If the rank of self_placement_name is within AdventOfCode.leader_displayed_members, it is placed
+    in the correct position; otherwise, it is placed just below the header.
+    """
     leaderboard_lines = [HEADER]
     self_placement_exists = False
     for rank, data in enumerate(leaderboard.values(), start=1):
         if self_placement_name and data["name"].lower() == self_placement_name.lower():
             leaderboard_lines.insert(
-                1,
+                # Plus one to account for the user being one rank outside of the shown users
+                rank if rank <= AdventOfCode.leaderboard_displayed_members + 1 else 1,
                 AOC_TABLE_TEMPLATE.format(
                     rank=rank,
                     name=f"(You) {data['name']}",
                     score=str(data["score"]),
-                    stars=f"({data['star_1']}, {data['star_2']})"
-                )
+                    stars=f"({data['star_1']}, {data['star_2']})",
+                ),
             )
             self_placement_exists = True
             continue
+
         leaderboard_lines.append(
             AOC_TABLE_TEMPLATE.format(
                 rank=rank,
@@ -289,9 +304,16 @@ async def _upload_leaderboard(leaderboard: str) -> str:
     return paste.link
 
 
-def _get_top_leaderboard(full_leaderboard: str) -> str:
-    """Get the leaderboard up to the maximum specified entries."""
-    return "\n".join(full_leaderboard.splitlines()[:TOP_LEADERBOARD_LINES])
+def _get_top_leaderboard(full_leaderboard: str, *, include_self: bool = False) -> str:
+    """
+    Get the leaderboard up to the maximum specified entries.
+
+    Include_self specifies whether to include an extra line for the user's placement.
+    If the user is within the top entries, include_self should be False to avoid an additional entry.
+    """
+    return "\n".join(
+        full_leaderboard.splitlines()[: TOP_LEADERBOARD_LINES + (1 if include_self else 0)]
+    )  # +1 if including self placement
 
 
 @_caches.leaderboard_cache.atomic_transaction
@@ -346,8 +368,14 @@ async def fetch_leaderboard(invalidate_cache: bool = False, self_placement_name:
         formatted_placement_leaderboard = _parse_raw_leaderboard_data(
             json.loads(cached_leaderboard["placement_leaderboard"])
         )["leaderboard"]
+        full_formatted_leaderboard = _format_leaderboard(
+            formatted_placement_leaderboard, self_placement_name=self_placement_name
+        )
+        user_placement = _get_user_placement(self_placement_name, formatted_placement_leaderboard)
+        include_self = bool(user_placement and user_placement > AdventOfCode.leaderboard_displayed_members)
         cached_leaderboard["placement_leaderboard"] = _get_top_leaderboard(
-            _format_leaderboard(formatted_placement_leaderboard, self_placement_name=self_placement_name)
+            full_formatted_leaderboard,
+            include_self=include_self
         )
     return cached_leaderboard
 
