@@ -50,10 +50,10 @@ class AdventOfCode(commands.Cog):
         self.bot = bot
 
         self._base_url = f"https://adventofcode.com/{AocConfig.year}"
-        self.global_leaderboard_url = f"https://adventofcode.com/{AocConfig.year}/leaderboard"
 
         self.about_aoc_filepath = Path("./bot/exts/advent_of_code/about.json")
         self.cached_about_aoc = self._build_about_embed()
+        self.cached_no_global = self._build_no_global_leaderboard_embed()
 
         self.scheduler = scheduling.Scheduler(self.__class__.__name__)
 
@@ -434,22 +434,15 @@ class AdventOfCode(commands.Cog):
         await ctx.send(content=f"{header}\n\n{table}", embed=info_embed)
         return
 
-    @in_month(Month.DECEMBER, Month.JANUARY, Month.FEBRUARY)
     @adventofcode_group.command(
         name="global",
         aliases=("globalboard", "gb"),
-        brief="Get a link to the global leaderboard",
+        hidden=True, # Global leaderboard no longer exists
     )
     @in_whitelist(channels=AOC_WHITELIST_RESTRICTED, redirect=AOC_REDIRECT)
     async def aoc_global_leaderboard(self, ctx: commands.Context) -> None:
-        """Get a link to the global Advent of Code leaderboard."""
-        url = self.global_leaderboard_url
-        global_leaderboard = discord.Embed(
-            title="Advent of Code — Global Leaderboard",
-            description=f"You can find the global leaderboard [here]({url})."
-        )
-        global_leaderboard.set_thumbnail(url=_helpers.AOC_EMBED_THUMBNAIL)
-        await ctx.send(embed=global_leaderboard)
+        """Send an embed notifying about the changes to the global leaderboard."""
+        await ctx.send(embed=self.cached_no_global)
 
     @in_month(Month.DECEMBER, Month.JANUARY, Month.FEBRUARY)
     @adventofcode_group.command(
@@ -511,7 +504,6 @@ class AdventOfCode(commands.Cog):
             title=self._base_url,
             colour=Colours.soft_green,
             url=self._base_url,
-            timestamp=datetime.now(tz=UTC)
         )
         about_embed.set_author(name="Advent of Code", url=self._base_url)
         for field in embed_fields:
@@ -519,3 +511,20 @@ class AdventOfCode(commands.Cog):
 
         about_embed.set_footer(text="Last Updated")
         return about_embed
+
+    @staticmethod
+    def _build_no_global_leaderboard_embed() -> discord.Embed:
+        """Build and return an embed notifying about the changes to the global leaderboard."""
+        faq_link = "https://adventofcode.com/2025/about#faq_leaderboard"
+        description = (
+            f"To read about this change, head over to the [AoC FAQ]({faq_link}).\n\n"
+            "You can still access the global leaderboards of previous years by heading over to "
+            "https://adventofcode.com/events, choosing the desired year, and heading over to "
+            "the `[Leaderboards]` tab."
+        )
+
+        return discord.Embed(
+            title="The global leaderboard is no more",
+            description=description,
+            colour=Colours.soft_red,
+        )
