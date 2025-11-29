@@ -15,8 +15,8 @@
         "inline": true
     },
     {
-        "name": "Is it a competition?",
-        "value": "In prior years, AoC had a global leaderboard which ranked all participants. Beginning in 2025, the only leaderboards available are private leaderboards. In these private leaderboards, the first person to get a star gets N points, where N is the number of people on the leaderboard. The second person to get the star gets N-1 points and so on and so forth.",
+        "name": "How does scoring work?",
+        "value": "AoC has private leaderboards. In these, the first person to get a star gets N points, where N is the number of people on the leaderboard. The second person to get the star gets N-1 points and so on and so forth. As the size of a leaderboard is limited, and Python Discord has many people who want to participate, we merge several leaderboards into one.\n\nTherefore, while you may see your standing in a specific leaderboard on the website, to get your total Python Discord standings you need to run the `&aoc lb` command.",
         "inline": false
     },
     {

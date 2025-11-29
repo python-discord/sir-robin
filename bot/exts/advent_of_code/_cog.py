@@ -1,7 +1,6 @@
 import json
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Literal
 
 import arrow
 import discord
@@ -51,15 +50,10 @@ class AdventOfCode(commands.Cog):
         self.bot = bot
 
         self._base_url = f"https://adventofcode.com/{AocConfig.year}"
-        self.global_leaderboard_url = f"https://adventofcode.com/{AocConfig.year}/leaderboard"
 
-        self.aoc_files = Path("./bot/exts/advent_of_code/")
-        self.cached_about_aoc = self._build_embed_from_json("about")
-        self.cached_changes = self._build_embed_from_json("changes_2025")
-        self.cached_no_global = self._build_embed_from_json(
-            "changes_2025", only_field="What happened to the global leaderboard?"
-        )
-        self.cached_no_global.colour = Colours.soft_red
+        self.about_aoc_filepath = Path("./bot/exts/advent_of_code/about.json")
+        self.cached_about_aoc = self._build_about_embed()
+        self.cached_no_global = self._build_no_global_leaderboard_embed()
 
         self.scheduler = scheduling.Scheduler(self.__class__.__name__)
 
@@ -440,26 +434,14 @@ class AdventOfCode(commands.Cog):
         await ctx.send(content=f"{header}\n\n{table}", embed=info_embed)
         return
 
-    @in_month(Month.DECEMBER, Month.JANUARY, Month.FEBRUARY)
-    @adventofcode_group.command(
-        name="changes",
-        brief="Frequently Asked Questions about Advent of Code changes in 2025",
-    )
-    @in_whitelist(channels=AOC_WHITELIST_RESTRICTED, redirect=AOC_REDIRECT)
-    async def aoc_changes(self, ctx: commands.Context) -> None:
-        """Get answers to frequently asked questions about Advent of Code changes in 2025."""
-        await ctx.send(embed=self.cached_changes)
-
-    @in_month(Month.DECEMBER, Month.JANUARY, Month.FEBRUARY)
     @adventofcode_group.command(
         name="global",
         aliases=("globalboard", "gb"),
         hidden=True, # Global leaderboard no longer exists
-        brief="Get a link to the global leaderboard",
     )
     @in_whitelist(channels=AOC_WHITELIST_RESTRICTED, redirect=AOC_REDIRECT)
     async def aoc_global_leaderboard(self, ctx: commands.Context) -> None:
-        # Same behaviour as aoc changes, but change the title to "where's the global leaderboard"
+        """Send an embed notifying about the changes to the global leaderboard."""
         await ctx.send(embed=self.cached_no_global)
 
     @in_month(Month.DECEMBER, Month.JANUARY, Month.FEBRUARY)
@@ -514,39 +496,35 @@ class AdventOfCode(commands.Cog):
             else:
                 await ctx.send("\N{OK Hand Sign} Refreshed leaderboard cache!")
 
-    def _build_embed_from_json(
-        self, file_type: Literal["about","changes_2025"], *, only_field: str | None = None
-    ) -> discord.Embed:
+    def _build_about_embed(self) -> discord.Embed:
         """Build and return the informational "About AoC" embed from the resources file."""
-        if file_type == "about":
-            filepath = self.aoc_files / "about.json"
-            title = "Advent of Code"
-            url = self._base_url
-            colour = Colours.soft_green
+        embed_fields = json.loads(self.about_aoc_filepath.read_text("utf8"))
 
-        elif file_type == "changes_2025":
-            filepath = self.aoc_files / "changes_2025.json"
-            title = "2025 Changes"
-            url = None
-            colour = Colours.aoc_violet
-        else:
-            raise ValueError("file_type must be either 'about' or 'changes_2025'")
+        about_embed = discord.Embed(
+            title=self._base_url,
+            colour=Colours.soft_green,
+            url=self._base_url,
+        )
+        about_embed.set_author(name="Advent of Code", url=self._base_url)
+        for field in embed_fields:
+            about_embed.add_field(**field)
 
-        embed = discord.Embed(title=title, url=url, colour=colour, timestamp=datetime.now(tz=UTC))
+        about_embed.set_footer(text="Last Updated")
+        return about_embed
 
-        embed_fields = json.loads(filepath.read_text("utf8"))
+    @staticmethod
+    def _build_no_global_leaderboard_embed() -> discord.Embed:
+        """Build and return an embed notifying about the changes to the global leaderboard."""
+        faq_link = "https://adventofcode.com/2025/about#faq_leaderboard"
+        description = (
+            f"To read about this change, head over to the [AoC FAQ]({faq_link}).\n\n"
+            "You can still access the global leaderboards of previous years by heading over to "
+            "https://adventofcode.com/events, choosing the desired year, and heading over to "
+            "the `[Leaderboards]` tab."
+        )
 
-        if only_field:
-            embed_fields = [field for field in embed_fields if field["name"] == only_field]
-            if not embed_fields:
-                raise ValueError(f"No field named '{only_field}' found in {file_type}.json")
-            embed.title = only_field
-            embed.description = embed_fields[0]["value"]
-        else:
-            for field in embed_fields:
-                embed.add_field(**field)
-
-        embed.set_author(name="Advent of Code", url=self._base_url)
-        embed.set_footer(text="Last Updated")
-
-        return embed
+        return discord.Embed(
+            title="The global leaderboard is no more",
+            description=description,
+            colour=Colours.soft_red,
+        )

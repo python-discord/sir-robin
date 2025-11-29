@@ -224,7 +224,6 @@ class Colours:
     python_yellow = 0xFFD43B
     grass_green = 0x66FF00
     gold = 0xE6C200
-    aoc_violet = 0x43439D
 
 
 # Git SHA for Sentry
