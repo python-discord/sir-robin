@@ -414,14 +414,14 @@ class AdventOfCode(commands.Cog):
             header += (
                 f"\n:x: Your linked Advent of Code account '{aoc_cache_name}' was not found in the leaderboard."
                 " Showing top leaderboard only. "
-                "Wait up to 30 minutes after joining the leaderboard for your stats to appear.\n\n"
+                "Wait up to 30 minutes after joining the leaderboard (with `/aoc join`) for your stats to appear.\n\n"
             )
 
         header += f"Here's our current top {top_count}"
 
         if aoc_name:
             header += (
-                f" (and {f"the requested user ({Emojis.orange_diamond})" if is_explict_name else 'your'}"
+                f" (and {f"the requested user's ({Emojis.orange_diamond})" if is_explict_name else 'your'}"
                 f" personal stats compared to the top {top_count})"
             )
 
