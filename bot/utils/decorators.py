@@ -152,7 +152,7 @@ def in_month(*allowed_months: Month, roles: tuple[int, ...] = ()) -> Callable:
 
         # D.py will assign this attribute when `callable_` is registered as a listener
         elif hasattr(callable_, "__cog_listener__"):
-            if roles is not None:
+            if roles:
                 raise ValueError("Role restrictions are not available for listeners.")
             log.debug(f"Listener {callable_.__qualname__} will be locked to {human_months(allowed_months)}")
             actual_deco = in_month_listener(*allowed_months)
