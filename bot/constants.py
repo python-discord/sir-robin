@@ -1,5 +1,5 @@
 import dataclasses
-import enum
+from calendar import Month
 from datetime import UTC, datetime
 from os import environ
 
@@ -107,31 +107,6 @@ class _Categories(EnvConfig, env_prefix="CATEGORY_"):
 
 
 Categories = _Categories()
-
-
-class Month(enum.IntEnum):
-    """
-    Enum lookup between Months & month numbers.
-
-    Can bre replaced with the below when upgrading to 3.12
-    https://docs.python.org/3/library/calendar.html#calendar.Month
-    """
-
-    JANUARY = 1
-    FEBRUARY = 2
-    MARCH = 3
-    APRIL = 4
-    MAY = 5
-    JUNE = 6
-    JULY = 7
-    AUGUST = 8
-    SEPTEMBER = 9
-    OCTOBER = 10
-    NOVEMBER = 11
-    DECEMBER = 12
-
-    def __str__(self) -> str:
-        return self.name.title()
 
 
 class _Bot(EnvConfig, env_prefix="BOT_"):
