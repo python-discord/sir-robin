@@ -1,4 +1,5 @@
 import json
+from calendar import Month
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -15,7 +16,6 @@ from bot.constants import (
     Channels,
     Colours,
     Emojis,
-    Month,
     Roles,
     WHITELISTED_CHANNELS,
 )
