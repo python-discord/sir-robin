@@ -3,7 +3,7 @@ import functools
 from collections.abc import Callable, Container
 
 from discord.ext import commands
-from discord.ext.commands import CheckFailure, Command, Context
+from discord.ext.commands import Command, Context, errors
 from pydis_core.utils import logging
 
 from bot.constants import Channels, Month
@@ -90,10 +90,11 @@ def in_month_command(*allowed_months: Month, roles: tuple[int, ...] = ()) -> Cal
         privileged_user = False
         allowed_months_for_user = set()
         current_month = resolve_current_month()
+        user_roles = set(r.id for r in ctx.author.roles) if ctx.author.roles else set()
+
         for checked_roles, checked_months in command.extras["month_checks"].items():
             if checked_roles:
-                uroles = ctx.author.roles
-                if not uroles or not (set(checked_roles) & set(r.id for r in uroles)):
+                if not set(checked_roles) & user_roles:
                     log.debug(f"Month check for roles {checked_roles} doesn't apply to {ctx.author}.")
                     continue
 
@@ -113,7 +114,8 @@ def in_month_command(*allowed_months: Month, roles: tuple[int, ...] = ()) -> Cal
             raise InMonthCheckFailure(f"You can run this command only in {human_months(allowed_months_for_user)}")
         if everyone_error:
             raise everyone_error
-        raise CheckFailure("You cannot run this command.")
+        # There's no general access to this command, and the user has no relevant roles.
+        raise errors.MissingAnyRole(list({r for rs in command.extras["month_checks"] for r in rs}))
 
     def decorator(func: Command) -> Command:
         if "month_checks" in func.extras:
