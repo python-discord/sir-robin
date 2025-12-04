@@ -1,6 +1,7 @@
 import json
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, time, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import arrow
 import discord
@@ -79,6 +80,9 @@ class AdventOfCode(commands.Cog):
         if await _caches.aoc_settings.get(_caches.AoCSettingOption.COMPLETIONIST_ENABLED.value):
             self.completionist_task.start()
 
+        if await _caches.aoc_settings.get(_caches.AoCSettingOption.AUTO_POSTING_ENABLED.value):
+            self.daily_posting_task.start()
+
     @tasks.loop(minutes=10.0)
     async def completionist_task(self) -> None:
         """
@@ -131,6 +135,30 @@ class AdventOfCode(commands.Cog):
                 log.debug(f"Giving completionist role to {member.name} ({member.mention}).")
                 await members.handle_role_change(member, member.add_roles, completionist_role)
 
+    @tasks.loop(time=time(0, 0, 0, tzinfo=ZoneInfo(_helpers.EST)))
+    async def daily_posting_task(self) -> None:
+        """
+        Create a spoilers post for the new puzzle posted at this time.
+
+        Runs every day at midnight EST during the event.
+        """
+        today = arrow.now(_helpers.EST).date()
+
+        if not _helpers.is_in_advent():
+            log.info("AoC daily posting is on, but it's not the AoC period. Skipping.")
+            return
+
+        guild = self.bot.get_guild(Bot.guild)
+        aoc_spoilers_channel: discord.ForumChannel = guild.get_channel(Channels.advent_of_code_spoilers)
+        if not aoc_spoilers_channel:
+            log.info("Couldn't find the AoC spoilers channel. Skipping.")
+            return
+
+        await aoc_spoilers_channel.create_thread(
+            name=f"AoC {today.year} | Day {today.day}",
+            content=f"Spoilers discussion for day {today.day} — <{_helpers.aoc_puzzle_link(today.day)}>",
+        )
+
     @commands.group(name="adventofcode", aliases=("aoc",))
     async def adventofcode_group(self, ctx: commands.Context) -> None:
         """All of the Advent of Code commands."""
@@ -140,7 +168,7 @@ class AdventOfCode(commands.Cog):
     @with_role(Roles.admins, Roles.events_lead, fail_silently=True)
     @adventofcode_group.command(
         name="completionist_toggle",
-        aliases=("ct", "toggle"),
+        aliases=("ct",),
         brief="Toggle whether or not the completionist role is issued to new users.",
     )
     async def completionist_toggle(self, ctx: commands.Context) -> None:
@@ -156,6 +184,38 @@ class AdventOfCode(commands.Cog):
 
         await _caches.aoc_settings.set(_caches.AoCSettingOption.COMPLETIONIST_ENABLED.value, new_state)
         await ctx.send(f":+1: Completionist role issuing is now {state_string}.")
+
+    @with_role(Roles.admins, Roles.events_lead, fail_silently=True)
+    @adventofcode_group.command(
+        name="posting_toggle",
+        aliases=("pt",),
+    )
+    async def daily_posting_toggle(self, ctx: commands.Context) -> None:
+        """Toggle whether a daily post is to be created every midnight EST throughout the event."""
+        current_state = await _caches.aoc_settings.get(_caches.AoCSettingOption.AUTO_POSTING_ENABLED.value)
+        new_state = not current_state
+        if new_state:
+            self.daily_posting_task.start()
+            state_string = "on"
+        else:
+            self.daily_posting_task.cancel()
+            state_string = "off"
+
+        await _caches.aoc_settings.set(_caches.AoCSettingOption.AUTO_POSTING_ENABLED.value, new_state)
+        await ctx.send(f":+1: Daily posting is now {state_string}.")
+
+    @with_role(Roles.admins, Roles.events_lead, fail_silently=True)
+    @adventofcode_group.command()
+    async def status(self, ctx: commands.Context) -> None:
+        """Show status of the AoC cog."""
+        completionist_state = await _caches.aoc_settings.get(_caches.AoCSettingOption.COMPLETIONIST_ENABLED.value)
+        daily_posting_state = await _caches.aoc_settings.get(_caches.AoCSettingOption.AUTO_POSTING_ENABLED.value)
+
+        embed = discord.Embed(title="AoC Cog Status", colour=discord.Colour.green())
+        embed.add_field(name="Completionist role", value="On" if completionist_state else "Off")
+        embed.add_field(name="Daily posting", value="On" if daily_posting_state else "Off")
+
+        await ctx.reply(embed=embed)
 
     @with_role(Roles.admins, fail_silently=True)
     @adventofcode_group.command(
