@@ -3,7 +3,7 @@ import functools
 from collections.abc import Callable, Container
 
 from discord.ext import commands
-from discord.ext.commands import Command, Context
+from discord.ext.commands import Command, Context, errors
 from pydis_core.utils import logging
 
 from bot.constants import Channels, Month
@@ -69,28 +69,66 @@ def in_month_listener(*allowed_months: Month) -> Callable:
     return decorator
 
 
-def in_month_command(*allowed_months: Month) -> Callable:
+def in_month_command(*allowed_months: Month, roles: tuple[int, ...] = ()) -> Callable:
     """
-    Check whether the command was invoked in one of `enabled_months`.
+    Check whether the command was invoked in one of `allowed_months`.
+
+    The check can be limited to certain roles.
+    To enable the supplied months for everyone, don't set a value for `roles`.
+
+    If a command is decorated several times with this, it only needs to pass one of the checks.
 
     Uses the current UTC month at the time of running the predicate.
     """
     async def predicate(ctx: Context) -> bool:
-        current_month = resolve_current_month()
-        can_run = current_month in allowed_months
-
-        log.debug(
-            f"Command '{ctx.command}' is locked to months {human_months(allowed_months)}. "
-            f"Invoking it in month {current_month!s} is {'allowed' if can_run else 'disallowed'}."
-        )
-        if can_run:
+        command = ctx.command
+        if "month_checks" not in command.extras:
+            log.debug(f"No month checks found for command {command}.")
             return True
-        raise InMonthCheckFailure(f"Command can only be used in {human_months(allowed_months)}")
 
-    return commands.check(predicate)
+        everyone_error = None
+        privileged_user = False
+        allowed_months_for_user = set()
+        current_month = resolve_current_month()
+        user_roles = set(r.id for r in ctx.author.roles) if ctx.author.roles else set()
+
+        for checked_roles, checked_months in command.extras["month_checks"].items():
+            if checked_roles:
+                if not set(checked_roles) & user_roles:
+                    log.debug(f"Month check for roles {checked_roles} doesn't apply to {ctx.author}.")
+                    continue
+
+            if current_month in checked_months:
+                log.debug(f"Month check for roles {checked_roles} passed for {ctx.author}.")
+                return True
+
+            log.debug(f"Month check for roles {checked_roles} didn't pass for {ctx.author}.")
+            if not checked_roles:
+                everyone_error = InMonthCheckFailure(f"Command can only be used in {human_months(checked_months)}")
+            else:
+                privileged_user = True
+            allowed_months_for_user |= set(checked_months)
+
+        if privileged_user:
+            allowed_months_for_user = sorted(allowed_months_for_user)
+            raise InMonthCheckFailure(f"You can run this command only in {human_months(allowed_months_for_user)}")
+        if everyone_error:
+            raise everyone_error
+        # There's no general access to this command, and the user has no relevant roles.
+        raise errors.MissingAnyRole(list({r for rs in command.extras["month_checks"] for r in rs}))
+
+    def decorator(func: Command) -> Command:
+        if "month_checks" in func.extras:
+            func.extras["month_checks"][roles] = allowed_months
+            return func
+
+        func.extras["month_checks"] = {roles: allowed_months}
+        return commands.check(predicate)(func)
+
+    return decorator
 
 
-def in_month(*allowed_months: Month) -> Callable:
+def in_month(*allowed_months: Month, roles: tuple[int, ...] = ()) -> Callable:
     """
     Universal decorator for season-locking commands and listeners alike.
 
@@ -112,10 +150,12 @@ def in_month(*allowed_months: Month) -> Callable:
         # Functions decorated as commands are turned into instances of `Command`
         if isinstance(callable_, Command):
             log.debug(f"Command {callable_.qualified_name} will be locked to {human_months(allowed_months)}")
-            actual_deco = in_month_command(*allowed_months)
+            actual_deco = in_month_command(*allowed_months, roles=roles)
 
         # D.py will assign this attribute when `callable_` is registered as a listener
         elif hasattr(callable_, "__cog_listener__"):
+            if roles:
+                raise ValueError("Role restrictions are not available for listeners.")
             log.debug(f"Listener {callable_.__qualname__} will be locked to {human_months(allowed_months)}")
             actual_deco = in_month_listener(*allowed_months)
 

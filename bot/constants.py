@@ -179,6 +179,7 @@ class _Roles(EnvConfig, env_prefix="ROLE_"):
     admins: int = 267628507062992896
     advent_of_code: int = 518565788744024082
     code_jam_event_team: int = 787816728474288181
+    core_devs: int = 587606783669829632
     events_lead: int = 778361735739998228
     event_runner: int = 940911658799333408
     summer_aoc: int = 988801794668908655
