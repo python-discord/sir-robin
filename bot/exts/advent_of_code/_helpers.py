@@ -555,6 +555,11 @@ async def countdown_status(bot: SirRobin) -> None:
         await asyncio.sleep(delay)
 
 
+def aoc_puzzle_link(day: int) -> str:
+    """Get a link to the AoC puzzle page for the given day."""
+    return f"https://adventofcode.com/{AdventOfCode.year}/day/{day}"
+
+
 async def new_puzzle_notification(bot: SirRobin) -> None:
     """Announce the release of a new Advent of Code puzzle when published."""
     log.info("The Advent of Code has started or will start soon, waking up notification task.")
@@ -584,7 +589,7 @@ async def new_puzzle_notification(bot: SirRobin) -> None:
         log.trace(f"The puzzle notification task will sleep for {sleep_seconds} seconds")
         await asyncio.sleep(sleep_seconds)
 
-        puzzle_url = f"https://adventofcode.com/{AdventOfCode.year}/day/{tomorrow.day}"
+        puzzle_url = aoc_puzzle_link(tomorrow.day)
 
         # Check if the puzzle is already available to prevent our members from spamming
         # the puzzle page before it's available by making a small HEAD request.

@@ -84,6 +84,7 @@ AdventOfCode = _AdventOfCode()
 class _Channels(EnvConfig, env_prefix="CHANNEL_"):
     advent_of_code: int = 897932085766004786
     advent_of_code_commands: int = 897932607545823342
+    advent_of_code_spoilers: int = 1047673173447020564
     bot_commands: int = 267659945086812160
     devlog: int = 622895325144940554
     code_jam_planning: int = 490217981872177157

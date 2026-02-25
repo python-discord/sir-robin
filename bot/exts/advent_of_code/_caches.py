@@ -5,6 +5,7 @@ import async_rediscache
 
 class AoCSettingOption(Enum):
     COMPLETIONIST_ENABLED = "completionist_enabled"
+    AUTO_POSTING_ENABLED = "auto_posting_enabled"
 
 
 # How many people are in each leaderboard
