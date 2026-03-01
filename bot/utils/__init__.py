@@ -1,19 +1,20 @@
 import asyncio
 import re
 import string
+from calendar import Month
 from collections.abc import Iterable
 from datetime import UTC, datetime
 
 import discord
 from discord.ext.commands import BadArgument, Context
 
-from bot.constants import Bot, Month
+from bot.constants import Bot
 from bot.utils.pagination import LinePaginator
 
 
 def human_months(months: Iterable[Month]) -> str:
     """Build a comma separated list of `months`."""
-    return ", ".join(str(m) for m in months)
+    return ", ".join(m.name.title() for m in months)
 
 
 def resolve_current_month() -> Month:

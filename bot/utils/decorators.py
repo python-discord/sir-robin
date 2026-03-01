@@ -1,12 +1,13 @@
 import asyncio
 import functools
+from calendar import Month
 from collections.abc import Callable, Container
 
 from discord.ext import commands
 from discord.ext.commands import Command, Context
 from pydis_core.utils import logging
 
-from bot.constants import Channels, Month
+from bot.constants import Channels
 from bot.utils import human_months, resolve_current_month
 from bot.utils.checks import in_whitelist_check
 from bot.utils.exceptions import InMonthCheckFailure, SilentRoleFailure
