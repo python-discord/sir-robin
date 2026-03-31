@@ -1,0 +1,19 @@
+[[rule]]
+interaction_type = "message"
+message_content = '''\b([Ss]panish [Ii]nquisition)\b'''
+points = 2
+
+[[rule]]
+interaction_type = "message"
+message_content = '''\b([Cc]heese [Ss]hop)\b'''
+points = 2
+
+[[rule]]
+interaction_type = "message"
+message_content = '''\b(Ni!)\b'''
+points = 3
+
+[[rule]]
+interaction_type = "message"
+message_content = '''\b(IDLE|Idle|Cleese|Gilliam|Jones|Chapman|Palin)\b'''
+points = 1
