@@ -1,0 +1,14 @@
+[[rule]]
+interaction_type = "message"
+message_content = '''(🟩🟩🟩🟩🟩)'''
+points = 2
+
+[[rule]]
+interaction_type = "message"
+message_content = '''(⬜⬜⬜⬜⬜)'''
+points = -1
+
+[[rule]]
+interaction_type = "message"
+message_content = '''(⬛⬛⬛⬛⬛)'''
+points = -1
