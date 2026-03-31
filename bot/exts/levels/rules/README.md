@@ -8,7 +8,7 @@ message_content = '''...'''  # this should be a valid regex that can be compiled
 points = 0  # the number of points that should be added
 ```
 
-You can have multiple triggers with different point values for each rule file. 
+You can have multiple triggers with different point values for each rule file.
 Each rule trigger is independent of each other. Any of them can trigger, they do not all have to trigger for points to be given.
 
 Notes:
