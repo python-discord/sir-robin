@@ -1,0 +1,3 @@
+interaction_type = "message"
+message_content = '''\b((?:p|P)ython)\b'''
+points = 1
