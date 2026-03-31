@@ -62,8 +62,8 @@ class Levels(commands.Cog):
         self.rules_folder_path = Path("./bot/exts/levels/rules/")
         self.active_rules_num = 3
 
-        self.active_reaction_rules = []
-        self.active_message_rules = []
+        self.active_reaction_rule_triggers = []
+        self.active_message_rule_triggers = []
     
 
     async def cog_load(self) -> None:
@@ -77,10 +77,10 @@ class Levels(commands.Cog):
             await self.levels_cache.update(init_threshold_dict)
 
         if await self.running.get("value", False):
-            await self._cycle_rules_task().start()
-            await self._calculate_point_thresholds_task().start()
-
-
+            logger.debug("Starting Rules and Point Renormalization tasks")
+            print(self._cycle_rules_task.is_running())
+            await self._cycle_rules_task.start()
+            await self._calculate_point_thresholds_task.start()
 
     async def _load_rules(self):
         """Load and parse levels rules for usage.
@@ -95,8 +95,9 @@ class Levels(commands.Cog):
 
             rule_name = toml_file.stem
             try:
-                rule = LevelRules(name=rule_name, **rule_dict)
-            except TypeError:
+                rule_triggers = [RuleTrigger(**rule_trigger) for rule_trigger in rule_dict["rule"]]
+                rule = LevelRules(rule_name, rule_triggers)
+            except (TypeError, KeyError) as e:
                 logger.info(f"{toml_file} not properly formatted, skipping.")
                 continue
 
@@ -118,8 +119,17 @@ class Levels(commands.Cog):
         self.rules_active = [self.rules_pool.pop() for _ in range(self.active_rules_num)]
         logger.debug(f"Cycled active rules to: {[rule.name for rule in self.rules_active]}")
 
-        self.active_reaction_rules = [rule for rule in self.rules_active if rule.interaction_type=="reaction"]
-        self.active_message_rules = [rule for rule in self.rules_active if rule.interaction_type=="message"]
+
+        self.active_message_rule_triggers = [
+            rule for rule in self.rules_active 
+            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type=="message"
+        ]
+        self.active_reaction_rule_triggers = [
+            rule for rule in self.rules_active 
+            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type=="reaction"
+        ]
+        # [rule for rule in self.rules_active if rule.interaction_type=="reaction"]
+        # self.active_message_rule_triggers = [rule for rule in self.rules_active if rule.interaction_type=="message"]
 
     @tasks.loop(minutes=90.0)
     async def _calculate_point_thresholds_task(self):
@@ -192,11 +202,11 @@ class Levels(commands.Cog):
         
         total_points = 0
         rule_matches = 0
-        for rule in self.active_message_rules:
-            re_pattern = rule.message_content
+        for rule_trigger in self.active_message_rule_triggers:
+            re_pattern = rule_trigger.message_content
             match = re.search(re_pattern, msg.content)
             if match:
-                total_points += rule.points
+                total_points += rule_trigger.points
                 rule_matches += 1
         
         # Only update points if they've matched any rules
@@ -227,9 +237,9 @@ class Levels(commands.Cog):
 
         total_points = 0
         rule_matches = 0
-        for rule in self.active_reaction_rules:
-            if emoji_name in rule.reaction_content:
-                total_points += rule.points
+        for rule_trigger in self.active_reaction_rule_triggers:
+            if emoji_name in rule_trigger.reaction_content:
+                total_points += rule_trigger.points
                 rule_matches += 1
         
         # Only update points if they've matched any rules
@@ -312,10 +322,16 @@ class Levels(commands.Cog):
     
 
 # Please see ./rules/README.md for how to format rules
+
 @dataclass
-class LevelRules:
-    name: str
+class RuleTrigger:
     interaction_type: Literal["message", "reaction"]
     reaction_content: list[str] | None = None
     message_content: str | None = None
     points: int = 0
+
+@dataclass
+class LevelRules:
+    name: str
+    rule_triggers: list[RuleTrigger]
+
