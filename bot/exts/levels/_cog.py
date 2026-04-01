@@ -56,14 +56,20 @@ class Levels(commands.Cog):
     def __init__(self, bot: SirRobin):
         self.bot = bot
 
+        self.rules_folder_path = Path("./bot/exts/levels/rules/")
+
         self.rules_all = []
         self.rules_pool = []
-        self.rules_active = []
-        self.rules_folder_path = Path("./bot/exts/levels/rules/")
+        self.rules_active = []  # Active rules earn the points
+        self.rule_anti_active = []  # Anti-active rules will halve the current points
+
         self.active_rules_num = 3
+        self.anti_active_rules_num = 1
 
         self.active_reaction_rule_triggers = []
         self.active_message_rule_triggers = []
+        self.anti_active_message_rule_triggers = []
+        self.anti_active_reaction_rule_triggers = []
 
 
     async def cog_load(self) -> None:
@@ -112,17 +118,19 @@ class Levels(commands.Cog):
     @tasks.loop(minutes=42.0)
     async def _cycle_rules_task(self) -> None:
         """
-        Change which rules are currently active.
+        Change which rules are currently active and anti-active.
 
         Rules will statistically be used before a repeat is seen.
         This is not a guarnatee though.
         """
-        if len(self.rules_pool) < self.active_rules_num:
+        if len(self.rules_pool) < (self.active_rules_num + self.anti_active_rules_num):
             # If pool is empty, reshuffle completely to avoid activating same rule twice
             self.rules_pool = random.sample(self.rules_all, len(self.rules_all))
-        self.rules_active = [self.rules_pool.pop() for _ in range(self.active_rules_num)]
-        logger.debug(f"Cycled active rules to: {[rule.name for rule in self.rules_active]}")
 
+        self.rules_active = [self.rules_pool.pop() for _ in range(self.active_rules_num)]
+        self.rules_anti_active = [self.rules_pool.pop() for _ in range(self.anti_active_rules_num)]
+        logger.info(f"Cycled active rules to: {[rule.name for rule in self.rules_active]}")
+        logger.info(f"Cycled anti-active rule(s) to: {[rule.name for rule in self.rules_anti_active]}")
 
         self.active_message_rule_triggers = [
             rule_trigger for rule in self.rules_active
@@ -132,6 +140,16 @@ class Levels(commands.Cog):
             rule_trigger for rule in self.rules_active
             for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type=="reaction"
         ]
+
+        self.anti_active_message_rule_triggers = [
+            rule_trigger for rule in self.rules_anti_active
+            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type=="message"
+        ]
+        self.anti_active_reaction_rule_triggers = [
+            rule_trigger for rule in self.rules_anti_active
+            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type=="reaction"
+        ]
+
         self.all_message_rule_triggers = [
             rule_trigger for rule in self.rules_all
             for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type=="message"
@@ -166,17 +184,20 @@ class Levels(commands.Cog):
         logger.debug(f"New thresholds: {thresholds}")
 
 
-    async def _update_points(self, user_id: int, points: int) -> None:
+    async def _update_points(self, user_id: int, points: int, halve_points: bool=False) -> None:
         """Updates user's score and ensures correct role is assigned."""
-        logger.debug(f"User {user_id} getting {points} points.")
+        logger.debug(f"User {user_id} getting {points} points, halving override: {halve_points}.")
         if not await self.user_points_cache.contains(user_id):
             await self.user_points_cache.set(user_id, points)
         else:
-            if points == 0:
+            if points == 0 and not halve_points:
                 return
 
             current_points = await self.user_points_cache.get(user_id)
             new_point_total = current_points + points
+            if halve_points:
+                new_point_total = new_point_total // 2
+
             await self.user_points_cache.set(user_id, new_point_total)
 
         await self._update_role_assignment(user_id)
@@ -218,6 +239,8 @@ class Levels(commands.Cog):
         if len(self.active_message_rule_triggers) == 0:
             return
 
+        user_id = msg.author.id
+
         total_points = 0
         rule_matches = 0
         for rule_trigger in self.active_message_rule_triggers:
@@ -227,12 +250,21 @@ class Levels(commands.Cog):
                 total_points += rule_trigger.points
                 rule_matches += 1
 
+        anti_active_rule_matches = 0
+        for anti_active_rule_trigger in self.anti_active_message_rule_triggers:
+            re_pattern = anti_active_rule_trigger.message_content
+            match = re.search(re_pattern, msg.content)
+            if match:
+                anti_active_rule_matches += 1
+                rule_matches += 1
+
+        halving_points = anti_active_rule_matches > 0
+
         # Only update points if they've matched any rules
         # If they match multiple rules and earn 0 points,
         # that should still get them a role
         if rule_matches != 0:
-            user_id = msg.author.id
-            await self._update_points(user_id, total_points)
+            await self._update_points(user_id, total_points, halve_points=halving_points)
 
         total_rule_matches = 0
         for rule_trigger in self.all_message_rule_triggers:
@@ -270,11 +302,19 @@ class Levels(commands.Cog):
                 total_points += rule_trigger.points
                 rule_matches += 1
 
+        anti_active_rule_matches = 0
+        for anti_active_rule_trigger in self.anti_active_reaction_rule_triggers:
+            if emoji_name in anti_active_rule_trigger.reaction_content:
+                anti_active_rule_matches += 1
+                rule_matches += 1
+
+        halving_points = anti_active_rule_matches > 0
+
         # Only update points if they've matched any rules
         # If they match multiple rules and earn 0 points,
         # that should still get them a role
         if rule_matches != 0:
-            await self._update_points(user.id, total_points)
+            await self._update_points(user.id, total_points, halve_points=halving_points)
 
 
     @commands.group(name="levels")
