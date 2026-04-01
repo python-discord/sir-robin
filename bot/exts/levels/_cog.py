@@ -39,7 +39,7 @@ LEVEL_ROLES = frozenset({
     constants.Roles.levels_champion,
     constants.Roles.levels_mythical_python_charmer,
     constants.Roles.levels_supernova_wonder,
-    constants.Roles.levels_ascenion_20,
+    constants.Roles.levels_ascension_20,
 })
 
 class Levels(commands.Cog):
@@ -100,7 +100,7 @@ class Levels(commands.Cog):
         Load and parse levels rules for usage.
 
         If a rule file does not comply with the format
-        and throws and error, it is skipped over.
+        and throws an error, it is skipped over.
         """
         total_files_loaded = 0
         for toml_file in self.rules_folder_path.glob("*.toml"):
@@ -130,7 +130,7 @@ class Levels(commands.Cog):
         Change which rules are currently active and anti-active.
 
         Rules will statistically be used before a repeat is seen.
-        This is not a guarnatee though.
+        This is not a guarantee though.
         """
         if len(self.rules_pool) < (self.active_rules_num + self.anti_active_rules_num):
             # If pool is empty, reshuffle completely to avoid activating same rule twice
@@ -143,20 +143,20 @@ class Levels(commands.Cog):
 
         self.active_message_rule_triggers = [
             rule_trigger for rule in self.rules_active
-            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type=="message"
+            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type == "message"
         ]
         self.active_reaction_rule_triggers = [
             rule_trigger for rule in self.rules_active
-            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type=="reaction"
+            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type == "reaction"
         ]
 
         self.anti_active_message_rule_triggers = [
             rule_trigger for rule in self.rules_anti_active
-            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type=="message"
+            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type == "message"
         ]
         self.anti_active_reaction_rule_triggers = [
             rule_trigger for rule in self.rules_anti_active
-            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type=="reaction"
+            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type == "reaction"
         ]
 
     @tasks.loop(minutes=90.0)
@@ -300,7 +300,7 @@ class Levels(commands.Cog):
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction, user: discord.Member) -> None:
         """
-        Listens for reactions and checks for against active reaction rules.
+        Listens for reactions and checks against active reaction rules.
 
         It will only listen for reactions added to messages within the bot's message cache.
         """
@@ -407,7 +407,7 @@ class Levels(commands.Cog):
         if current_state:
             await ctx.reply(":white_check_mark: Levels is currently running.")
         else:
-            await ctx.reply(":x: Levels is current **not** running.")
+            await ctx.reply(":x: Levels is currently **not** running.")
 
     @levels_command_group.command()
     @commands.has_any_role(*ELEVATED_ROLES)

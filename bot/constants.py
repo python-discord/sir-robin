@@ -177,7 +177,7 @@ class _Roles(EnvConfig, env_prefix="ROLE_"):
     levels_champion: int = 1488464806855053433
     levels_mythical_python_charmer: int = 1488466097412771853
     levels_supernova_wonder: int = 1488466164106395718
-    levels_ascenion_20: int = 1488466329672351876
+    levels_ascension_20: int = 1488466329672351876
 
 
 Roles = _Roles()
