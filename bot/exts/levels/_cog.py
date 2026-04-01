@@ -152,7 +152,7 @@ class Levels(commands.Cog):
             num_scores = len(all_scores)
             num_levels = len(LEVEL_ROLES)
             thresholds = [
-                all_scores[round(num_scores * level/num_levels)]
+                all_scores[round(num_scores * level/num_levels) - 1]
                 for level in range(1, num_levels+1)
             ]
         else:
