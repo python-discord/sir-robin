@@ -196,11 +196,11 @@ class Levels(commands.Cog):
         guild = self.bot.get_guild(constants.Bot.guild)
         role = guild.get_role(level_to_assign)
         user = await members.get_or_fetch_member(guild, user_id)
+        if role in user.roles:
+            return
         for user_role in user.roles:
             if user_role in LEVEL_ROLES:
                 await members.handle_role_change(user, user.remove_roles, user_role)
-        if role in user.roles:
-            return
         logger.debug(f"Assigning {role.name} to {user.name}")
         await members.handle_role_change(user, user.add_roles, role)
 
