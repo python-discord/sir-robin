@@ -212,6 +212,10 @@ class Levels(commands.Cog):
             if point_threshold >= user_points:
                 break
 
+        if level_to_assign is None:
+            logger.error("levels_cache is empty, cannot assign a role.")
+            return
+
         guild = self.bot.get_guild(constants.Bot.guild)
         role = guild.get_role(level_to_assign)
         user = await members.get_or_fetch_member(guild, user_id)
