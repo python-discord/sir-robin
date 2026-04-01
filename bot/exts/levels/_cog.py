@@ -281,6 +281,8 @@ class Levels(commands.Cog):
             match = re.search(re_pattern, msg.content)
             if match:
                 total_rule_matches += 1
+                if total_rule_matches >= 3:
+                    break
         if total_rule_matches >= 3:
             await self._update_points(user_id, -5)
 
