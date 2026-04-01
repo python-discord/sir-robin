@@ -173,7 +173,7 @@ class Levels(commands.Cog):
             ]
         else:
             # At the start of the event, just use multiples of 10 up to 100
-            thresholds = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+            thresholds = [10 * i for i in range(1, len(LEVEL_ROLES) + 1)]
 
         levels = await self.levels_cache.to_dict()
         new_levels = dict(zip(levels.keys(), thresholds, strict=False))
