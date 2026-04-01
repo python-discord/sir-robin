@@ -388,6 +388,6 @@ class PydisGames(commands.Cog):
         await ctx.reply(embed=embed)
 
 
-async def setup(bot: SirRobin) -> None:
-    """Load the PydisGames cog."""
-    await bot.add_cog(PydisGames(bot))
+# async def setup(bot: SirRobin) -> None:
+#     """Load the PydisGames cog."""
+#     await bot.add_cog(PydisGames(bot))
