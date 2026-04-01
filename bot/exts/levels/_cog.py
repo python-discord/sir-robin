@@ -185,12 +185,12 @@ class Levels(commands.Cog):
     async def _update_points(self, user_id: int, points: int, halve_points: bool=False) -> None:
         """Updates user's score and ensures correct role is assigned."""
         logger.debug(f"User {user_id} getting {points} points, halving override: {halve_points}.")
+        if points == 0 and not halve_points:
+            return
+
         if not await self.user_points_cache.contains(user_id):
             await self.user_points_cache.set(user_id, points)
         else:
-            if points == 0 and not halve_points:
-                return
-
             current_points = await self.user_points_cache.get(user_id)
             new_point_total = current_points + points
             if halve_points:
