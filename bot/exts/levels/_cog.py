@@ -79,7 +79,7 @@ class Levels(commands.Cog):
 
         # Fill in cache with data for later functions to use
         if await self.levels_cache.length() == 0:
-            shuffled_roles = random.sample(LEVEL_ROLES, len(LEVEL_ROLES))
+            shuffled_roles = random.sample(sorted(LEVEL_ROLES), len(LEVEL_ROLES))
             init_threshold_dict = dict.fromkeys(shuffled_roles, 0)
             await self.levels_cache.update(init_threshold_dict)
             logger.info("Filled levels cache with initial thresholds")
@@ -349,7 +349,7 @@ class Levels(commands.Cog):
         levels = await self.levels_cache.to_dict()
         thresholds = levels.values()
 
-        role_order = random.sample(LEVEL_ROLES, len(LEVEL_ROLES))
+        role_order = random.sample(sorted(LEVEL_ROLES), len(LEVEL_ROLES))
         updated_ordering = dict(zip(role_order, thresholds, strict=False))
 
         await self.levels_cache.update(updated_ordering)
