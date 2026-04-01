@@ -395,21 +395,20 @@ class Levels(commands.Cog):
 
     @levels_command_group.command()
     @commands.has_any_role(*ELEVATED_ROLES)
-    async def points_award(self, ctx: commands.Context, user_id: int, point_offset: int) -> None:
+    async def points_award(self, ctx: commands.Context, member: discord.Member, point_offset: int) -> None:
         """Edits the given user's current points value by the given point_offset."""
-        current_points = await self.user_points_cache.get(user_id)
-        user = await members.get_or_fetch_member(ctx.guild, user_id)
-        await self._update_points(user_id, point_offset)
-        await ctx.reply(f"Awarded {user} {point_offset} points. They now have {current_points+point_offset} points.")
+        member_id = member.id
+        current_points = await self.user_points_cache.get(member_id)
+        await self._update_points(member_id, point_offset)
+        await ctx.reply(f"Awarded {member} {point_offset} points. They now have {current_points+point_offset} points.")
 
     @levels_command_group.command()
     @commands.has_any_role(*ELEVATED_ROLES)
-    async def role_reset(self, ctx: commands.Context, user_id: int) -> None:
+    async def role_reset(self, ctx: commands.Context, member: discord.Member) -> None:
         """Reset a given user's 'level' roles. Role will be re-applied at the next rule trigger."""
-        await self._update_role_assignment(user_id)
-        guild = self.bot.get_guild(constants.Bot.guild)
-        user = await members.get_or_fetch_member(guild, user_id)
-        await ctx.reply(f"Reset {user}'s roles.")
+        member_id = member.id
+        await self._update_role_assignment(member_id)
+        await ctx.reply(f"Reset {member}'s roles.")
 
 # Please see ./rules/README.md for how to format rules
 
