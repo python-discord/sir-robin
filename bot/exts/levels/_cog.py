@@ -125,11 +125,11 @@ class Levels(commands.Cog):
 
 
         self.active_message_rule_triggers = [
-            rule for rule in self.rules_active
+            rule_trigger for rule in self.rules_active
             for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type=="message"
         ]
         self.active_reaction_rule_triggers = [
-            rule for rule in self.rules_active
+            rule_trigger for rule in self.rules_active
             for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type=="reaction"
         ]
         # [rule for rule in self.rules_active if rule.interaction_type=="reaction"]
