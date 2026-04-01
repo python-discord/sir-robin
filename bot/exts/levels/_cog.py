@@ -1,3 +1,4 @@
+import operator
 import random
 import re
 import tomllib
@@ -71,6 +72,7 @@ class Levels(commands.Cog):
         self.anti_active_message_rule_triggers = []
         self.anti_active_reaction_rule_triggers = []
         self.all_message_rule_triggers = []
+        self.sorted_level_thresholds: list[tuple[int, int]] = []
 
 
     async def cog_load(self) -> None:
@@ -83,6 +85,8 @@ class Levels(commands.Cog):
             init_threshold_dict = dict.fromkeys(shuffled_roles, 0)
             await self.levels_cache.update(init_threshold_dict)
             logger.info("Filled levels cache with initial thresholds")
+
+        await self._refresh_sorted_thresholds()
 
         if await self.running.get("value", False):
             logger.debug("Starting Rules and Point Renormalization tasks")
@@ -178,8 +182,15 @@ class Levels(commands.Cog):
         levels = await self.levels_cache.to_dict()
         new_levels = dict(zip(levels.keys(), thresholds, strict=False))
         await self.levels_cache.update(new_levels)
+        await self._refresh_sorted_thresholds()
         logger.debug(f"Renormalizing score thresholds. Total scores: {len(all_scores)}")
         logger.debug(f"New thresholds: {thresholds}")
+
+
+    async def _refresh_sorted_thresholds(self) -> None:
+        """Refresh the in-memory sorted threshold list from the levels cache."""
+        levels = await self.levels_cache.to_dict()
+        self.sorted_level_thresholds = sorted(levels.items(), key=operator.itemgetter(1))
 
 
     async def _update_points(self, user_id: int, points: int, halve_points: bool=False) -> None:
@@ -204,10 +215,9 @@ class Levels(commands.Cog):
     async def _update_role_assignment(self, user_id: int) -> None:
         """Updates user's role based on current points and role-point thresholds."""
         user_points = await self.user_points_cache.get(user_id)
-        levels = await self.levels_cache.to_dict()
         level_to_assign = None
 
-        for role, point_threshold in sorted(levels.items(), key=lambda item: item[1]):
+        for role, point_threshold in self.sorted_level_thresholds:
             level_to_assign = role
             if point_threshold >= user_points:
                 break
