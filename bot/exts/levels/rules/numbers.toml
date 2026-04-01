@@ -1,0 +1,9 @@
+[[rule]]
+interaction_type = "message"
+message_content = '''\b(42|23|1337)\b'''
+points = 2
+
+[[rule]]
+interaction_type = "message"
+message_content = '''\b(67|69|420)\b'''
+points = -1

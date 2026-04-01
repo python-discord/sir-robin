@@ -168,6 +168,17 @@ class _Roles(EnvConfig, env_prefix="ROLE_"):
     team_dict: int = 1222691368653033652
     team_tuple: int = 1222691399246286888
 
+    levels_crystal: int = 1488465184803524758
+    levels_level3: int = 1488465669401088000
+    levels_s_tier: int = 1488465793082462248
+    levels_diamond_rank: int = 1488465915560460399
+    levels_GOAT: int = 1488465529835487232  #noqa: N815
+    levels_mtfn: int = 1488537117976957030
+    levels_champion: int = 1488464806855053433
+    levels_mythical_python_charmer: int = 1488466097412771853
+    levels_supernova_wonder: int = 1488466164106395718
+    levels_ascenion_20: int = 1488466329672351876
+
 
 Roles = _Roles()
 

@@ -1,0 +1,4 @@
+[[rule]]
+interaction_type = "message"
+message_content = '''\b((?:j|J)ava)'''
+points = -2

@@ -1,0 +1,14 @@
+[[rule]]
+interaction_type = "message"
+message_content = '''\b([Bb]obby [Tt]ables|[Ss]hibboleet)\b'''
+points = 2
+
+[[rule]]
+interaction_type = "message"
+message_content = '''\b(xkcd)\b'''
+points = 1
+
+[[rule]]
+interaction_type = "message"
+message_content = '''\b(is just applied)\b'''
+points = 1

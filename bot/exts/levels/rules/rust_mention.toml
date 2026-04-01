@@ -1,0 +1,4 @@
+[[rule]]
+interaction_type = "reaction"
+reaction_content = ['🦀', "rust"]
+points = 1
