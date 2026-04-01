@@ -70,6 +70,7 @@ class Levels(commands.Cog):
         self.active_message_rule_triggers = []
         self.anti_active_message_rule_triggers = []
         self.anti_active_reaction_rule_triggers = []
+        self.all_message_rule_triggers = []
 
 
     async def cog_load(self) -> None:
@@ -113,6 +114,10 @@ class Levels(commands.Cog):
             self.rules_all.append(rule)
             total_files_loaded += 1
 
+        self.all_message_rule_triggers = [
+            rule_trigger for rule in self.rules_all
+            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type == "message"
+        ]
         logger.info(f"Total rules loaded: {total_files_loaded}")
 
     @tasks.loop(minutes=42.0)
@@ -149,13 +154,6 @@ class Levels(commands.Cog):
             rule_trigger for rule in self.rules_anti_active
             for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type=="reaction"
         ]
-
-        self.all_message_rule_triggers = [
-            rule_trigger for rule in self.rules_all
-            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type=="message"
-        ]
-        # [rule for rule in self.rules_active if rule.interaction_type=="reaction"]
-        # self.active_message_rule_triggers = [rule for rule in self.rules_active if rule.interaction_type=="message"]
 
     @tasks.loop(minutes=90.0)
     async def _calculate_point_thresholds_task(self) -> None:
