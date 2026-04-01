@@ -215,6 +215,13 @@ class Levels(commands.Cog):
         guild = self.bot.get_guild(constants.Bot.guild)
         role = guild.get_role(level_to_assign)
         user = await members.get_or_fetch_member(guild, user_id)
+        if user is None:
+            logger.debug(f"Could not find member {user_id} to assign role, skipping.")
+            return
+        if role is None:
+            logger.error(f"Could not resolve role {level_to_assign} to assign to {user_id}.")
+            return
+
         roles_to_remove = [
             user_role for user_role in user.roles
             if user_role.id in LEVEL_ROLES and user_role != role
