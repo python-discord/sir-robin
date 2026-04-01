@@ -347,25 +347,22 @@ class Levels(commands.Cog):
 
     @levels_command_group.command()
     @commands.has_any_role(*ELEVATED_ROLES)
-    async def points_edit(self, ctx: commands.Context, user_id: int, point_edit: int) -> None:
-        """Edits the given user's points."""
+    async def points_award(self, ctx: commands.Context, user_id: int, point_offset: int) -> None:
+        """Edits the given user's current points value by the given point_offset."""
         current_points = await self.user_points_cache.get(user_id)
         user = await members.get_or_fetch_member(ctx.guild, user_id)
-        new_points = current_points + point_edit
-        await self._update_points(user_id, point_edit)
-        await ctx.reply(f"Updated {user}'s points from {current_points} to {new_points}.")
+        await self._update_points(user_id, point_offset)
+        await ctx.reply(f"Awarded {user} {point_offset} points. They now have {current_points+point_offset} points.")
 
     @levels_command_group.command()
     @commands.has_any_role(*ELEVATED_ROLES)
     async def role_reset(self, ctx: commands.Context, user_id: int) -> None:
-        """Reset a given user's 'levels' roles."""
+        """Reset a given user's 'level' roles."""
+        await self._update_role_assignment(user_id)
         guild = self.bot.get_guild(constants.Bot.guild)
         user = await members.get_or_fetch_member(guild, user_id)
-        for user_role in user.roles:
-            if user_role in LEVEL_ROLES:
-                await members.handle_role_change(user, user.remove_roles, user_role)
+        await ctx.reply(f"Reset {user}'s roles.")
 
-        await ctx.reply(f"Reset {user}'s 'levels' roles.")
 # Please see ./rules/README.md for how to format rules
 
 @dataclass
