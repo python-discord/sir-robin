@@ -402,7 +402,7 @@ class Levels(commands.Cog):
     async def points_award(self, ctx: commands.Context, member: discord.Member, point_offset: int) -> None:
         """Edits the given user's current points value by the given point_offset."""
         member_id = member.id
-        current_points = await self.user_points_cache.get(member_id)
+        current_points = await self.user_points_cache.get(member_id, default=0)
         await self._update_points(member_id, point_offset)
         await ctx.reply(f"Awarded {member} {point_offset} points. They now have {current_points+point_offset} points.")
 
