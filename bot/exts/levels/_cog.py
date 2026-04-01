@@ -28,7 +28,7 @@ ALLOWED_CHANNELS = (
     constants.Channels.off_topic_2,
 )
 
-LEVEL_ROLES = (
+LEVEL_ROLES = frozenset({
     constants.Roles.levels_crystal,
     constants.Roles.levels_level3,
     constants.Roles.levels_s_tier,
@@ -38,8 +38,8 @@ LEVEL_ROLES = (
     constants.Roles.levels_champion,
     constants.Roles.levels_mythical_python_charmer,
     constants.Roles.levels_supernova_wonder,
-    constants.Roles.levels_ascenion_20
-)
+    constants.Roles.levels_ascenion_20,
+})
 
 class Levels(commands.Cog):
     """Cog that handles all Level functionality."""
@@ -196,11 +196,14 @@ class Levels(commands.Cog):
         guild = self.bot.get_guild(constants.Bot.guild)
         role = guild.get_role(level_to_assign)
         user = await members.get_or_fetch_member(guild, user_id)
+        roles_to_remove = [
+            user_role for user_role in user.roles
+            if user_role.id in LEVEL_ROLES and user_role != role
+        ]
+        if roles_to_remove:
+            await members.handle_role_change(user, user.remove_roles, *roles_to_remove)
         if role in user.roles:
             return
-        for user_role in user.roles:
-            if user_role in LEVEL_ROLES:
-                await members.handle_role_change(user, user.remove_roles, user_role)
         logger.debug(f"Assigning {role.name} to {user.name}")
         await members.handle_role_change(user, user.add_roles, role)
 
