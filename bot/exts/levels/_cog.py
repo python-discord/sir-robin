@@ -225,7 +225,7 @@ class Levels(commands.Cog):
             await self._update_points(user_id, total_points)
         elif rule_matches >= 3:
             user_id = msg.author.id
-            total_points -= 5
+            total_points = -5
             await self._update_points(user_id, total_points)
 
 
