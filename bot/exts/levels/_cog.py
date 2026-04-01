@@ -357,7 +357,7 @@ class Levels(commands.Cog):
     @levels_command_group.command()
     @commands.has_any_role(*ELEVATED_ROLES)
     async def role_reset(self, ctx: commands.Context, user_id: int) -> None:
-        """Reset a given user's 'level' roles."""
+        """Reset a given user's 'level' roles. Role will be re-applied at the next rule trigger."""
         await self._update_role_assignment(user_id)
         guild = self.bot.get_guild(constants.Bot.guild)
         user = await members.get_or_fetch_member(guild, user_id)
