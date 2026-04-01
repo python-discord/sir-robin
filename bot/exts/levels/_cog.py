@@ -2,13 +2,13 @@ import operator
 import random
 import re
 import tomllib
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal, cast
+from typing import Annotated, Literal, cast
 
 import discord
 from async_rediscache import RedisCache
 from discord.ext import commands, tasks
+from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 from pydis_core.utils.logging import get_logger
 
 from bot import constants
@@ -67,11 +67,11 @@ class Levels(commands.Cog):
         self.active_rules_num = 3
         self.anti_active_rules_num = 1
 
-        self.active_reaction_rule_triggers: list[RuleTrigger] = []
-        self.active_message_rule_triggers: list[RuleTrigger] = []
-        self.anti_active_message_rule_triggers: list[RuleTrigger] = []
-        self.anti_active_reaction_rule_triggers: list[RuleTrigger] = []
-        self.all_message_rule_triggers: list[RuleTrigger] = []
+        self.active_reaction_rule_triggers: list[ReactionRuleTrigger] = []
+        self.active_message_rule_triggers: list[MessageRuleTrigger] = []
+        self.anti_active_message_rule_triggers: list[MessageRuleTrigger] = []
+        self.anti_active_reaction_rule_triggers: list[ReactionRuleTrigger] = []
+        self.all_message_rule_triggers: list[MessageRuleTrigger] = []
         self.sorted_level_thresholds: list[tuple[int, int]] = []
 
 
@@ -109,9 +109,9 @@ class Levels(commands.Cog):
 
             rule_name = toml_file.stem
             try:
-                rule_triggers = [RuleTrigger(**rule_trigger) for rule_trigger in rule_dict["rule"]]
-                rule = LevelRules(rule_name, rule_triggers)
-            except (TypeError, KeyError):
+                rule_triggers = _rule_trigger_adapter.validate_python(rule_dict["rule"])
+                rule = LevelRules(name=rule_name, rule_triggers=rule_triggers)
+            except (KeyError, ValidationError):
                 logger.info(f"{toml_file} not properly formatted, skipping.")
                 continue
 
@@ -267,20 +267,14 @@ class Levels(commands.Cog):
         total_points = 0
         rule_matches = 0
         for rule_trigger in self.active_message_rule_triggers:
-            re_pattern = rule_trigger.message_content
-            if re_pattern is None:
-                continue
-            match = re.search(re_pattern, msg.content)
+            match = re.search(rule_trigger.message_content, msg.content)
             if match:
                 total_points += rule_trigger.points
                 rule_matches += 1
 
         anti_active_rule_matches = 0
         for anti_active_rule_trigger in self.anti_active_message_rule_triggers:
-            re_pattern = anti_active_rule_trigger.message_content
-            if re_pattern is None:
-                continue
-            match = re.search(re_pattern, msg.content)
+            match = re.search(anti_active_rule_trigger.message_content, msg.content)
             if match:
                 anti_active_rule_matches += 1
                 rule_matches += 1
@@ -295,10 +289,7 @@ class Levels(commands.Cog):
 
         total_rule_matches = 0
         for rule_trigger in self.all_message_rule_triggers:
-            re_pattern = rule_trigger.message_content
-            if re_pattern is None:
-                continue
-            match = re.search(re_pattern, msg.content)
+            match = re.search(rule_trigger.message_content, msg.content)
             if match:
                 total_rule_matches += 1
                 if total_rule_matches >= 3:
@@ -329,13 +320,13 @@ class Levels(commands.Cog):
         total_points = 0
         rule_matches = 0
         for rule_trigger in self.active_reaction_rule_triggers:
-            if rule_trigger.reaction_content and emoji_name in rule_trigger.reaction_content:
+            if emoji_name in rule_trigger.reaction_content:
                 total_points += rule_trigger.points
                 rule_matches += 1
 
         anti_active_rule_matches = 0
         for anti_active_rule_trigger in self.anti_active_reaction_rule_triggers:
-            if anti_active_rule_trigger.reaction_content and emoji_name in anti_active_rule_trigger.reaction_content:
+            if emoji_name in anti_active_rule_trigger.reaction_content:
                 anti_active_rule_matches += 1
                 rule_matches += 1
 
@@ -438,14 +429,22 @@ class Levels(commands.Cog):
 
 # Please see ./rules/README.md for how to format rules
 
-@dataclass
-class RuleTrigger:
-    interaction_type: Literal["message", "reaction"]
-    reaction_content: list[str] | None = None
-    message_content: str | None = None
+class MessageRuleTrigger(BaseModel):
+    interaction_type: Literal["message"]
+    message_content: str
     points: int = 0
 
-@dataclass
-class LevelRules:
+class ReactionRuleTrigger(BaseModel):
+    interaction_type: Literal["reaction"]
+    reaction_content: list[str]
+    points: int = 0
+
+RuleTrigger = Annotated[
+    MessageRuleTrigger | ReactionRuleTrigger,
+    Field(discriminator="interaction_type"),
+]
+_rule_trigger_adapter = TypeAdapter(list[RuleTrigger])
+
+class LevelRules(BaseModel):
     name: str
     rule_triggers: list[RuleTrigger]
