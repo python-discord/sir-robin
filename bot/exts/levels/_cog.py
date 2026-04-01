@@ -132,6 +132,10 @@ class Levels(commands.Cog):
             rule_trigger for rule in self.rules_active
             for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type=="reaction"
         ]
+        self.all_message_rule_triggers = [
+            rule_trigger for rule in self.rules_all
+            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type=="message"
+        ]
         # [rule for rule in self.rules_active if rule.interaction_type=="reaction"]
         # self.active_message_rule_triggers = [rule for rule in self.rules_active if rule.interaction_type=="message"]
 
@@ -192,6 +196,9 @@ class Levels(commands.Cog):
         guild = self.bot.get_guild(constants.Bot.guild)
         role = guild.get_role(level_to_assign)
         user = await members.get_or_fetch_member(guild, user_id)
+        for user_role in user.roles:
+            if user_role in LEVEL_ROLES:
+                await members.handle_role_change(user, user.remove_roles, user_role)
         if role in user.roles:
             return
         logger.debug(f"Assigning {role.name} to {user.name}")
@@ -223,10 +230,15 @@ class Levels(commands.Cog):
         if rule_matches != 0:
             user_id = msg.author.id
             await self._update_points(user_id, total_points)
-        elif rule_matches >= 3:
-            user_id = msg.author.id
-            total_points = -5
-            await self._update_points(user_id, total_points)
+
+        total_rule_matches = 0
+        for rule_trigger in self.all_message_rule_triggers:
+            re_pattern = rule_trigger.message_content
+            match = re.search(re_pattern, msg.content)
+            if match:
+                total_rule_matches += 1
+        if total_rule_matches >= 3:
+            await self._update_points(user_id, -5)
 
 
     @commands.Cog.listener()
