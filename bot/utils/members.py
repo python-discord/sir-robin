@@ -27,7 +27,7 @@ async def get_or_fetch_member(guild: discord.Guild, member_id: int) -> discord.M
 async def handle_role_change(
     member: discord.Member,
     coro: t.Callable[..., t.Coroutine],
-    role: discord.Role
+    *roles: discord.Role,
 ) -> None:
     """
     Change `member`'s cooldown role via awaiting `coro` and handle errors.
@@ -35,7 +35,7 @@ async def handle_role_change(
     `coro` is intended to be `discord.Member.add_roles` or `discord.Member.remove_roles`.
     """
     try:
-        await coro(role)
+        await coro(*roles)
     except discord.NotFound:
         log.debug(f"Failed to change role for {member} ({member.id}): member not found")
     except discord.Forbidden:
