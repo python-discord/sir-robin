@@ -28,7 +28,7 @@ ALLOWED_CHANNELS = (
     constants.Channels.off_topic_2,
 )
 
-LEVEL_ROLES = (
+LEVEL_ROLES = frozenset({
     constants.Roles.levels_crystal,
     constants.Roles.levels_level3,
     constants.Roles.levels_s_tier,
@@ -38,8 +38,8 @@ LEVEL_ROLES = (
     constants.Roles.levels_champion,
     constants.Roles.levels_mythical_python_charmer,
     constants.Roles.levels_supernova_wonder,
-    constants.Roles.levels_ascenion_20
-)
+    constants.Roles.levels_ascenion_20,
+})
 
 class Levels(commands.Cog):
     """Cog that handles all Level functionality."""
