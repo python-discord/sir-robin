@@ -61,7 +61,7 @@ class Levels(commands.Cog):
         self.rules_all = []
         self.rules_pool = []
         self.rules_active = []  # Active rules earn the points
-        self.rule_anti_active = []  # Anti-active rules will halve the current points
+        self.rules_anti_active = []  # Anti-active rules will halve the current points
 
         self.active_rules_num = 3
         self.anti_active_rules_num = 1
