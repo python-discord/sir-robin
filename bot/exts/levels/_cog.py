@@ -4,7 +4,7 @@ import re
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from typing import Literal, cast
 
 import discord
 from async_rediscache import RedisCache
@@ -59,19 +59,19 @@ class Levels(commands.Cog):
 
         self.rules_folder_path = Path("./bot/exts/levels/rules/")
 
-        self.rules_all = []
-        self.rules_pool = []
-        self.rules_active = []  # Active rules earn the points
-        self.rules_anti_active = []  # Anti-active rules will halve the current points
+        self.rules_all: list[LevelRules] = []
+        self.rules_pool: list[LevelRules] = []
+        self.rules_active: list[LevelRules] = []  # Active rules earn the points
+        self.rules_anti_active: list[LevelRules] = []  # Anti-active rules will halve the current points
 
         self.active_rules_num = 3
         self.anti_active_rules_num = 1
 
-        self.active_reaction_rule_triggers = []
-        self.active_message_rule_triggers = []
-        self.anti_active_message_rule_triggers = []
-        self.anti_active_reaction_rule_triggers = []
-        self.all_message_rule_triggers = []
+        self.active_reaction_rule_triggers: list[RuleTrigger] = []
+        self.active_message_rule_triggers: list[RuleTrigger] = []
+        self.anti_active_message_rule_triggers: list[RuleTrigger] = []
+        self.anti_active_reaction_rule_triggers: list[RuleTrigger] = []
+        self.all_message_rule_triggers: list[RuleTrigger] = []
         self.sorted_level_thresholds: list[tuple[int, int]] = []
 
 
@@ -83,7 +83,7 @@ class Levels(commands.Cog):
         if await self.levels_cache.length() == 0:
             shuffled_roles = random.sample(sorted(LEVEL_ROLES), len(LEVEL_ROLES))
             init_threshold_dict = dict.fromkeys(shuffled_roles, 0)
-            await self.levels_cache.update(init_threshold_dict)
+            await self.levels_cache.update(init_threshold_dict)  # type: ignore[arg-type]
             logger.info("Filled levels cache with initial thresholds")
 
         await self._refresh_sorted_thresholds()
@@ -181,7 +181,7 @@ class Levels(commands.Cog):
 
         levels = await self.levels_cache.to_dict()
         new_levels = dict(zip(levels.keys(), thresholds, strict=False))
-        await self.levels_cache.update(new_levels)
+        await self.levels_cache.update(new_levels)  # type: ignore[arg-type]
         await self._refresh_sorted_thresholds()
         logger.debug(f"Renormalizing score thresholds. Total scores: {len(all_scores)}")
         logger.debug(f"New thresholds: {thresholds}")
@@ -202,7 +202,7 @@ class Levels(commands.Cog):
         if not await self.user_points_cache.contains(user_id):
             await self.user_points_cache.set(user_id, points)
         else:
-            current_points = await self.user_points_cache.get(user_id)
+            current_points = cast(int, await self.user_points_cache.get(user_id, default=0))
             new_point_total = current_points + points
             if halve_points:
                 new_point_total = new_point_total // 2
@@ -214,26 +214,30 @@ class Levels(commands.Cog):
 
     async def _update_role_assignment(self, user_id: int) -> None:
         """Updates user's role based on current points and role-point thresholds."""
-        user_points = await self.user_points_cache.get(user_id)
-        level_to_assign = None
+        user_points = cast(int, await self.user_points_cache.get(user_id, default=0))
+        role_id_to_assign = None
 
-        for role, point_threshold in self.sorted_level_thresholds:
-            level_to_assign = role
+        for role_id, point_threshold in self.sorted_level_thresholds:
+            role_id_to_assign = role_id
             if point_threshold >= user_points:
                 break
 
-        if level_to_assign is None:
+        if role_id_to_assign is None:
             logger.error("levels_cache is empty, cannot assign a role.")
             return
 
         guild = self.bot.get_guild(constants.Bot.guild)
-        role = guild.get_role(level_to_assign)
+        if guild is None:
+            logger.error("Could not find guild, cannot assign a role.")
+            return
+
+        role = guild.get_role(role_id_to_assign)
         user = await members.get_or_fetch_member(guild, user_id)
         if user is None:
             logger.debug(f"Could not find member {user_id} to assign role, skipping.")
             return
         if role is None:
-            logger.error(f"Could not resolve role {level_to_assign} to assign to {user_id}.")
+            logger.error(f"Could not resolve role {role_id_to_assign} to assign to {user_id}.")
             return
 
         roles_to_remove = [
@@ -264,6 +268,8 @@ class Levels(commands.Cog):
         rule_matches = 0
         for rule_trigger in self.active_message_rule_triggers:
             re_pattern = rule_trigger.message_content
+            if re_pattern is None:
+                continue
             match = re.search(re_pattern, msg.content)
             if match:
                 total_points += rule_trigger.points
@@ -272,6 +278,8 @@ class Levels(commands.Cog):
         anti_active_rule_matches = 0
         for anti_active_rule_trigger in self.anti_active_message_rule_triggers:
             re_pattern = anti_active_rule_trigger.message_content
+            if re_pattern is None:
+                continue
             match = re.search(re_pattern, msg.content)
             if match:
                 anti_active_rule_matches += 1
@@ -288,6 +296,8 @@ class Levels(commands.Cog):
         total_rule_matches = 0
         for rule_trigger in self.all_message_rule_triggers:
             re_pattern = rule_trigger.message_content
+            if re_pattern is None:
+                continue
             match = re.search(re_pattern, msg.content)
             if match:
                 total_rule_matches += 1
@@ -319,13 +329,13 @@ class Levels(commands.Cog):
         total_points = 0
         rule_matches = 0
         for rule_trigger in self.active_reaction_rule_triggers:
-            if emoji_name in rule_trigger.reaction_content:
+            if rule_trigger.reaction_content and emoji_name in rule_trigger.reaction_content:
                 total_points += rule_trigger.points
                 rule_matches += 1
 
         anti_active_rule_matches = 0
         for anti_active_rule_trigger in self.anti_active_reaction_rule_triggers:
-            if emoji_name in anti_active_rule_trigger.reaction_content:
+            if anti_active_rule_trigger.reaction_content and emoji_name in anti_active_rule_trigger.reaction_content:
                 anti_active_rule_matches += 1
                 rule_matches += 1
 
@@ -368,7 +378,7 @@ class Levels(commands.Cog):
         role_order = random.sample(sorted(LEVEL_ROLES), len(LEVEL_ROLES))
         updated_ordering = dict(zip(role_order, thresholds, strict=False))
 
-        await self.levels_cache.update(updated_ordering)
+        await self.levels_cache.update(updated_ordering)  # type: ignore[arg-type]
         logger.info(f"Roles have been re-shuffled per request of {ctx.author.name}")
 
     @levels_command_group.command()
@@ -414,7 +424,7 @@ class Levels(commands.Cog):
     async def points_award(self, ctx: commands.Context, member: discord.Member, point_offset: int) -> None:
         """Edits the given user's current points value by the given point_offset."""
         member_id = member.id
-        current_points = await self.user_points_cache.get(member_id, default=0)
+        current_points = cast(int, await self.user_points_cache.get(member_id, default=0))
         await self._update_points(member_id, point_offset)
         await ctx.reply(f"Awarded {member} {point_offset} points. They now have {current_points+point_offset} points.")
 
