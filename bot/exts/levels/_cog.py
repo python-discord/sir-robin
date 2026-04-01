@@ -126,7 +126,7 @@ class Levels(commands.Cog):
         if len(self.rules_pool) < (self.active_rules_num + self.anti_active_rules_num):
             # If pool is empty, reshuffle completely to avoid activating same rule twice
             self.rules_pool = random.sample(self.rules_all, len(self.rules_all))
-        
+
         self.rules_active = [self.rules_pool.pop() for _ in range(self.active_rules_num)]
         self.rules_anti_active = [self.rules_pool.pop() for _ in range(self.anti_active_rules_num)]
         logger.info(f"Cycled active rules to: {[rule.name for rule in self.rules_active]}")
@@ -184,7 +184,7 @@ class Levels(commands.Cog):
         logger.debug(f"New thresholds: {thresholds}")
 
 
-    async def _update_points(self, user_id: int, points: int, halve_points=False) -> None:
+    async def _update_points(self, user_id: int, points: int, halve_points: bool=False) -> None:
         """Updates user's score and ensures correct role is assigned."""
         logger.debug(f"User {user_id} getting {points} points, halving override: {halve_points}.")
         if not await self.user_points_cache.contains(user_id):
@@ -254,7 +254,7 @@ class Levels(commands.Cog):
             if match:
                 anti_active_rule_matches += 1
                 rule_matches += 1
-        
+
         halving_points = anti_active_rule_matches > 0
 
         # Only update points if they've matched any rules
