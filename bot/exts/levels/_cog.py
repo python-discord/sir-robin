@@ -196,11 +196,14 @@ class Levels(commands.Cog):
         guild = self.bot.get_guild(constants.Bot.guild)
         role = guild.get_role(level_to_assign)
         user = await members.get_or_fetch_member(guild, user_id)
+        roles_to_remove = [
+            user_role for user_role in user.roles
+            if user_role.id in LEVEL_ROLES and user_role != role
+        ]
+        if roles_to_remove:
+            await members.handle_role_change(user, user.remove_roles, *roles_to_remove)
         if role in user.roles:
             return
-        for user_role in user.roles:
-            if user_role in LEVEL_ROLES:
-                await members.handle_role_change(user, user.remove_roles, user_role)
         logger.debug(f"Assigning {role.name} to {user.name}")
         await members.handle_role_change(user, user.add_roles, role)
 
