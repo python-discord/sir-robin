@@ -5,5 +5,5 @@ points = -1
 
 [[rule]]
 interaction_type = "message"
-message_content = '''(?:🚀)+.*((?:b|B)lazing(?:ly)*\sfast).*(?:🚀)+'''
+message_content = '''(?:🚀)+.*((?:b|B)lazing(?:ly)*\sfast).*?(?:🚀)+'''
 points = -2
