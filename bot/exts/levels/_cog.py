@@ -203,7 +203,7 @@ class Levels(commands.Cog):
         """Listens to messages and checks against active message rules."""
         if not await self.running.get("value", False):
             return
-        if msg.channel.id not in ALLOWED_CHANNELS or msg.author.bot:
+        if msg.channel.id not in ALLOWED_CHANNELS:
             return
         if len(self.active_message_rule_triggers) == 0:
             return
