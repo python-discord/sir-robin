@@ -202,7 +202,7 @@ class Levels(commands.Cog):
             return
         if msg.channel.id not in ALLOWED_CHANNELS or msg.author.bot:
             return
-        if len(self.active_message_rules) == 0:
+        if len(self.active_message_rule_triggers) == 0:
             return
 
         total_points = 0
@@ -233,7 +233,7 @@ class Levels(commands.Cog):
             return
         if reaction.message.channel.id not in ALLOWED_CHANNELS or user.bot:
             return
-        if len(self.active_reaction_rules) == 0:
+        if len(self.active_reaction_rule_triggers) == 0:
             return
 
         if isinstance(reaction.emoji, str):
