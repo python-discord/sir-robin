@@ -17,3 +17,13 @@ points = 3
 interaction_type = "message"
 message_content = '''\b(IDLE|Idle|Cleese|Gilliam|Jones|Chapman|Palin)\b'''
 points = 1
+
+[[rule]]
+interaction_type = "message"
+message_content = '''\b(\'[Tt]is but a scratch)\b'''
+points = 1
+
+[[rule]]
+interaction_type = "message"
+message_content = '''\b([Ff]light [Ss]peed|[Uu]nladen [Ss]wallow|[Aa]frican or [Ee]uropean)\b'''
+points = 2
