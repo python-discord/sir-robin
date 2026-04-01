@@ -75,11 +75,14 @@ class Levels(commands.Cog):
             shuffled_roles = random.sample(LEVEL_ROLES, len(LEVEL_ROLES))
             init_threshold_dict = dict.fromkeys(shuffled_roles, 0)
             await self.levels_cache.update(init_threshold_dict)
+        logger.info("Filled levels cache with initial thresholds")
 
         if await self.running.get("value", False):
             logger.debug("Starting Rules and Point Renormalization tasks")
-            await self._cycle_rules_task.start()
-            await self._calculate_point_thresholds_task.start()
+            self._cycle_rules_task.start()
+            logger.info("Started rule cycle task")
+            self._calculate_point_thresholds_task.start()
+            logger.info("Started point threshold task")
 
     async def _load_rules(self) -> None:
         """
