@@ -1,13 +1,14 @@
+import operator
 import random
 import re
 import tomllib
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from typing import Annotated, Literal, cast
 
 import discord
 from async_rediscache import RedisCache
 from discord.ext import commands, tasks
+from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 from pydis_core.utils.logging import get_logger
 
 from bot import constants
@@ -38,7 +39,7 @@ LEVEL_ROLES = frozenset({
     constants.Roles.levels_champion,
     constants.Roles.levels_mythical_python_charmer,
     constants.Roles.levels_supernova_wonder,
-    constants.Roles.levels_ascenion_20,
+    constants.Roles.levels_ascension_20,
 })
 
 class Levels(commands.Cog):
@@ -58,18 +59,20 @@ class Levels(commands.Cog):
 
         self.rules_folder_path = Path("./bot/exts/levels/rules/")
 
-        self.rules_all = []
-        self.rules_pool = []
-        self.rules_active = []  # Active rules earn the points
-        self.rule_anti_active = []  # Anti-active rules will halve the current points
+        self.rules_all: list[LevelRules] = []
+        self.rules_pool: list[LevelRules] = []
+        self.rules_active: list[LevelRules] = []  # Active rules earn the points
+        self.rules_anti_active: list[LevelRules] = []  # Anti-active rules will halve the current points
 
         self.active_rules_num = 3
         self.anti_active_rules_num = 1
 
-        self.active_reaction_rule_triggers = []
-        self.active_message_rule_triggers = []
-        self.anti_active_message_rule_triggers = []
-        self.anti_active_reaction_rule_triggers = []
+        self.active_reaction_rule_triggers: list[ReactionRuleTrigger] = []
+        self.active_message_rule_triggers: list[MessageRuleTrigger] = []
+        self.anti_active_message_rule_triggers: list[MessageRuleTrigger] = []
+        self.anti_active_reaction_rule_triggers: list[ReactionRuleTrigger] = []
+        self.all_message_rule_triggers: list[MessageRuleTrigger] = []
+        self.sorted_level_thresholds: list[tuple[int, int]] = []
 
 
     async def cog_load(self) -> None:
@@ -78,10 +81,12 @@ class Levels(commands.Cog):
 
         # Fill in cache with data for later functions to use
         if await self.levels_cache.length() == 0:
-            shuffled_roles = random.sample(LEVEL_ROLES, len(LEVEL_ROLES))
+            shuffled_roles = random.sample(sorted(LEVEL_ROLES), len(LEVEL_ROLES))
             init_threshold_dict = dict.fromkeys(shuffled_roles, 0)
-            await self.levels_cache.update(init_threshold_dict)
-        logger.info("Filled levels cache with initial thresholds")
+            await self.levels_cache.update(init_threshold_dict)  # type: ignore[arg-type]
+            logger.info("Filled levels cache with initial thresholds")
+
+        await self._refresh_sorted_thresholds()
 
         if await self.running.get("value", False):
             logger.debug("Starting Rules and Point Renormalization tasks")
@@ -95,7 +100,7 @@ class Levels(commands.Cog):
         Load and parse levels rules for usage.
 
         If a rule file does not comply with the format
-        and throws and error, it is skipped over.
+        and throws an error, it is skipped over.
         """
         total_files_loaded = 0
         for toml_file in self.rules_folder_path.glob("*.toml"):
@@ -104,15 +109,19 @@ class Levels(commands.Cog):
 
             rule_name = toml_file.stem
             try:
-                rule_triggers = [RuleTrigger(**rule_trigger) for rule_trigger in rule_dict["rule"]]
-                rule = LevelRules(rule_name, rule_triggers)
-            except (TypeError, KeyError):
+                rule_triggers = _rule_trigger_adapter.validate_python(rule_dict["rule"])
+                rule = LevelRules(name=rule_name, rule_triggers=rule_triggers)
+            except (KeyError, ValidationError):
                 logger.info(f"{toml_file} not properly formatted, skipping.")
                 continue
 
             self.rules_all.append(rule)
             total_files_loaded += 1
 
+        self.all_message_rule_triggers = [
+            rule_trigger for rule in self.rules_all
+            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type == "message"
+        ]
         logger.info(f"Total rules loaded: {total_files_loaded}")
 
     @tasks.loop(minutes=42.0)
@@ -121,7 +130,7 @@ class Levels(commands.Cog):
         Change which rules are currently active and anti-active.
 
         Rules will statistically be used before a repeat is seen.
-        This is not a guarnatee though.
+        This is not a guarantee though.
         """
         if len(self.rules_pool) < (self.active_rules_num + self.anti_active_rules_num):
             # If pool is empty, reshuffle completely to avoid activating same rule twice
@@ -134,28 +143,21 @@ class Levels(commands.Cog):
 
         self.active_message_rule_triggers = [
             rule_trigger for rule in self.rules_active
-            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type=="message"
+            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type == "message"
         ]
         self.active_reaction_rule_triggers = [
             rule_trigger for rule in self.rules_active
-            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type=="reaction"
+            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type == "reaction"
         ]
 
         self.anti_active_message_rule_triggers = [
             rule_trigger for rule in self.rules_anti_active
-            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type=="message"
+            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type == "message"
         ]
         self.anti_active_reaction_rule_triggers = [
             rule_trigger for rule in self.rules_anti_active
-            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type=="reaction"
+            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type == "reaction"
         ]
-
-        self.all_message_rule_triggers = [
-            rule_trigger for rule in self.rules_all
-            for rule_trigger in rule.rule_triggers if rule_trigger.interaction_type=="message"
-        ]
-        # [rule for rule in self.rules_active if rule.interaction_type=="reaction"]
-        # self.active_message_rule_triggers = [rule for rule in self.rules_active if rule.interaction_type=="message"]
 
     @tasks.loop(minutes=90.0)
     async def _calculate_point_thresholds_task(self) -> None:
@@ -175,13 +177,20 @@ class Levels(commands.Cog):
             ]
         else:
             # At the start of the event, just use multiples of 10 up to 100
-            thresholds = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+            thresholds = [10 * i for i in range(1, len(LEVEL_ROLES) + 1)]
 
         levels = await self.levels_cache.to_dict()
         new_levels = dict(zip(levels.keys(), thresholds, strict=False))
-        await self.levels_cache.update(new_levels)
+        await self.levels_cache.update(new_levels)  # type: ignore[arg-type]
+        await self._refresh_sorted_thresholds()
         logger.debug(f"Renormalizing score thresholds. Total scores: {len(all_scores)}")
         logger.debug(f"New thresholds: {thresholds}")
+
+
+    async def _refresh_sorted_thresholds(self) -> None:
+        """Refresh the in-memory sorted threshold list from the levels cache."""
+        levels = await self.levels_cache.to_dict()
+        self.sorted_level_thresholds = sorted(levels.items(), key=operator.itemgetter(1))
 
 
     async def _update_points(self, user_id: int, points: int, halve_points: bool=False) -> None:
@@ -192,8 +201,7 @@ class Levels(commands.Cog):
         else:
             if points == 0 and not halve_points:
                 return
-
-            current_points = await self.user_points_cache.get(user_id)
+            current_points = cast(int, await self.user_points_cache.get(user_id, default=0))
             new_point_total = current_points + points
             if halve_points:
                 new_point_total = new_point_total // 2
@@ -205,18 +213,32 @@ class Levels(commands.Cog):
 
     async def _update_role_assignment(self, user_id: int) -> None:
         """Updates user's role based on current points and role-point thresholds."""
-        user_points = await self.user_points_cache.get(user_id)
-        levels = await self.levels_cache.to_dict()
-        level_to_assign = None
+        user_points = cast(int, await self.user_points_cache.get(user_id, default=0))
+        role_id_to_assign = None
 
-        for role, point_threshold in sorted(levels.items(), key=lambda item: item[1]):
-            level_to_assign = role
+        for role_id, point_threshold in self.sorted_level_thresholds:
+            role_id_to_assign = role_id
             if point_threshold >= user_points:
                 break
 
+        if role_id_to_assign is None:
+            logger.error("levels_cache is empty, cannot assign a role.")
+            return
+
         guild = self.bot.get_guild(constants.Bot.guild)
-        role = guild.get_role(level_to_assign)
+        if guild is None:
+            logger.error("Could not find guild, cannot assign a role.")
+            return
+
+        role = guild.get_role(role_id_to_assign)
         user = await members.get_or_fetch_member(guild, user_id)
+        if user is None:
+            logger.debug(f"Could not find member {user_id} to assign role, skipping.")
+            return
+        if role is None:
+            logger.error(f"Could not resolve role {role_id_to_assign} to assign to {user_id}.")
+            return
+
         roles_to_remove = [
             user_role for user_role in user.roles
             if user_role.id in LEVEL_ROLES and user_role != role
@@ -244,16 +266,14 @@ class Levels(commands.Cog):
         total_points = 0
         rule_matches = 0
         for rule_trigger in self.active_message_rule_triggers:
-            re_pattern = rule_trigger.message_content
-            match = re.search(re_pattern, msg.content)
+            match = re.search(rule_trigger.message_content, msg.content)
             if match:
                 total_points += rule_trigger.points
                 rule_matches += 1
 
         anti_active_rule_matches = 0
         for anti_active_rule_trigger in self.anti_active_message_rule_triggers:
-            re_pattern = anti_active_rule_trigger.message_content
-            match = re.search(re_pattern, msg.content)
+            match = re.search(anti_active_rule_trigger.message_content, msg.content)
             if match:
                 anti_active_rule_matches += 1
                 rule_matches += 1
@@ -268,10 +288,11 @@ class Levels(commands.Cog):
 
         total_rule_matches = 0
         for rule_trigger in self.all_message_rule_triggers:
-            re_pattern = rule_trigger.message_content
-            match = re.search(re_pattern, msg.content)
+            match = re.search(rule_trigger.message_content, msg.content)
             if match:
                 total_rule_matches += 1
+                if total_rule_matches >= 3:
+                    break
         if total_rule_matches >= 3:
             await self._update_points(user_id, -5)
 
@@ -279,7 +300,7 @@ class Levels(commands.Cog):
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction, user: discord.Member) -> None:
         """
-        Listens for reactions and checks for against active reaction rules.
+        Listens for reactions and checks against active reaction rules.
 
         It will only listen for reactions added to messages within the bot's message cache.
         """
@@ -344,10 +365,10 @@ class Levels(commands.Cog):
         levels = await self.levels_cache.to_dict()
         thresholds = levels.values()
 
-        role_order = random.sample(LEVEL_ROLES, len(LEVEL_ROLES))
+        role_order = random.sample(sorted(LEVEL_ROLES), len(LEVEL_ROLES))
         updated_ordering = dict(zip(role_order, thresholds, strict=False))
 
-        await self.levels_cache.update(updated_ordering)
+        await self.levels_cache.update(updated_ordering)  # type: ignore[arg-type]
         logger.info(f"Roles have been re-shuffled per request of {ctx.author.name}")
 
     @levels_command_group.command()
@@ -386,36 +407,43 @@ class Levels(commands.Cog):
         if current_state:
             await ctx.reply(":white_check_mark: Levels is currently running.")
         else:
-            await ctx.reply(":x: Levels is current **not** running.")
+            await ctx.reply(":x: Levels is currently **not** running.")
 
     @levels_command_group.command()
     @commands.has_any_role(*ELEVATED_ROLES)
-    async def points_award(self, ctx: commands.Context, user_id: int, point_offset: int) -> None:
+    async def points_award(self, ctx: commands.Context, member: discord.Member, point_offset: int) -> None:
         """Edits the given user's current points value by the given point_offset."""
-        current_points = await self.user_points_cache.get(user_id)
-        user = await members.get_or_fetch_member(ctx.guild, user_id)
-        await self._update_points(user_id, point_offset)
-        await ctx.reply(f"Awarded {user} {point_offset} points. They now have {current_points+point_offset} points.")
+        member_id = member.id
+        current_points = cast(int, await self.user_points_cache.get(member_id, default=0))
+        await self._update_points(member_id, point_offset)
+        await ctx.reply(f"Awarded {member} {point_offset} points. They now have {current_points+point_offset} points.")
 
     @levels_command_group.command()
     @commands.has_any_role(*ELEVATED_ROLES)
-    async def role_reset(self, ctx: commands.Context, user_id: int) -> None:
+    async def role_reset(self, ctx: commands.Context, member: discord.Member) -> None:
         """Reset a given user's 'level' roles. Role will be re-applied at the next rule trigger."""
-        await self._update_role_assignment(user_id)
-        guild = self.bot.get_guild(constants.Bot.guild)
-        user = await members.get_or_fetch_member(guild, user_id)
-        await ctx.reply(f"Reset {user}'s roles.")
+        member_id = member.id
+        await self._update_role_assignment(member_id)
+        await ctx.reply(f"Reset {member}'s roles.")
 
 # Please see ./rules/README.md for how to format rules
 
-@dataclass
-class RuleTrigger:
-    interaction_type: Literal["message", "reaction"]
-    reaction_content: list[str] | None = None
-    message_content: str | None = None
+class MessageRuleTrigger(BaseModel):
+    interaction_type: Literal["message"]
+    message_content: str
     points: int = 0
 
-@dataclass
-class LevelRules:
+class ReactionRuleTrigger(BaseModel):
+    interaction_type: Literal["reaction"]
+    reaction_content: list[str]
+    points: int = 0
+
+RuleTrigger = Annotated[
+    MessageRuleTrigger | ReactionRuleTrigger,
+    Field(discriminator="interaction_type"),
+]
+_rule_trigger_adapter = TypeAdapter(list[RuleTrigger])
+
+class LevelRules(BaseModel):
     name: str
     rule_triggers: list[RuleTrigger]
