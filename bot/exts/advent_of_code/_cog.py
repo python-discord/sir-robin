@@ -37,6 +37,8 @@ AOC_WHITELIST = AOC_WHITELIST_RESTRICTED + (Channels.advent_of_code,)
 
 AOC_REDIRECT = (Channels.advent_of_code_commands, Channels.sir_lancebot_playground, Channels.bot_commands)
 
+EARLY_ACCESS_ROLES = (Roles.admins, Roles.events_lead, Roles.core_devs)
+
 
 class AdventOfCode(commands.Cog):
     """Advent of Code festivities! Ho Ho Ho!"""
@@ -386,6 +388,7 @@ class AdventOfCode(commands.Cog):
             await ctx.reply("You don't have an Advent of Code account linked.")
 
     @in_month(Month.DECEMBER, Month.JANUARY, Month.FEBRUARY)
+    @in_month(Month.NOVEMBER, roles=EARLY_ACCESS_ROLES)
     @adventofcode_group.command(
         name="dayandstar",
         aliases=("daynstar", "daystar"),
@@ -424,6 +427,7 @@ class AdventOfCode(commands.Cog):
         await message.edit(view=None)
 
     @in_month(Month.DECEMBER, Month.JANUARY, Month.FEBRUARY)
+    @in_month(Month.NOVEMBER, roles=EARLY_ACCESS_ROLES)
     @adventofcode_group.command(
         name="leaderboard",
         aliases=("board", "lb"),
@@ -505,6 +509,7 @@ class AdventOfCode(commands.Cog):
         await ctx.send(embed=self.cached_no_global)
 
     @in_month(Month.DECEMBER, Month.JANUARY, Month.FEBRUARY)
+    @in_month(Month.NOVEMBER, roles=EARLY_ACCESS_ROLES)
     @adventofcode_group.command(
         name="stats",
         aliases=("dailystats", "ds"),
