@@ -44,7 +44,7 @@ if not constants.Bot.in_ci:
         _intents.typing = False
         _intents.webhooks = False
         _intents.message_content = True
-        _intents.members = True
+        _intents.members = False
 
         allowed_roles = (
             constants.Roles.events_lead,
