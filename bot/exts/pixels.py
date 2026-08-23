@@ -16,7 +16,7 @@ PIXELS_JWT_REGEX = re.compile(r"e[yw][A-Za-z0-9-_]+\.(?:e[yw][A-Za-z0-9-_]+)?\.[
 REVOKED_MESSAGE = textwrap.dedent("""
 :warning: Your message contained a valid Pixels API key or access token, which has been revoked.
 
-Visit [`/auth/authorize`](https://pixels.pythondiscord.com/auth/authorize) to generate a new API key.
+Head to the [Pixels authorize page](<https://pixels.pythondiscord.com/auth/authorize>) to get a new API key.
 """)
 
 PIXELS_API_TOKEN_PATH = Path("/var/run/secrets/pixels-api/token")
@@ -82,7 +82,7 @@ class Pixels(commands.Cog):
                         log.error(f"Failed to invalidate Pixels API key: {api_key}. Status code: {resp.status}")
 
             if any_invalidated:
-                await message.channel.send(REVOKED_MESSAGE)
+                await message.channel.send(f"{message.author.mention} {REVOKED_MESSAGE}")
                 await message.delete()
                 log.info(f"Deleted message {message.channel}/{message.id} containing exposed Pixels credentials.")
 
