@@ -140,11 +140,14 @@ class Pixels(commands.Cog):
         except ValueError:
             colour = discord.Colour.default()
 
+        message = textwrap.dedent(f"""
+            **User:** {user_name} (`{user_id_int}`)
+            **Coordinates:** `({x}, {y})`
+            **Colour:** `#{rgb_hex}`
+        """).strip()
+
         container = ui.Container(accent_colour=colour)
-        section = ui.Section(
-            f"{user_name} (`{user_id_int}`) at ({x}, {y})",
-            accessory=ui.Thumbnail(avatar_url),
-        )
+        section = ui.Section(message, accessory=ui.Thumbnail(avatar_url))
         container.add_item(section)
 
         await self.add_container_to_bucket(container)
