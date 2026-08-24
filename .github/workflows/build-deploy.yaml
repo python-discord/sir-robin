@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -51,7 +51,7 @@ jobs:
     environment: production
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: python-discord/infra
           path: infra
@@ -65,7 +65,7 @@ jobs:
           kubeconfig: ${{ secrets.KUBECONFIG }}
 
       - name: Deploy to Kubernetes
-        uses: Azure/k8s-deploy@v6
+        uses: Azure/k8s-deploy@v7
         with:
           namespace: bots
           manifests: |
