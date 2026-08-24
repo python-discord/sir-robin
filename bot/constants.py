@@ -98,6 +98,7 @@ class _Channels(EnvConfig, env_prefix="CHANNEL_"):
     voice_chat_0: int = 412357430186344448
     voice_chat_1: int = 799647045886541885
     roles: int = 851270062434156586
+    pixels_stream: int = 1541576692986941563
 
 
 Channels = _Channels()
