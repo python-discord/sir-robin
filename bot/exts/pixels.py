@@ -99,6 +99,8 @@ class Pixels(commands.Cog):
             except asyncio.CancelledError:
                 log.info("Pixels stream consumer task cancelled.")
                 break
+            except TimeoutError:
+                log.info("Pixels stream connection timed out. Reconnecting...")
             except Exception:
                 log.exception("Error consuming Pixels API stream.")
                 await asyncio.sleep(5)
